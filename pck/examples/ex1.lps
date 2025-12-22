@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="12"/>
+    <BuildModes Active="Default"/>
+    <Units>
+      <Unit>
+        <Filename Value="ex1.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <TopLine Value="157"/>
+        <CursorPos X="64" Y="175"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="1639"/>
+        <CursorPos X="140" Y="1658"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="D:\fpcupdeluxe\fpcsrc\packages\rtl-extra\src\inc\matrix.pp"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="21"/>
+        <CursorPos X="29" Y="40"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="linmath.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LinMath"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="610"/>
+        <CursorPos X="24" Y="629"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="1204"/>
+        <CursorPos X="41" Y="1222"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+    </Units>
+    <JumpHistory HistoryIndex="29">
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="103" Column="7" TopLine="76"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="72" Column="53" TopLine="64"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="30" Column="20"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="89" Column="14" TopLine="70"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="88" Column="9" TopLine="69"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="99" Column="13" TopLine="80"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="85" Column="28" TopLine="74"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="111" Column="22" TopLine="92"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="113" Column="54" TopLine="94"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="120" Column="41" TopLine="97"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="116" Column="39" TopLine="97"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="132" Column="27" TopLine="100"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="120" Column="66" TopLine="101"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="128" TopLine="109"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="126" Column="67" TopLine="109"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="136" Column="43" TopLine="117"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="31" Column="11" TopLine="15"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="136" Column="55" TopLine="117"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="145" Column="52" TopLine="117"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="170" TopLine="133"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="7"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="209" Column="5" TopLine="172"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="118" TopLine="90"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="223" Column="7" TopLine="187"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="120" Column="49" TopLine="101"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="30" Column="49" TopLine="11"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="143" TopLine="125"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="175" Column="76" TopLine="157"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="1223" Column="55" TopLine="1204"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="1218" Column="31" TopLine="1204"/>
+      </Position>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode=""/>
+    </RunParams>
+  </ProjectSession>
+</CONFIG>

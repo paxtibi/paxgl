@@ -1,0 +1,6 @@
+/bin/*/*.exe
+*.log
+*.compiled
+*.o
+*.obj
+*.ppu
