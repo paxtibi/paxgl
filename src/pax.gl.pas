@@ -30,71 +30,67 @@ const
   GL_FALSE = 0;
   GL_TRUE = 1;
 
-  GL_POINTS         = $0000;
-  GL_LINES          = $0001;
-  GL_LINE_LOOP      = $0002;
-  GL_LINE_STRIP     = $0003;
-  GL_TRIANGLES      = $0004;
+  GL_POINTS = $0000;
+  GL_LINES = $0001;
+  GL_LINE_LOOP = $0002;
+  GL_LINE_STRIP = $0003;
+  GL_TRIANGLES = $0004;
   GL_TRIANGLE_STRIP = $0005;
-  GL_TRIANGLE_FAN   = $0006;
-  GL_QUADS          = $0007;
-  GL_QUAD_STRIP     = $0008;
-  GL_POLYGON        = $0009;
+  GL_TRIANGLE_FAN = $0006;
+  GL_QUADS = $0007;
+  GL_QUAD_STRIP = $0008;
+  GL_POLYGON = $0009;
 
-  // Modalità di shading
-  GL_FLAT           = $1D00;
-  GL_SMOOTH         = $1D01;
+  GL_FLAT = $1D00;
+  GL_SMOOTH = $1D01;
 
-  // Matrici
-  GL_MODELVIEW      = $1700;
-  GL_PROJECTION     = $1701;
-  GL_TEXTURE        = $1702;
+  GL_MODELVIEW = $1700;
+  GL_PROJECTION = $1701;
+  GL_TEXTURE = $1702;
 
-  // Stack di matrici
-  GL_MODELVIEW_MATRIX  = $0BA6;
+  GL_MODELVIEW_MATRIX = $0BA6;
   GL_PROJECTION_MATRIX = $0BA7;
 
-  // Abilitazione stati
-  GL_DEPTH_TEST     = $0B71;
-  GL_CULL_FACE      = $0B44;
-  GL_LIGHTING       = $0B50;
+  GL_DEPTH_TEST = $0B71;
+  GL_CULL_FACE = $0B44;
+  GL_LIGHTING = $0B50;
   GL_COLOR_MATERIAL = $0B57;
-  GL_NORMALIZE      = $0BA1;
-  GL_ALPHA_TEST     = $0BC0;
-  GL_BLEND          = $0BE2;
-  GL_FOG            = $0B60;
+  GL_NORMALIZE = $0BA1;
+  GL_ALPHA_TEST = $0BC0;
+  GL_BLEND = $0BE2;
+  GL_FOG = $0B60;
 
-  // Facce per culling
-  GL_FRONT          = $0404;
-  GL_BACK           = $0405;
+  GL_FRONT = $0404;
+  GL_BACK = $0405;
   GL_FRONT_AND_BACK = $0408;
 
-  // Direzione winding per culling
-  GL_CW             = $0900;
-  GL_CCW            = $0901;
+  GL_CW = $0900;
+  GL_CCW = $0901;
 
-  // Funzioni di blending comuni
-  GL_ZERO                = 0;
-  GL_ONE                 = 1;
-  GL_SRC_COLOR           = $0300;
+  GL_ZERO = 0;
+  GL_ONE = 1;
+  GL_SRC_COLOR = $0300;
   GL_ONE_MINUS_SRC_COLOR = $0301;
-  GL_DST_COLOR           = $0306;
+  GL_DST_COLOR = $0306;
   GL_ONE_MINUS_DST_COLOR = $0307;
-  GL_SRC_ALPHA           = $0302;
+  GL_SRC_ALPHA = $0302;
   GL_ONE_MINUS_SRC_ALPHA = $0303;
-  GL_DST_ALPHA           = $0304;
+  GL_DST_ALPHA = $0304;
   GL_ONE_MINUS_DST_ALPHA = $0305;
-  GL_CONSTANT_COLOR      = $8001;
+  GL_CONSTANT_COLOR = $8001;
   GL_ONE_MINUS_CONSTANT_COLOR = $8002;
-  GL_CONSTANT_ALPHA      = $8003;
+  GL_CONSTANT_ALPHA = $8003;
   GL_ONE_MINUS_CONSTANT_ALPHA = $8004;
 
-  GL_LIGHT0         = $4000;
-  GL_AMBIENT        = $1200;
-  GL_DIFFUSE        = $1201;
-  GL_SPECULAR       = $1202;
-  GL_POSITION       = $1203;
-  GL_EMISSION       = $1600;
+  GL_LIGHT0 = $4000;
+  GL_AMBIENT = $1200;
+  GL_DIFFUSE = $1201;
+  GL_SPECULAR = $1202;
+  GL_POSITION = $1203;
+  GL_EMISSION = $1600;
+
+  GL_COMPILE = $1300;
+  GL_AMBIENT_AND_DIFFUSE = $1602;
 
   {$IFNDEF OPENGL_CORE_4_6}
   GL_QUADS = $0007;
@@ -218,6 +214,7 @@ const
   GL_ALPHA = $1906;
   GL_RGB = $1907;
   GL_RGBA = $1908;
+  GL_LUMINANCE = $1909;
   GL_POINT = $1B00;
   GL_LINE = $1B01;
   GL_FILL = $1B02;
@@ -239,6 +236,7 @@ const
   GL_TEXTURE_MIN_FILTER = $2801;
   GL_TEXTURE_WRAP_S = $2802;
   GL_TEXTURE_WRAP_T = $2803;
+  GL_CLAMP = $2900;
   GL_REPEAT = $2901;
   // OGL 1.1
   GL_COLOR_LOGIC_OP = $0BF2;
@@ -1506,172 +1504,469 @@ type
 
   IOpenGL10 = interface
     ['{A4665333-B396-4E1C-AA8E-4A434272AD62}']
-    procedure glCullFace(mode: GLenum); overload;
-    procedure glFrontFace(mode: GLenum); overload;
-    procedure glHint(target, mode: GLenum); overload;
-    procedure glLineWidth(Width: GLfloat); overload;
-    procedure glPointSize(size: GLfloat); overload;
-    procedure glPolygonMode(face, mode: GLenum); overload;
-    procedure glScissor(x, y: GLint; Width, Height: GLsizei); overload;
-
-    procedure glTexParameterf(target, pname: GLenum; param: GLfloat); overload;
-    procedure glTexParameterfv(target, pname: GLenum; const params: PGLfloat); overload;
-    procedure glTexParameteri(target, pname: GLenum; param: GLint); overload;
-    procedure glTexParameteriv(target, pname: GLenum; const params: PGLint); overload;
-
-    procedure glTexImage1D(target: GLenum; level, internalformat: GLint; Width: GLsizei; border: GLint; format, aType: GLenum; pixels: PGLvoid); overload;
-
-    procedure glTexImage2D(target: GLenum; level, internalformat: GLint; Width, Height: GLsizei; border: GLint; format, aType: GLenum; pixels: PGLvoid); overload;
-
-    procedure glDrawBuffer(buf: GLenum); overload;
-    procedure glClear(mask: GLbitfield); overload;
-    procedure glClearColor(red, green, blue, alpha: GLfloat); overload;
-    procedure glClearStencil(s: GLint); overload;
-    procedure glClearDepth(depth: GLdouble); overload;
-    procedure glStencilMask(mask: GLuint); overload;
-    procedure glColorMask(red, green, blue, alpha: GLboolean); overload;
-    procedure glDepthMask(flag: GLboolean); overload;
-    procedure glDisable(cap: GLenum); overload;
-    procedure glEnable(cap: GLenum); overload;
-    procedure glFinish; overload;
-    procedure glFlush; overload;
-
-    procedure glBlendFunc(sfactor, dfactor: GLenum); overload;
-    procedure glLogicOp(opcode: GLenum); overload;
-    procedure glStencilFunc(func: GLenum; ref: GLint; mask: GLuint); overload;
-    procedure glStencilOp(fail, zfail, zpass: GLenum); overload;
-    procedure glDepthFunc(func: GLenum); overload;
-
-    procedure glPixelStoref(pname: GLenum; param: GLfloat); overload;
-    procedure glPixelStorei(pname: GLenum; param: GLint); overload;
-    procedure glReadBuffer(src: GLenum); overload;
-
-    procedure glReadPixels(x, y: GLint; Width, Height: GLsizei; format, aType: GLenum; pixels: PGLvoid); overload;
-
-    procedure glGetBooleanv(pname: GLenum; Data: PGLboolean); overload;
-    procedure glGetDoublev(pname: GLenum; Data: PGLdouble); overload;
-    function glGetError: GLenum; overload;
-    procedure glGetFloatv(pname: GLenum; Data: PGLfloat); overload;
-    procedure glGetIntegerv(pname: GLenum; Data: PGLint); overload;
-    function glGetString(Name: GLenum): PGLubyte; overload;
-
-    procedure glGetTexImage(target: GLenum; level: GLint; format, aType: GLenum; pixels: PGLvoid); overload;
-
-    procedure glGetTexParameterfv(target, pname: GLenum; params: PGLfloat); overload;
-    procedure glGetTexParameteriv(target, pname: GLenum; params: PGLint); overload;
-    procedure glGetTexLevelParameterfv(target: GLenum; level: GLint; pname: GLenum; params: PGLfloat); overload;
-    procedure glGetTexLevelParameteriv(target: GLenum; level: GLint; pname: GLenum; params: PGLint); overload;
-
-    function glIsEnabled(cap: GLenum): GLboolean; overload;
-
-    procedure glDepthRange(n, f: GLdouble); overload;
-    procedure glViewport(x, y: GLint; Width, Height: GLsizei); overload;
+    procedure glAccum(op: GLenum; Value: GLfloat);
+    procedure glAlphaFunc(func: GLenum; ref: GLclampf);
     procedure glBegin(mode: GLenum);
-    procedure glEnd;
-
-    procedure glVertex2f(x, y: GLfloat);
-    procedure glVertex2fv(v: PGLfloat);
-    procedure glVertex3f(x, y, z: GLfloat);
-    procedure glVertex3fv(v: PGLfloat);
-
+    procedure glBitmap(Width, Height: GLsizei; xorig, yorig: GLfloat; xmove, ymove: GLfloat; bitmap: PGLubyte);
+    procedure glBlendFunc(sfactor, dfactor: GLenum);
+    procedure glCallList(list: GLuint);
+    procedure glCallLists(n: GLsizei; atype: GLenum; lists: Pointer);
+    procedure glClear(mask: GLbitfield);
+    procedure glClearAccum(red, green, blue, alpha: GLfloat);
+    procedure glClearColor(red, green, blue, alpha: GLclampf);
+    procedure glClearDepth(depth: GLclampd);
+    procedure glClearIndex(c: GLfloat);
+    procedure glClearStencil(s: GLint);
+    procedure glClipPlane(plane: GLenum; equation: PGLdouble);
+    procedure glColor3b(red, green, blue: GLbyte);
+    procedure glColor3bv(v: PGLbyte);
+    procedure glColor3d(red, green, blue: GLdouble);
+    procedure glColor3dv(v: PGLdouble);
     procedure glColor3f(red, green, blue: GLfloat);
     procedure glColor3fv(v: PGLfloat);
+    procedure glColor3i(red, green, blue: GLint);
+    procedure glColor3iv(v: PGLint);
+    procedure glColor3s(red, green, blue: GLshort);
+    procedure glColor3sv(v: PGLshort);
+    procedure glColor3ub(red, green, blue: GLubyte);
+    procedure glColor3ubv(v: PGLubyte);
+    procedure glColor3ui(red, green, blue: GLuint);
+    procedure glColor3uiv(v: PGLuint);
+    procedure glColor3us(red, green, blue: GLushort);
+    procedure glColor3usv(v: PGLushort);
+    procedure glColor4b(red, green, blue, alpha: GLbyte);
+    procedure glColor4bv(v: PGLbyte);
+    procedure glColor4d(red, green, blue, alpha: GLdouble);
+    procedure glColor4dv(v: PGLdouble);
     procedure glColor4f(red, green, blue, alpha: GLfloat);
     procedure glColor4fv(v: PGLfloat);
-
+    procedure glColor4i(red, green, blue, alpha: GLint);
+    procedure glColor4iv(v: PGLint);
+    procedure glColor4s(red, green, blue, alpha: GLshort);
+    procedure glColor4sv(v: PGLshort);
+    procedure glColor4ub(red, green, blue, alpha: GLubyte);
+    procedure glColor4ubv(v: PGLubyte);
+    procedure glColor4ui(red, green, blue, alpha: GLuint);
+    procedure glColor4uiv(v: PGLuint);
+    procedure glColor4us(red, green, blue, alpha: GLushort);
+    procedure glColor4usv(v: PGLushort);
+    procedure glColorMask(red, green, blue, alpha: GLboolean);
+    procedure glColorMaterial(face, mode: GLenum);
+    procedure glCopyPixels(x, y: GLint; Width, Height: GLsizei; atype: GLenum);
+    procedure glCullFace(mode: GLenum);
+    procedure glDeleteLists(list: GLuint; range: GLsizei);
+    procedure glDepthFunc(func: GLenum);
+    procedure glDepthMask(flag: GLboolean);
+    procedure glDepthRange(zNear, zFar: GLclampd);
+    procedure glDisable(cap: GLenum);
+    procedure glDrawBuffer(mode: GLenum);
+    procedure glDrawPixels(Width, Height: GLsizei; format, atype: GLenum; pixels: Pointer);
+    procedure glEdgeFlag(flag: GLboolean);
+    procedure glEdgeFlagv(flag: PGLboolean);
+    procedure glEnable(cap: GLenum);
+    procedure glEnd;
+    procedure glEndList;
+    procedure glEvalCoord1d(u: GLdouble);
+    procedure glEvalCoord1dv(u: PGLdouble);
+    procedure glEvalCoord1f(u: GLfloat);
+    procedure glEvalCoord1fv(u: PGLfloat);
+    procedure glEvalCoord2d(u, v: GLdouble);
+    procedure glEvalCoord2dv(u: PGLdouble);
+    procedure glEvalCoord2f(u, v: GLfloat);
+    procedure glEvalCoord2fv(u: PGLfloat);
+    procedure glEvalMesh1(mode: GLenum; i1, i2: GLint);
+    procedure glEvalMesh2(mode: GLenum; i1, i2, j1, j2: GLint);
+    procedure glEvalPoint1(i: GLint);
+    procedure glEvalPoint2(i, j: GLint);
+    procedure glFeedbackBuffer(size: GLsizei; atype: GLenum; buffer: PGLfloat);
+    procedure glFinish;
+    procedure glFlush;
+    procedure glFogf(pname: GLenum; param: GLfloat);
+    procedure glFogfv(pname: GLenum; params: PGLfloat);
+    procedure glFogi(pname: GLenum; param: GLint);
+    procedure glFogiv(pname: GLenum; params: PGLint);
+    procedure glFrontFace(mode: GLenum);
+    procedure glFrustum(left, right, bottom, top, zNear, zFar: GLdouble);
+    function glGenLists(range: GLsizei): GLuint;
+    procedure glGetBooleanv(pname: GLenum; params: PGLboolean);
+    procedure glGetClipPlane(plane: GLenum; equation: PGLdouble);
+    procedure glGetDoublev(pname: GLenum; params: PGLdouble);
+    procedure glGetFloatv(pname: GLenum; params: PGLfloat);
+    procedure glGetIntegerv(pname: GLenum; params: PGLint);
+    procedure glGetLightfv(light, pname: GLenum; params: PGLfloat);
+    procedure glGetLightiv(light, pname: GLenum; params: PGLint);
+    procedure glGetMapdv(target, query: GLenum; v: PGLdouble);
+    procedure glGetMapfv(target, query: GLenum; v: PGLfloat);
+    procedure glGetMapiv(target, query: GLenum; v: PGLint);
+    procedure glGetMaterialfv(face, pname: GLenum; params: PGLfloat);
+    procedure glGetMaterialiv(face, pname: GLenum; params: PGLint);
+    procedure glGetPixelMapfv(map: GLenum; values: PGLfloat);
+    procedure glGetPixelMapuiv(map: GLenum; values: PGLuint);
+    procedure glGetPixelMapusv(map: GLenum; values: PGLushort);
+    procedure glGetPolygonStipple(mask: PGLubyte);
+    procedure glGetTexEnvfv(target, pname: GLenum; params: PGLfloat);
+    procedure glGetTexEnviv(target, pname: GLenum; params: PGLint);
+    procedure glGetTexGendv(coord, pname: GLenum; params: PGLdouble);
+    procedure glGetTexGenfv(coord, pname: GLenum; params: PGLfloat);
+    procedure glGetTexGeniv(coord, pname: GLenum; params: PGLint);
+    procedure glGetTexImage(target: GLenum; level: GLint; format, atype: GLenum; pixels: Pointer);
+    procedure glGetTexLevelParameterfv(target: GLenum; level: GLint; pname: GLenum; params: PGLfloat);
+    procedure glGetTexLevelParameteriv(target: GLenum; level: GLint; pname: GLenum; params: PGLint);
+    procedure glGetTexParameterfv(target, pname: GLenum; params: PGLfloat);
+    procedure glGetTexParameteriv(target, pname: GLenum; params: PGLint);
+    procedure glHint(target, mode: GLenum);
+    procedure glIndexMask(mask: GLuint);
+    procedure glIndexd(c: GLdouble);
+    procedure glIndexdv(c: PGLdouble);
+    procedure glIndexf(c: GLfloat);
+    procedure glIndexfv(c: PGLfloat);
+    procedure glIndexi(c: GLint);
+    procedure glIndexiv(c: PGLint);
+    procedure glIndexs(c: GLshort);
+    procedure glIndexsv(c: PGLshort);
+    procedure glIndexub(c: GLubyte);
+    procedure glIndexubv(c: PGLubyte);
+    procedure glInitNames;
+    function glIsEnabled(cap: GLenum): GLboolean;
+    function glIsList(list: GLuint): GLboolean;
+    procedure glLightModelf(pname: GLenum; param: GLfloat);
+    procedure glLightModelfv(pname: GLenum; params: PGLfloat);
+    procedure glLightModeli(pname: GLenum; param: GLint);
+    procedure glLightModeliv(pname: GLenum; params: PGLint);
+    procedure glLightf(light, pname: GLenum; param: GLfloat);
+    procedure glLightfv(light, pname: GLenum; params: PGLfloat);
+    procedure glLighti(light, pname: GLenum; param: GLint);
+    procedure glLightiv(light, pname: GLenum; params: PGLint);
+    procedure glLineStipple(factor: GLint; pattern: GLushort);
+    procedure glLineWidth(Width: GLfloat);
+    procedure glListBase(base: GLuint);
+    procedure glLoadIdentity;
+    procedure glLoadMatrixd(m: PGLdouble);
+    procedure glLoadMatrixf(m: PGLfloat);
+    procedure glLoadName(Name: GLuint);
+    procedure glLogicOp(opcode: GLenum);
+    procedure glMap1d(target: GLenum; u1, u2: GLdouble; stride, order: GLint; points: PGLdouble);
+    procedure glMap1f(target: GLenum; u1, u2: GLfloat; stride, order: GLint; points: PGLfloat);
+    procedure glMap2d(target: GLenum; u1, u2: GLdouble; ustride, uorder: GLint; v1, v2: GLdouble; vstride, vorder: GLint; points: PGLdouble);
+    procedure glMap2f(target: GLenum; u1, u2: GLfloat; ustride, uorder: GLint; v1, v2: GLfloat; vstride, vorder: GLint; points: PGLfloat);
+    procedure glMapGrid1d(un: GLint; u1, u2: GLdouble);
+    procedure glMapGrid1f(un: GLint; u1, u2: GLfloat);
+    procedure glMapGrid2d(un: GLint; u1, u2: GLdouble; vn: GLint; v1, v2: GLdouble);
+    procedure glMapGrid2f(un: GLint; u1, u2: GLfloat; vn: GLint; v1, v2: GLfloat);
+    procedure glMaterialf(face, pname: GLenum; param: GLfloat);
+    procedure glMaterialfv(face, pname: GLenum; params: PGLfloat);
+    procedure glMateriali(face, pname: GLenum; param: GLint);
+    procedure glMaterialiv(face, pname: GLenum; params: PGLint);
+    procedure glMatrixMode(mode: GLenum);
+    procedure glMultMatrixd(m: PGLdouble);
+    procedure glMultMatrixf(m: PGLfloat);
+    procedure glNewList(list: GLuint; mode: GLenum);
+    procedure glNormal3b(nx, ny, nz: GLbyte);
+    procedure glNormal3bv(v: PGLbyte);
+    procedure glNormal3d(nx, ny, nz: GLdouble);
+    procedure glNormal3dv(v: PGLdouble);
     procedure glNormal3f(nx, ny, nz: GLfloat);
     procedure glNormal3fv(v: PGLfloat);
-
+    procedure glNormal3i(nx, ny, nz: GLint);
+    procedure glNormal3iv(v: PGLint);
+    procedure glNormal3s(nx, ny, nz: GLshort);
+    procedure glNormal3sv(v: PGLshort);
+    procedure glOrtho(left, right, bottom, top, zNear, zFar: GLdouble);
+    procedure glPassThrough(token: GLfloat);
+    procedure glPixelMapfv(map: GLenum; mapsize: GLsizei; values: PGLfloat);
+    procedure glPixelMapuiv(map: GLenum; mapsize: GLsizei; values: PGLuint);
+    procedure glPixelMapusv(map: GLenum; mapsize: GLsizei; values: PGLushort);
+    procedure glPixelStoref(pname: GLenum; param: GLfloat);
+    procedure glPixelStorei(pname: GLenum; param: GLint);
+    procedure glPixelTransferf(pname: GLenum; param: GLfloat);
+    procedure glPixelTransferi(pname: GLenum; param: GLint);
+    procedure glPixelZoom(xfactor, yfactor: GLfloat);
+    procedure glPointSize(size: GLfloat);
+    procedure glPolygonMode(face, mode: GLenum);
+    procedure glPolygonStipple(mask: PGLubyte);
+    procedure glPopAttrib;
+    procedure glPopClientAttrib;
+    procedure glPopMatrix;
+    procedure glPopName;
+    procedure glPushAttrib(mask: GLbitfield);
+    procedure glPushClientAttrib(mask: GLbitfield);
+    procedure glPushMatrix;
+    procedure glPushName(Name: GLuint);
+    procedure glRasterPos2d(x, y: GLdouble);
+    procedure glRasterPos2dv(v: PGLdouble);
+    procedure glRasterPos2f(x, y: GLfloat);
+    procedure glRasterPos2fv(v: PGLfloat);
+    procedure glRasterPos2i(x, y: GLint);
+    procedure glRasterPos2iv(v: PGLint);
+    procedure glRasterPos2s(x, y: GLshort);
+    procedure glRasterPos2sv(v: PGLshort);
+    procedure glRasterPos3d(x, y, z: GLdouble);
+    procedure glRasterPos3dv(v: PGLdouble);
+    procedure glRasterPos3f(x, y, z: GLfloat);
+    procedure glRasterPos3fv(v: PGLfloat);
+    procedure glRasterPos3i(x, y, z: GLint);
+    procedure glRasterPos3iv(v: PGLint);
+    procedure glRasterPos3s(x, y, z: GLshort);
+    procedure glRasterPos3sv(v: PGLshort);
+    procedure glRasterPos4d(x, y, z, w: GLdouble);
+    procedure glRasterPos4dv(v: PGLdouble);
+    procedure glRasterPos4f(x, y, z, w: GLfloat);
+    procedure glRasterPos4fv(v: PGLfloat);
+    procedure glRasterPos4i(x, y, z, w: GLint);
+    procedure glRasterPos4iv(v: PGLint);
+    procedure glRasterPos4s(x, y, z, w: GLshort);
+    procedure glRasterPos4sv(v: PGLshort);
+    procedure glReadBuffer(mode: GLenum);
+    procedure glReadPixels(x, y: GLint; Width, Height: GLsizei; format, atype: GLenum; pixels: Pointer);
+    procedure glRectd(x1, y1, x2, y2: GLdouble);
+    procedure glRectdv(v1, v2: PGLdouble);
+    procedure glRectf(x1, y1, x2, y2: GLfloat);
+    procedure glRectfv(v1, v2: PGLfloat);
+    procedure glRecti(x1, y1, x2, y2: GLint);
+    procedure glRectiv(v1, v2: PGLint);
+    procedure glRects(x1, y1, x2, y2: GLshort);
+    procedure glRectsv(v1, v2: PGLshort);
+    function glRenderMode(mode: GLenum): GLint;
+    procedure glRotated(angle, x, y, z: GLdouble);
+    procedure glRotatef(angle, x, y, z: GLfloat);
+    procedure glScaled(x, y, z: GLdouble);
+    procedure glScalef(x, y, z: GLfloat);
+    procedure glScissor(x, y: GLint; Width, Height: GLsizei);
+    procedure glSelectBuffer(size: GLsizei; buffer: PGLuint);
+    procedure glShadeModel(mode: GLenum);
+    procedure glStencilFunc(func: GLenum; ref: GLint; mask: GLuint);
+    procedure glStencilMask(mask: GLuint);
+    procedure glStencilOp(fail, zfail, zpass: GLenum);
+    procedure glTexCoord1d(s: GLdouble);
+    procedure glTexCoord1dv(v: PGLdouble);
+    procedure glTexCoord1f(s: GLfloat);
+    procedure glTexCoord1fv(v: PGLfloat);
+    procedure glTexCoord1i(s: GLint);
+    procedure glTexCoord1iv(v: PGLint);
+    procedure glTexCoord1s(s: GLshort);
+    procedure glTexCoord1sv(v: PGLshort);
+    procedure glTexCoord2d(s, t: GLdouble);
+    procedure glTexCoord2dv(v: PGLdouble);
     procedure glTexCoord2f(s, t: GLfloat);
     procedure glTexCoord2fv(v: PGLfloat);
-
-    procedure glMatrixMode(mode: GLenum);
-    procedure glLoadIdentity;
-    procedure glLoadMatrixf(const m: PGLfloat);
-    procedure glMultMatrixf(const m: PGLfloat);
-    procedure glPushMatrix;
-    procedure glPopMatrix;
-
+    procedure glTexCoord2i(s, t: GLint);
+    procedure glTexCoord2iv(v: PGLint);
+    procedure glTexCoord2s(s, t: GLshort);
+    procedure glTexCoord2sv(v: PGLshort);
+    procedure glTexCoord3d(s, t, r: GLdouble);
+    procedure glTexCoord3dv(v: PGLdouble);
+    procedure glTexCoord3f(s, t, r: GLfloat);
+    procedure glTexCoord3fv(v: PGLfloat);
+    procedure glTexCoord3i(s, t, r: GLint);
+    procedure glTexCoord3iv(v: PGLint);
+    procedure glTexCoord3s(s, t, r: GLshort);
+    procedure glTexCoord3sv(v: PGLshort);
+    procedure glTexCoord4d(s, t, r, q: GLdouble);
+    procedure glTexCoord4dv(v: PGLdouble);
+    procedure glTexCoord4f(s, t, r, q: GLfloat);
+    procedure glTexCoord4fv(v: PGLfloat);
+    procedure glTexCoord4i(s, t, r, q: GLint);
+    procedure glTexCoord4iv(v: PGLint);
+    procedure glTexCoord4s(s, t, r, q: GLshort);
+    procedure glTexCoord4sv(v: PGLshort);
+    procedure glTexEnvf(target, pname: GLenum; param: GLfloat);
+    procedure glTexEnvfv(target, pname: GLenum; params: PGLfloat);
+    procedure glTexEnvi(target, pname: GLenum; param: GLint);
+    procedure glTexEnviv(target, pname: GLenum; params: PGLint);
+    procedure glTexGend(coord, pname: GLenum; param: GLdouble);
+    procedure glTexGendv(coord, pname: GLenum; params: PGLdouble);
+    procedure glTexGenf(coord, pname: GLenum; param: GLfloat);
+    procedure glTexGenfv(coord, pname: GLenum; params: PGLfloat);
+    procedure glTexGeni(coord, pname: GLenum; param: GLint);
+    procedure glTexGeniv(coord, pname: GLenum; params: PGLint);
+    procedure glTexImage1D(target: GLenum; level, internalformat: GLint; Width: GLsizei; border: GLint; format, atype: GLenum; pixels: Pointer);
+    procedure glTexImage2D(target: GLenum; level, internalformat: GLint; Width, Height: GLsizei; border: GLint; format, atype: GLenum; pixels: Pointer);
+    procedure glTexParameterf(target, pname: GLenum; param: GLfloat);
+    procedure glTexParameterfv(target, pname: GLenum; params: PGLfloat);
+    procedure glTexParameteri(target, pname: GLenum; param: GLint);
+    procedure glTexParameteriv(target, pname: GLenum; params: PGLint);
+    procedure glTranslated(x, y, z: GLdouble);
     procedure glTranslatef(x, y, z: GLfloat);
-    procedure glRotatef(angle, x, y, z: GLfloat);
-    procedure glScalef(x, y, z: GLfloat);
-
-    procedure glShadeModel(mode: GLenum);
+    procedure glVertex2d(x, y: GLdouble);
+    procedure glVertex2dv(v: PGLdouble);
+    procedure glVertex2f(x, y: GLfloat);
+    procedure glVertex2fv(v: PGLfloat);
+    procedure glVertex2i(x, y: GLint);
+    procedure glVertex2iv(v: PGLint);
+    procedure glVertex2s(x, y: GLshort);
+    procedure glVertex2sv(v: PGLshort);
+    procedure glVertex3d(x, y, z: GLdouble);
+    procedure glVertex3dv(v: PGLdouble);
+    procedure glVertex3f(x, y, z: GLfloat);
+    procedure glVertex3fv(v: PGLfloat);
+    procedure glVertex3i(x, y, z: GLint);
+    procedure glVertex3iv(v: PGLint);
+    procedure glVertex3s(x, y, z: GLshort);
+    procedure glVertex3sv(v: PGLshort);
+    procedure glVertex4d(x, y, z, w: GLdouble);
+    procedure glVertex4dv(v: PGLdouble);
+    procedure glVertex4f(x, y, z, w: GLfloat);
+    procedure glVertex4fv(v: PGLfloat);
+    procedure glVertex4i(x, y, z, w: GLint);
+    procedure glVertex4iv(v: PGLint);
+    procedure glVertex4s(x, y, z, w: GLshort);
+    procedure glVertex4sv(v: PGLshort);
+    procedure glViewport(x, y: GLint; Width, Height: GLsizei);
   end;
 
   IOpenGL11 = interface(IOpenGL10)
     ['{20E6E8AB-A9FA-43D7-8502-5F297E4BBFEB}']
-    procedure glDrawArrays(mode: GLenum; First: GLint; Count: GLsizei); overload;
-    procedure glDrawElements(mode: GLenum; Count: GLsizei; typ: GLenum; const indices: PGLvoid); overload;
-    procedure glGetPointerv(pname: GLenum; params: PPGLvoid); overload;
-    procedure glPolygonOffset(factor, units: GLfloat); overload;
-    procedure glCopyTexImage1D(target: GLenum; level: GLint; internalformat: GLenum; x, y: GLint; Width: GLsizei; border: GLint); overload;
-    procedure glCopyTexImage2D(target: GLenum; level: GLint; internalformat: GLenum; x, y: GLint; Width, Height: GLsizei; border: GLint); overload;
-    procedure glCopyTexSubImage1D(target: GLenum; level: GLint; xoffset: GLint; x, y: GLint; Width: GLsizei); overload;
-    procedure glCopyTexSubImage2D(target: GLenum; level: GLint; xoffset, yoffset: GLint; x, y: GLint; Width, Height: GLsizei); overload;
-    procedure glTexSubImage1D(target: GLenum; level: GLint; xoffset: GLint; Width: GLsizei; format, typ: GLenum; const pixels: PGLvoid); overload;
-    procedure glTexSubImage2D(target: GLenum; level: GLint; xoffset, yoffset: GLint; Width, Height: GLsizei; format, typ: GLenum; const pixels: PGLvoid); overload;
-    procedure glBindTexture(target: GLenum; texture: GLuint); overload;
-    procedure glDeleteTextures(n: GLsizei; const textures: PGLuint); overload;
-    procedure glGenTextures(n: GLsizei; textures: PGLuint); overload;
-    function glIsTexture(texture: GLuint): GLboolean; overload;
+    function glAreTexturesResident(n: GLsizei; textures: PGLuint; residences: PGLboolean): GLboolean;
+    procedure glArrayElement(i: GLint);
+    procedure glBindTexture(target: GLenum; texture: GLuint);
+    procedure glColorPointer(size: GLint; atype: GLenum; stride: GLsizei; pointer: Pointer);
+    procedure glDisableClientState(aArray: GLenum);
+    procedure glDrawArrays(mode: GLenum; First: GLint; Count: GLsizei);
+    procedure glDrawElements(mode: GLenum; Count: GLsizei; atype: GLenum; indices: Pointer);
+    procedure glEdgeFlagPointer(stride: GLsizei; pointer: Pointer);
+    procedure glEnableClientState(aArray: GLenum);
+    procedure glGetPointerv(pname: GLenum; params: PPointer);
+    procedure glIndexPointer(atype: GLenum; stride: GLsizei; pointer: Pointer);
+    procedure glInterleavedArrays(format: GLenum; stride: GLsizei; pointer: Pointer);
+    procedure glNormalPointer(atype: GLenum; stride: GLsizei; pointer: Pointer);
+    procedure glPolygonOffset(factor, units: GLfloat);
+    procedure glPrioritizeTextures(n: GLsizei; textures: PGLuint; priorities: PGLclampf);
+    procedure glTexCoordPointer(size: GLint; atype: GLenum; stride: GLsizei; pointer: Pointer);
+    procedure glTexSubImage1D(target: GLenum; level, xoffset: GLint; Width: GLsizei; format, atype: GLenum; pixels: Pointer);
+    procedure glTexSubImage2D(target: GLenum; level, xoffset, yoffset: GLint; Width, Height: GLsizei; format, atype: GLenum; pixels: Pointer);
+    procedure glVertexPointer(size: GLint; atype: GLenum; stride: GLsizei; pointer: Pointer);
+
   end;
 
   IOpenGL12 = interface(IOpenGL11)
     ['{F24FBECB-BC73-4E01-A271-0B071B96D6F0}']
-    procedure glDrawRangeElements(mode: uint32; start: uint32; end_: uint32; Count: int32; typ: uint32; const indices: Pointer); overload;
-    procedure glTexImage3D(target: uint32; level: int32; internalformat: int32; Width: int32; Height: int32; depth: int32; border: int32; format: uint32; typ: uint32; const pixels: Pointer); overload;
-    procedure glTexSubImage3D(target: uint32; level: int32; xoffset: int32; yoffset: int32; zoffset: int32; Width: int32; Height: int32; depth: int32; format: uint32; typ: uint32; const pixels: Pointer); overload;
-    procedure glCopyTexSubImage3D(target: uint32; level: int32; xoffset: int32; yoffset: int32; zoffset: int32; x: int32; y: int32; Width: int32; Height: int32); overload;
+    procedure glCopyTexSubImage3D(target: GLenum; level: GLint; xoffset, yoffset, zoffset: GLint; x, y: GLint; Width, Height: GLsizei);
+    procedure glDrawRangeElements(mode: GLenum; start, aend: GLuint; Count: GLsizei; atype: GLenum; indices: Pointer);
+    procedure glTexImage3D(target: GLenum; level: GLint; internalformat: GLint; Width, Height, depth: GLsizei; border: GLint; format, atype: GLenum; pixels: Pointer);
+    procedure glTexSubImage3D(target: GLenum; level: GLint; xoffset, yoffset, zoffset: GLint; Width, Height, depth: GLsizei; format, atype: GLenum; pixels: Pointer);
   end;
 
   IOpenGL13 = interface(IOpenGL12)
     ['{4333FD65-A160-4A65-BD3C-70330DC0E388}']
-    procedure glActiveTexture(texture: uint32);
-    procedure glSampleCoverage(Value: single; invert: uint8);
-    procedure glCompressedTexImage3D(target: uint32; level: int32; internalformat: uint32; Width: int32; Height: int32; depth: int32; border: int32; imageSize: int32; const Data: Pointer); overload;
-    procedure glCompressedTexImage2D(target: uint32; level: int32; internalformat: uint32; Width: int32; Height: int32; border: int32; imageSize: int32; const Data: Pointer); overload;
-    procedure glCompressedTexImage1D(target: uint32; level: int32; internalformat: uint32; Width: int32; border: int32; imageSize: int32; const Data: Pointer); overload;
-    procedure glCompressedTexSubImage3D(target: uint32; level: int32; xoffset: int32; yoffset: int32; zoffset: int32; Width: int32; Height: int32; depth: int32; format: uint32; imageSize: int32; const Data: Pointer); overload;
-    procedure glCompressedTexSubImage2D(target: uint32; level: int32; xoffset: int32; yoffset: int32; Width: int32; Height: int32; format: uint32; imageSize: int32; const Data: Pointer); overload;
-    procedure glCompressedTexSubImage1D(target: uint32; level: int32; xoffset: int32; Width: int32; format: uint32; imageSize: int32; const Data: Pointer); overload;
-    procedure glGetCompressedTexImage(target: uint32; level: int32; img: Pointer); overload;
+    procedure glActiveTexture(texture: GLenum);
+    procedure glClientActiveTexture(texture: GLenum);
+    procedure glCompressedTexImage1D(target: GLenum; level: GLint; internalformat: GLenum; Width: GLsizei; border: GLint; imageSize: GLsizei; Data: Pointer);
+    procedure glCompressedTexImage2D(target: GLenum; level: GLint; internalformat: GLenum; Width, Height: GLsizei; border: GLint; imageSize: GLsizei; Data: Pointer);
+    procedure glCompressedTexImage3D(target: GLenum; level: GLint; internalformat: GLenum; Width, Height, depth: GLsizei; border: GLint; imageSize: GLsizei; Data: Pointer);
+    procedure glCompressedTexSubImage1D(target: GLenum; level: GLint; xoffset: GLint; Width: GLsizei; format: GLenum; imageSize: GLsizei; Data: Pointer);
+    procedure glCompressedTexSubImage2D(target: GLenum; level: GLint; xoffset, yoffset: GLint; Width, Height: GLsizei; format: GLenum; imageSize: GLsizei; Data: Pointer);
+    procedure glCompressedTexSubImage3D(target: GLenum; level: GLint; xoffset, yoffset, zoffset: GLint; Width, Height, depth: GLsizei; format: GLenum; imageSize: GLsizei; Data: Pointer);
+    procedure glGetCompressedTexImage(target: GLenum; level: GLint; img: Pointer);
+    procedure glLoadTransposeMatrixd(m: PGLdouble);
+    procedure glLoadTransposeMatrixf(m: PGLfloat);
+    procedure glMultTransposeMatrixd(m: PGLdouble);
+    procedure glMultTransposeMatrixf(m: PGLfloat);
+    procedure glMultiTexCoord1d(target: GLenum; s: GLdouble);
+    procedure glMultiTexCoord1dv(target: GLenum; v: PGLdouble);
+    procedure glMultiTexCoord1f(target: GLenum; s: GLfloat);
+    procedure glMultiTexCoord1fv(target: GLenum; v: PGLfloat);
+    procedure glMultiTexCoord1i(target: GLenum; s: GLint);
+    procedure glMultiTexCoord1iv(target: GLenum; v: PGLint);
+    procedure glMultiTexCoord1s(target: GLenum; s: GLshort);
+    procedure glMultiTexCoord1sv(target: GLenum; v: PGLshort);
+    procedure glMultiTexCoord2d(target: GLenum; s, t: GLdouble);
+    procedure glMultiTexCoord2dv(target: GLenum; v: PGLdouble);
+    procedure glMultiTexCoord2f(target: GLenum; s, t: GLfloat);
+    procedure glMultiTexCoord2fv(target: GLenum; v: PGLfloat);
+    procedure glMultiTexCoord2i(target: GLenum; s, t: GLint);
+    procedure glMultiTexCoord2iv(target: GLenum; v: PGLint);
+    procedure glMultiTexCoord2s(target: GLenum; s, t: GLshort);
+    procedure glMultiTexCoord2sv(target: GLenum; v: PGLshort);
+    procedure glMultiTexCoord3d(target: GLenum; s, t, r: GLdouble);
+    procedure glMultiTexCoord3dv(target: GLenum; v: PGLdouble);
+    procedure glMultiTexCoord3f(target: GLenum; s, t, r: GLfloat);
+    procedure glMultiTexCoord3fv(target: GLenum; v: PGLfloat);
+    procedure glMultiTexCoord3i(target: GLenum; s, t, r: GLint);
+    procedure glMultiTexCoord3iv(target: GLenum; v: PGLint);
+    procedure glMultiTexCoord3s(target: GLenum; s, t, r: GLshort);
+    procedure glMultiTexCoord3sv(target: GLenum; v: PGLshort);
+    procedure glMultiTexCoord4d(target: GLenum; s, t, r, q: GLdouble);
+    procedure glMultiTexCoord4dv(target: GLenum; v: PGLdouble);
+    procedure glMultiTexCoord4f(target: GLenum; s, t, r, q: GLfloat);
+    procedure glMultiTexCoord4fv(target: GLenum; v: PGLfloat);
+    procedure glMultiTexCoord4i(target: GLenum; s, t, r, q: GLint);
+    procedure glMultiTexCoord4iv(target: GLenum; v: PGLint);
+    procedure glMultiTexCoord4s(target: GLenum; s, t, r, q: GLshort);
+    procedure glMultiTexCoord4sv(target: GLenum; v: PGLshort);
+    procedure glSampleCoverage(Value: GLclampf; invert: GLboolean);
   end;
 
   IOpenGL14 = interface(IOpenGL13)
     ['{B8EB43C9-5C35-46EF-A38D-A73D094B0A7F}']
-    procedure glBlendFuncSeparate(sfactorRGB: GLenum; dfactorRGB: GLenum; sfactorAlpha: GLenum; dfactorAlpha: GLenum); overload;
-    procedure glMultiDrawArrays(mode: GLenum; const First: PGLint; const Count: PGLsizei; drawcount: GLsizei); overload;
-    procedure glMultiDrawElements(mode: GLenum; const Count: PGLsizei; typ: GLenum; const indices: PPointer; drawcount: GLsizei); overload;
-    procedure glPointParameterf(pname: GLenum; param: GLfloat); overload;
-    procedure glPointParameterfv(pname: GLenum; const params: PGLfloat); overload;
-    procedure glPointParameteri(pname: GLenum; param: GLint); overload;
-    procedure glPointParameteriv(pname: GLenum; const params: PGLint); overload;
-    procedure glBlendColor(red: GLfloat; green: GLfloat; blue: GLfloat; alpha: GLfloat); overload;
-    procedure glBlendEquation(mode: GLenum); overload;
+    procedure glBlendColor(red, green, blue, alpha: GLclampf);
+    procedure glBlendEquation(mode: GLenum);
+    procedure glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha: GLenum);
+    procedure glFogCoordd(coord: GLdouble);
+    procedure glFogCoorddv(coord: PGLdouble);
+    procedure glFogCoordf(coord: GLfloat);
+    procedure glFogCoordfv(coord: PGLfloat);
+    procedure glFogCoordPointer(atype: GLenum; stride: GLsizei; pointer: Pointer);
+    procedure glMultiDrawArrays(mode: GLenum; First: PGLint; Count: PGLsizei; primcount: GLsizei);
+    procedure glMultiDrawElements(mode: GLenum; Count: PGLsizei; atype: GLenum; indices: PPointer; primcount: GLsizei);
+    procedure glPointParameterf(pname: GLenum; param: GLfloat);
+    procedure glPointParameterfv(pname: GLenum; params: PGLfloat);
+    procedure glPointParameteri(pname: GLenum; param: GLint);
+    procedure glPointParameteriv(pname: GLenum; params: PGLint);
+    procedure glSecondaryColor3b(red, green, blue: GLbyte);
+    procedure glSecondaryColor3bv(v: PGLbyte);
+    procedure glSecondaryColor3d(red, green, blue: GLdouble);
+    procedure glSecondaryColor3dv(v: PGLdouble);
+    procedure glSecondaryColor3f(red, green, blue: GLfloat);
+    procedure glSecondaryColor3fv(v: PGLfloat);
+    procedure glSecondaryColor3i(red, green, blue: GLint);
+    procedure glSecondaryColor3iv(v: PGLint);
+    procedure glSecondaryColor3s(red, green, blue: GLshort);
+    procedure glSecondaryColor3sv(v: PGLshort);
+    procedure glSecondaryColor3ub(red, green, blue: GLubyte);
+    procedure glSecondaryColor3ubv(v: PGLubyte);
+    procedure glSecondaryColor3ui(red, green, blue: GLuint);
+    procedure glSecondaryColor3uiv(v: PGLuint);
+    procedure glSecondaryColor3us(red, green, blue: GLushort);
+    procedure glSecondaryColor3usv(v: PGLushort);
+    procedure glWindowPos2d(x, y: GLdouble);
+    procedure glWindowPos2dv(v: PGLdouble);
+    procedure glWindowPos2f(x, y: GLfloat);
+    procedure glWindowPos2fv(v: PGLfloat);
+    procedure glWindowPos2i(x, y: GLint);
+    procedure glWindowPos2iv(v: PGLint);
+    procedure glWindowPos2s(x, y: GLshort);
+    procedure glWindowPos2sv(v: PGLshort);
+    procedure glWindowPos3d(x, y, z: GLdouble);
+    procedure glWindowPos3dv(v: PGLdouble);
+    procedure glWindowPos3f(x, y, z: GLfloat);
+    procedure glWindowPos3fv(v: PGLfloat);
+    procedure glWindowPos3i(x, y, z: GLint);
+    procedure glWindowPos3iv(v: PGLint);
+    procedure glWindowPos3s(x, y, z: GLshort);
+    procedure glWindowPos3sv(v: PGLshort);
   end;
 
   IOpenGL15 = interface(IOpenGL14)
     ['{5EDC3854-4945-4BF8-BBC7-2C172A43D78B}']
-    procedure glGenBuffers(n: GLsizei; buffers: PGLuint);
-    procedure glDeleteBuffers(n: GLsizei; const buffers: PGLuint);
+     procedure glBeginQuery(target: GLenum; id: GLuint);
     procedure glBindBuffer(target: GLenum; buffer: GLuint);
-    procedure glBufferData(target: GLenum; size: GLsizeiptr; Data: PGLvoid; usage: GLenum);
-    procedure glBufferSubData(target: GLenum; offset: GLintptr; size: GLsizeiptr; Data: PGLvoid);
-    procedure glGetBufferSubData(target: GLenum; offset: GLintptr; size: GLsizeiptr; Data: PGLvoid);
-    function glMapBuffer(target: GLenum; access: GLenum): PGLvoid;
-    function glUnmapBuffer(target: GLenum): GLboolean;
-    procedure glGetBufferParameteriv(target: GLenum; pname: GLenum; params: PGLint);
-    procedure glGetBufferPointerv(target: GLenum; pname: GLenum; params: PPGLvoid);
-    function glIsBuffer(buffer: GLuint): GLboolean;
-    procedure glGenQueries(n: GLsizei; ids: PGLuint);
-    procedure glDeleteQueries(n: GLsizei; const ids: PGLuint);
-    function glIsQuery(id: GLuint): GLboolean;
-    procedure glBeginQuery(target: GLenum; id: GLuint);
+    procedure glBufferData(target: GLenum; size: GLsizeiptr; data: Pointer; usage: GLenum);
+    procedure glBufferSubData(target: GLenum; offset: GLintptr; size: GLsizeiptr; data: Pointer);
+    procedure glDeleteBuffers(n: GLsizei; buffers: PGLuint);
+    procedure glDeleteQueries(n: GLsizei; ids: PGLuint);
     procedure glEndQuery(target: GLenum);
-    procedure glGetQueryiv(target: GLenum; pname: GLenum; params: PGLint);
+    procedure glGenBuffers(n: GLsizei; buffers: PGLuint);
+    procedure glGenQueries(n: GLsizei; ids: PGLuint);
+    procedure glGetBufferParameteriv(target, pname: GLenum; params: PGLint);
+    procedure glGetBufferPointerv(target, pname: GLenum; params: PPointer);
+    procedure glGetBufferSubData(target: GLenum; offset: GLintptr; size: GLsizeiptr; data: Pointer);
+    procedure glGetQueryiv(target, pname: GLenum; params: PGLint);
     procedure glGetQueryObjectiv(id: GLuint; pname: GLenum; params: PGLint);
     procedure glGetQueryObjectuiv(id: GLuint; pname: GLenum; params: PGLuint);
+    function  glIsBuffer(buffer: GLuint): GLboolean;
+    function  glIsQuery(id: GLuint): GLboolean;
+    function glMapBuffer(target: GLenum; access: GLenum): Pointer;
+    function  glUnmapBuffer(target: GLenum): GLboolean;
   end;
 
   IOpenGL20 = interface(IOpenGL15)
@@ -2580,6 +2875,20 @@ type
     FglScalef: procedure(x, y, z: GLfloat); cdecl;
 
     FglShadeModel: procedure(mode: GLenum); cdecl;
+    // Display Lists
+    FglGenLists: function(range: GLsizei): GLuint; cdecl;
+    FglNewList: procedure(list: GLuint; mode: GLenum); cdecl;
+    FglEndList: procedure; cdecl;
+    FglCallList: procedure(list: GLuint); cdecl;
+
+    // Material & Lighting
+    FglMaterialfv: procedure(face, pname: GLenum; const params: PGLfloat); cdecl;
+    FglLightfv: procedure(light, pname: GLenum; const params: PGLfloat); cdecl;
+
+    // Projection
+    FglFrustum: procedure(left, right, bottom, top, zNear, zFar: GLdouble); cdecl;
+    FglOrtho: procedure(left, right, bottom, top, zNear, zFar: GLdouble); cdecl;
+
   protected
     procedure bindEntry; override;
   public
@@ -2677,6 +2986,18 @@ type
 
     // State
     procedure glShadeModel(mode: GLenum); inline; overload;
+    function glGenLists(range: GLsizei): GLuint;
+    procedure glNewList(list: GLuint; mode: GLenum);
+    procedure glEndList;
+    procedure glCallList(list: GLuint);
+
+    // Material & Lighting
+    procedure glMaterialfv(face, pname: GLenum; const params: PGLfloat);
+    procedure glLightfv(light, pname: GLenum; const params: PGLfloat);
+
+    // Projection
+    procedure glFrustum(left, right, bottom, top, zNear, zFar: GLdouble);
+    procedure glOrtho(left, right, bottom, top, zNear, zFar: GLdouble);
   end;
 
   { TOpenGL_1_1 }
@@ -5191,11 +5512,70 @@ begin
   Pointer(FglScalef) := LoadProc('glScalef');
 
   Pointer(FglShadeModel) := LoadProc('glShadeModel');
+  Pointer(FglGenLists) := LoadProc('glGenLists');
+  Pointer(FglNewList) := LoadProc('glNewList');
+  Pointer(FglEndList) := LoadProc('glEndList');
+  Pointer(FglCallList) := LoadProc('glCallList');
+
+  Pointer(FglMaterialfv) := LoadProc('glMaterialfv');
+  Pointer(FglLightfv) := LoadProc('glLightfv');
+
+  Pointer(FglFrustum) := LoadProc('glFrustum');
+end;
+
+function TOpenGL_1_0.glGenLists(range: GLsizei): GLuint;
+begin
+  if Assigned(FglGenLists) then
+    Result := FglGenLists(range)
+  else
+    Result := 0;
+end;
+
+procedure TOpenGL_1_0.glNewList(list: GLuint; mode: GLenum);
+begin
+  if Assigned(FglNewList) then
+    FglNewList(list, mode);
+end;
+
+procedure TOpenGL_1_0.glEndList;
+begin
+  if Assigned(FglEndList) then
+    FglEndList;
+end;
+
+procedure TOpenGL_1_0.glCallList(list: GLuint);
+begin
+  if Assigned(FglCallList) then
+    FglCallList(list);
+end;
+
+procedure TOpenGL_1_0.glMaterialfv(face, pname: GLenum; const params: PGLfloat);
+begin
+  if Assigned(FglMaterialfv) then
+    FglMaterialfv(face, pname, params);
+end;
+
+procedure TOpenGL_1_0.glLightfv(light, pname: GLenum; const params: PGLfloat);
+begin
+  if Assigned(FglLightfv) then
+    FglLightfv(light, pname, params);
+end;
+
+procedure TOpenGL_1_0.glFrustum(left, right, bottom, top, zNear, zFar: GLdouble);
+begin
+  if Assigned(FglFrustum) then
+    FglFrustum(left, right, bottom, top, zNear, zFar);
 end;
 
 procedure TOpenGL_1_0.glCullFace(mode: GLenum);
 begin
   if Assigned(FGLCullFace) then FGLCullFace(mode);
+end;
+
+procedure TOpenGL_1_0.glOrtho(left, right, bottom, top, zNear, zFar: GLdouble);
+begin
+  if Assigned(fglOrtho) then
+    fglOrtho(left, right, bottom, top, zNear, zFar);
 end;
 
 procedure TOpenGL_1_0.glFrontFace(mode: GLenum);
