@@ -1571,9 +1571,9 @@ type
     procedure glEvalCoord1f(u: GLfloat);
     procedure glEvalCoord1fv(u: PGLfloat);
     procedure glEvalCoord2d(u, v: GLdouble);
-    procedure glEvalCoord2dv(u: PGLdouble);
+    procedure glEvalCoord2dv(v: PGLdouble);
     procedure glEvalCoord2f(u, v: GLfloat);
-    procedure glEvalCoord2fv(u: PGLfloat);
+    procedure glEvalCoord2fv(v: PGLfloat);
     procedure glEvalMesh1(mode: GLenum; i1, i2: GLint);
     procedure glEvalMesh2(mode: GLenum; i1, i2, j1, j2: GLint);
     procedure glEvalPoint1(i: GLint);
@@ -1685,11 +1685,9 @@ type
     procedure glPolygonMode(face, mode: GLenum);
     procedure glPolygonStipple(mask: PGLubyte);
     procedure glPopAttrib;
-    procedure glPopClientAttrib;
     procedure glPopMatrix;
     procedure glPopName;
     procedure glPushAttrib(mask: GLbitfield);
-    procedure glPushClientAttrib(mask: GLbitfield);
     procedure glPushMatrix;
     procedure glPushName(Name: GLuint);
     procedure glRasterPos2d(x, y: GLdouble);
@@ -1816,7 +1814,7 @@ type
 
   IOpenGL11 = interface(IOpenGL10)
     ['{20E6E8AB-A9FA-43D7-8502-5F297E4BBFEB}']
-    function glAreTexturesResident(n: GLsizei; textures: PGLuint; residences: PGLboolean): GLboolean;
+    procedure glAreTexturesResident(n: GLsizei; textures: PGLuint; residences: PGLboolean);
     procedure glArrayElement(i: GLint);
     procedure glBindTexture(target: GLenum; texture: GLuint);
     procedure glColorPointer(size: GLint; atype: GLenum; stride: GLsizei; pointer: Pointer);
@@ -1835,7 +1833,6 @@ type
     procedure glTexSubImage1D(target: GLenum; level, xoffset: GLint; Width: GLsizei; format, atype: GLenum; pixels: Pointer);
     procedure glTexSubImage2D(target: GLenum; level, xoffset, yoffset: GLint; Width, Height: GLsizei; format, atype: GLenum; pixels: Pointer);
     procedure glVertexPointer(size: GLint; atype: GLenum; stride: GLsizei; pointer: Pointer);
-
   end;
 
   IOpenGL12 = interface(IOpenGL11)
@@ -1948,10 +1945,10 @@ type
 
   IOpenGL15 = interface(IOpenGL14)
     ['{5EDC3854-4945-4BF8-BBC7-2C172A43D78B}']
-     procedure glBeginQuery(target: GLenum; id: GLuint);
+    procedure glBeginQuery(target: GLenum; id: GLuint);
     procedure glBindBuffer(target: GLenum; buffer: GLuint);
-    procedure glBufferData(target: GLenum; size: GLsizeiptr; data: Pointer; usage: GLenum);
-    procedure glBufferSubData(target: GLenum; offset: GLintptr; size: GLsizeiptr; data: Pointer);
+    procedure glBufferData(target: GLenum; size: GLsizeiptr; Data: Pointer; usage: GLenum);
+    procedure glBufferSubData(target: GLenum; offset: GLintptr; size: GLsizeiptr; Data: Pointer);
     procedure glDeleteBuffers(n: GLsizei; buffers: PGLuint);
     procedure glDeleteQueries(n: GLsizei; ids: PGLuint);
     procedure glEndQuery(target: GLenum);
@@ -1959,725 +1956,267 @@ type
     procedure glGenQueries(n: GLsizei; ids: PGLuint);
     procedure glGetBufferParameteriv(target, pname: GLenum; params: PGLint);
     procedure glGetBufferPointerv(target, pname: GLenum; params: PPointer);
-    procedure glGetBufferSubData(target: GLenum; offset: GLintptr; size: GLsizeiptr; data: Pointer);
+    procedure glGetBufferSubData(target: GLenum; offset: GLintptr; size: GLsizeiptr; Data: Pointer);
     procedure glGetQueryiv(target, pname: GLenum; params: PGLint);
     procedure glGetQueryObjectiv(id: GLuint; pname: GLenum; params: PGLint);
     procedure glGetQueryObjectuiv(id: GLuint; pname: GLenum; params: PGLuint);
-    function  glIsBuffer(buffer: GLuint): GLboolean;
-    function  glIsQuery(id: GLuint): GLboolean;
+    function glIsBuffer(buffer: GLuint): GLboolean;
+    function glIsQuery(id: GLuint): GLboolean;
     function glMapBuffer(target: GLenum; access: GLenum): Pointer;
-    function  glUnmapBuffer(target: GLenum): GLboolean;
+    function glUnmapBuffer(target: GLenum): GLboolean;
   end;
 
   IOpenGL20 = interface(IOpenGL15)
     ['{7AAC5368-B939-42DB-8A2A-C7B52404A4A2}']
-    function glCreateShader(shaderType: GLenum): GLuint; overload;
-    procedure glDeleteShader(shaderObj: GLuint); overload;
-    procedure glShaderSource(shaderObj: GLuint; Count: GLsizei; const strings: PPGLchar; const length: PGLint); overload;
-    procedure glCompileShader(shaderObj: GLuint); overload;
-    procedure glGetShaderiv(shaderObj: GLuint; pname: GLenum; params: PGLint); overload;
-    procedure glGetShaderInfoLog(shaderObj: GLuint; maxLength: GLsizei; length: PGLint; infoLog: PGLchar); overload;
-    function glIsShader(shaderObj: GLuint): GLboolean; overload;
-
-    function glCreateProgram: GLuint; overload;
-    procedure glDeleteProgram(programObj: GLuint); overload;
-    procedure glAttachShader(programObj, shaderObj: GLuint); overload;
-    procedure glDetachShader(programObj, shaderObj: GLuint); overload;
-    procedure glLinkProgram(programObj: GLuint); overload;
-    procedure glUseProgram(programObj: GLuint); overload;
-    procedure glValidateProgram(programObj: GLuint); overload;
-    procedure glGetProgramiv(programObj: GLuint; pname: GLenum; params: PGLint); overload;
-    procedure glGetProgramInfoLog(programObj: GLuint; maxLength: GLsizei; length: PGLint; infoLog: PGLchar); overload;
-    function glIsProgram(programObj: GLuint): GLboolean; overload;
-    procedure glBindAttribLocation(programObj: GLuint; index: GLuint; const Name: PGLchar); overload;
-    procedure glGetActiveAttrib(programObj, index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLint; typ: PGLenum; Name: PGLchar); overload;
-    procedure glGetAttachedShaders(programObj: GLuint; maxCount: GLsizei; Count: PGLsizei; shaders: PGLuint); overload;
-    function glGetAttribLocation(programObj: GLuint; const Name: PGLchar): GLint; overload;
-    function glGetUniformLocation(programObj: GLuint; const Name: PGLchar): GLint; overload;
-    procedure glGetActiveUniform(programObj, index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLint; typ: PGLenum; Name: PGLchar); overload;
-
-    procedure glUniform1f(location: GLint; v0: GLfloat); overload;
-    procedure glUniform2f(location: GLint; v0, v1: GLfloat); overload;
-    procedure glUniform3f(location: GLint; v0, v1, v2: GLfloat); overload;
-    procedure glUniform4f(location: GLint; v0, v1, v2, v3: GLfloat); overload;
-    procedure glUniform1i(location: GLint; v0: GLint); overload;
-    procedure glUniform2i(location: GLint; v0, v1: GLint); overload;
-    procedure glUniform3i(location: GLint; v0, v1, v2: GLint); overload;
-    procedure glUniform4i(location: GLint; v0, v1, v2, v3: GLint); overload;
-
-    procedure glUniform1fv(location: GLint; Count: GLsizei; Value: PGLfloat); overload;
-    procedure glUniform2fv(location: GLint; Count: GLsizei; Value: PGLfloat); overload;
-    procedure glUniform3fv(location: GLint; Count: GLsizei; Value: PGLfloat); overload;
-    procedure glUniform4fv(location: GLint; Count: GLsizei; Value: PGLfloat); overload;
-    procedure glUniform1iv(location: GLint; Count: GLsizei; Value: PGLint); overload;
-    procedure glUniform2iv(location: GLint; Count: GLsizei; Value: PGLint); overload;
-    procedure glUniform3iv(location: GLint; Count: GLsizei; Value: PGLint); overload;
-    procedure glUniform4iv(location: GLint; Count: GLsizei; Value: PGLint); overload;
-
-    procedure glUniformMatrix2fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat); overload;
-    procedure glUniformMatrix3fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat); overload;
-    procedure glUniformMatrix4fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat); overload;
-
-    procedure glVertexAttribPointer(index: GLuint; size: GLint; typ: GLenum; normalized: GLboolean; stride: GLsizei; const pointer: Pointer); overload;
-    procedure glEnableVertexAttribArray(index: GLuint); overload;
-    procedure glDisableVertexAttribArray(index: GLuint); overload;
-    procedure glGetVertexAttribiv(index: GLuint; pname: GLenum; params: PGLint); overload;
-    procedure glGetVertexAttribfv(index: GLuint; pname: GLenum; params: PGLfloat); overload;
-    procedure glGetVertexAttribPointerv(index: GLuint; pname: GLenum; pointer: PPointer); overload;
-
-    procedure glStencilOpSeparate(face, sfail, dpfail, dppass: GLenum); overload;
-    procedure glStencilFuncSeparate(face: GLenum; func: GLenum; ref: GLint; mask: GLuint); overload;
-    procedure glStencilMaskSeparate(face: GLenum; mask: GLuint); overload;
-    procedure glDrawBuffers(n: GLsizei; const bufs: PGLenum); overload;
+    procedure glAttachShader(programObj: GLuint; shaderObj: GLuint);
+    procedure glBindAttribLocation(programObj: GLuint; index: GLuint; Name: PGLchar);
+    procedure glCompileShader(shaderObj: GLuint);
+    function glCreateProgram: GLuint;
+    function glCreateShader(shaderType: GLenum): GLuint;
+    procedure glDeleteProgram(programObj: GLuint);
+    procedure glDeleteShader(shaderObj: GLuint);
+    procedure glDetachShader(programObj: GLuint; shaderObj: GLuint);
+    procedure glDisableVertexAttribArray(index: GLuint);
+    procedure glEnableVertexAttribArray(index: GLuint);
+    procedure glGetActiveAttrib(programObj: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLint; atype: PGLenum; Name: PGLchar);
+    procedure glGetActiveUniform(programObj: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLint; atype: PGLenum; Name: PGLchar);
+    procedure glGetAttachedShaders(programObj: GLuint; maxCount: GLsizei; Count: PGLsizei; obj: PGLuint);
+    function glGetAttribLocation(programObj: GLuint; Name: PGLchar): GLint;
+    procedure glGetProgramiv(programObj: GLuint; pname: GLenum; params: PGLint);
+    procedure glGetProgramInfoLog(programObj: GLuint; bufSize: GLsizei; length: PGLsizei; infoLog: PGLchar);
+    procedure glGetShaderiv(shaderObj: GLuint; pname: GLenum; params: PGLint);
+    procedure glGetShaderInfoLog(shaderObj: GLuint; bufSize: GLsizei; length: PGLsizei; infoLog: PGLchar);
+    procedure glGetShaderSource(shaderObj: GLuint; bufSize: GLsizei; length: PGLsizei; Source: PGLchar);
+    function glGetUniformLocation(programObj: GLuint; Name: PGLchar): GLint;
+    procedure glGetUniformfv(programObj: GLuint; location: GLint; params: PGLfloat);
+    procedure glGetUniformiv(programObj: GLuint; location: GLint; params: PGLint);
+    procedure glGetVertexAttribdv(index: GLuint; pname: GLenum; params: PGLdouble);
+    procedure glGetVertexAttribfv(index: GLuint; pname: GLenum; params: PGLfloat);
+    procedure glGetVertexAttribiv(index: GLuint; pname: GLenum; params: PGLint);
+    procedure glGetVertexAttribPointerv(index: GLuint; pname: GLenum; pointer: PPointer);
+    function glIsProgram(programObj: GLuint): GLboolean;
+    function glIsShader(shaderObj: GLuint): GLboolean;
+    procedure glLinkProgram(programObj: GLuint);
+    procedure glShaderSource(shaderObj: GLuint; Count: GLsizei; const string_: PPGLchar; const length: PGLint);
+    procedure glUseProgram(programObj: GLuint);
+    procedure glUniform1f(location: GLint; v0: GLfloat);
+    procedure glUniform2f(location: GLint; v0, v1: GLfloat);
+    procedure glUniform3f(location: GLint; v0, v1, v2: GLfloat);
+    procedure glUniform4f(location: GLint; v0, v1, v2, v3: GLfloat);
+    procedure glUniform1i(location: GLint; v0: GLint);
+    procedure glUniform2i(location: GLint; v0, v1: GLint);
+    procedure glUniform3i(location: GLint; v0, v1, v2: GLint);
+    procedure glUniform4i(location: GLint; v0, v1, v2, v3: GLint);
+    procedure glUniform1fv(location: GLint; Count: GLsizei; Value: PGLfloat);
+    procedure glUniform2fv(location: GLint; Count: GLsizei; Value: PGLfloat);
+    procedure glUniform3fv(location: GLint; Count: GLsizei; Value: PGLfloat);
+    procedure glUniform4fv(location: GLint; Count: GLsizei; Value: PGLfloat);
+    procedure glUniform1iv(location: GLint; Count: GLsizei; Value: PGLint);
+    procedure glUniform2iv(location: GLint; Count: GLsizei; Value: PGLint);
+    procedure glUniform3iv(location: GLint; Count: GLsizei; Value: PGLint);
+    procedure glUniform4iv(location: GLint; Count: GLsizei; Value: PGLint);
+    procedure glUniformMatrix2fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat);
+    procedure glUniformMatrix3fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat);
+    procedure glUniformMatrix4fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat);
+    procedure glValidateProgram(programObj: GLuint);
+    procedure glVertexAttrib1d(index: GLuint; x: GLdouble);
+    procedure glVertexAttrib1dv(index: GLuint; v: PGLdouble);
+    procedure glVertexAttrib1f(index: GLuint; x: GLfloat);
+    procedure glVertexAttrib1fv(index: GLuint; v: PGLfloat);
+    procedure glVertexAttrib1s(index: GLuint; x: GLshort);
+    procedure glVertexAttrib1sv(index: GLuint; v: PGLshort);
+    procedure glVertexAttrib2d(index: GLuint; x, y: GLdouble);
+    procedure glVertexAttrib2dv(index: GLuint; v: PGLdouble);
+    procedure glVertexAttrib2f(index: GLuint; x, y: GLfloat);
+    procedure glVertexAttrib2fv(index: GLuint; v: PGLfloat);
+    procedure glVertexAttrib2s(index: GLuint; x, y: GLshort);
+    procedure glVertexAttrib2sv(index: GLuint; v: PGLshort);
+    procedure glVertexAttrib3d(index: GLuint; x, y, z: GLdouble);
+    procedure glVertexAttrib3dv(index: GLuint; v: PGLdouble);
+    procedure glVertexAttrib3f(index: GLuint; x, y, z: GLfloat);
+    procedure glVertexAttrib3fv(index: GLuint; v: PGLfloat);
+    procedure glVertexAttrib3s(index: GLuint; x, y, z: GLshort);
+    procedure glVertexAttrib3sv(index: GLuint; v: PGLshort);
+    procedure glVertexAttrib4Nbv(index: GLuint; v: PGLbyte);
+    procedure glVertexAttrib4Niv(index: GLuint; v: PGLint);
+    procedure glVertexAttrib4Nsv(index: GLuint; v: PGLshort);
+    procedure glVertexAttrib4Nub(index: GLuint; x, y, z, w: GLubyte);
+    procedure glVertexAttrib4Nubv(index: GLuint; v: PGLubyte);
+    procedure glVertexAttrib4Nuiv(index: GLuint; v: PGLuint);
+    procedure glVertexAttrib4Nusv(index: GLuint; v: PGLushort);
+    procedure glVertexAttrib4bv(index: GLuint; v: PGLbyte);
+    procedure glVertexAttrib4d(index: GLuint; x, y, z, w: GLdouble);
+    procedure glVertexAttrib4dv(index: GLuint; v: PGLdouble);
+    procedure glVertexAttrib4f(index: GLuint; x, y, z, w: GLfloat);
+    procedure glVertexAttrib4fv(index: GLuint; v: PGLfloat);
+    procedure glVertexAttrib4iv(index: GLuint; v: PGLint);
+    procedure glVertexAttrib4s(index: GLuint; x, y, z, w: GLshort);
+    procedure glVertexAttrib4sv(index: GLuint; v: PGLshort);
+    procedure glVertexAttrib4ubv(index: GLuint; v: PGLubyte);
+    procedure glVertexAttrib4uiv(index: GLuint; v: PGLuint);
+    procedure glVertexAttrib4usv(index: GLuint; v: PGLushort);
+    procedure glVertexAttribPointer(index: GLuint; size: GLint; atype: GLenum; normalized: GLboolean; stride: GLsizei; pointer: Pointer);
   end;
 
   IOpenGL21 = interface(IOpenGL20)
     ['{5D8FF625-789E-4415-BD04-E85ED49F76E8}']
-    procedure glUniformMatrix2x3fv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glUniformMatrix3x2fv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glUniformMatrix2x4fv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glUniformMatrix4x2fv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glUniformMatrix3x4fv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glUniformMatrix4x3fv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
+    procedure glUniformMatrix2x3fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat);
+    procedure glUniformMatrix3x2fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat);
+    procedure glUniformMatrix2x4fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat);
+    procedure glUniformMatrix4x2fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat);
+    procedure glUniformMatrix3x4fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat);
+    procedure glUniformMatrix4x3fv(location: GLint; Count: GLsizei; transpose: GLboolean; Value: PGLfloat);
   end;
 
   IOpenGL30 = interface(IOpenGL21)
     ['{713B8D48-80E4-4BEC-9EAE-4F61450F2D8E}']
-    procedure glColorMaski(index: GLuint; r, g, b, a: GLboolean); overload;
+    procedure glBindVertexArray(array_: GLuint);
+    procedure glDeleteVertexArrays(n: GLsizei; arrays: PGLuint);
+    procedure glGenVertexArrays(n: GLsizei; arrays: PGLuint);
+    function glIsVertexArray(array_: GLuint): GLboolean;
 
-    procedure glGetBooleani_v(target: GLenum; index: GLuint; Data: PGLboolean); overload;
-    procedure glGetIntegeri_v(target: GLenum; index: GLuint; Data: PGLint); overload;
-
-    procedure glEnablei(target: GLenum; index: GLuint); overload;
-    procedure glDisablei(target: GLenum; index: GLuint); overload;
-    function glIsEnabledi(target: GLenum; index: GLuint): GLboolean; overload;
-
-    procedure glBeginTransformFeedback(primitiveMode: GLenum); overload;
-    procedure glEndTransformFeedback; overload;
-
-    procedure glBindBufferRange(target: GLenum; index: GLuint; buffer: GLuint; offset: GLintptr; size: GLsizeiptr); overload;
-    procedure glBindBufferBase(target: GLenum; index: GLuint; buffer: GLuint); overload;
-
-    procedure glTransformFeedbackVaryings(aProgram: GLuint; Count: GLsizei; const varyings: PPGLchar; bufferMode: GLenum); overload;
-    procedure glGetTransformFeedbackVarying(aProgram: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLsizei; aType: PGLenum; Name: PGLchar); overload;
-
-    procedure glClampColor(target: GLenum; clamp: GLenum); overload;
-
-    procedure glBeginConditionalRender(id: GLuint; mode: GLenum); overload;
-    procedure glEndConditionalRender; overload;
-
-    procedure glVertexAttribIPointer(index: GLuint; size: GLint; aType: GLenum; stride: GLsizei; const pointer: Pointer); overload;
-    procedure glGetVertexAttribIiv(index: GLuint; pname: GLenum; params: PGLint); overload;
-    procedure glGetVertexAttribIuiv(index: GLuint; pname: GLenum; params: PGLuint); overload;
-
-    procedure glVertexAttribI1i(index: GLuint; x: GLint); overload;
-    procedure glVertexAttribI2i(index: GLuint; x, y: GLint); overload;
-    procedure glVertexAttribI3i(index: GLuint; x, y, z: GLint); overload;
-    procedure glVertexAttribI4i(index: GLuint; x, y, z, w: GLint); overload;
-
-    procedure glVertexAttribI1ui(index: GLuint; x: GLuint); overload;
-    procedure glVertexAttribI2ui(index: GLuint; x, y: GLuint); overload;
-    procedure glVertexAttribI3ui(index: GLuint; x, y, z: GLuint); overload;
-    procedure glVertexAttribI4ui(index: GLuint; x, y, z, w: GLuint); overload;
-
-    procedure glVertexAttribI1iv(index: GLuint; const v: PGLint); overload;
-    procedure glVertexAttribI2iv(index: GLuint; const v: PGLint); overload;
-    procedure glVertexAttribI3iv(index: GLuint; const v: PGLint); overload;
-    procedure glVertexAttribI4iv(index: GLuint; const v: PGLint); overload;
-
-    procedure glVertexAttribI1uiv(index: GLuint; const v: PGLuint); overload;
-    procedure glVertexAttribI2uiv(index: GLuint; const v: PGLuint); overload;
-    procedure glVertexAttribI3uiv(index: GLuint; const v: PGLuint); overload;
-    procedure glVertexAttribI4uiv(index: GLuint; const v: PGLuint); overload;
-
-    procedure glVertexAttribI4bv(index: GLuint; const v: PGLbyte); overload;
-    procedure glVertexAttribI4sv(index: GLuint; const v: PGLshort); overload;
-    procedure glVertexAttribI4ubv(index: GLuint; const v: PGLubyte); overload;
-    procedure glVertexAttribI4usv(index: GLuint; const v: PGLushort); overload;
-
-    procedure glGetUniformuiv(aProgram: GLuint; location: GLint; params: PGLuint); overload;
-    procedure glBindFragDataLocation(aProgram: GLuint; color: GLuint; const Name: PGLchar); overload;
-    function glGetFragDataLocation(aProgram: GLuint; const Name: PGLchar): GLint; overload;
-
-    procedure glUniform1ui(location: GLint; v0: GLuint); overload;
-    procedure glUniform2ui(location: GLint; v0, v1: GLuint); overload;
-    procedure glUniform3ui(location: GLint; v0, v1, v2: GLuint); overload;
-    procedure glUniform4ui(location: GLint; v0, v1, v2, v3: GLuint); overload;
-
-    procedure glUniform1uiv(location: GLint; Count: GLsizei; const Value: PGLuint); overload;
-    procedure glUniform2uiv(location: GLint; Count: GLsizei; const Value: PGLuint); overload;
-    procedure glUniform3uiv(location: GLint; Count: GLsizei; const Value: PGLuint); overload;
-    procedure glUniform4uiv(location: GLint; Count: GLsizei; const Value: PGLuint); overload;
-
-    procedure glTexParameterIiv(target: GLenum; pname: GLenum; const params: PGLint);
-    procedure glTexParameterIuiv(target: GLenum; pname: GLenum; const params: PGLuint);
-    procedure glGetTexParameterIiv(target: GLenum; pname: GLenum; params: PGLint);
-    procedure glGetTexParameterIuiv(target: GLenum; pname: GLenum; params: PGLuint);
-
-    procedure glClearBufferiv(buffer: GLenum; drawbuffer: GLint; const Value: PGLint);
-    procedure glClearBufferuiv(buffer: GLenum; drawbuffer: GLint; const Value: PGLuint);
-    procedure glClearBufferfv(buffer: GLenum; drawbuffer: GLint; const Value: PGLfloat);
-    procedure glClearBufferfi(buffer: GLenum; drawbuffer: GLint; depth: GLfloat; stencil: GLint);
-
-    function glGetStringi(Name: GLenum; index: GLuint): PGLubyte;
-
-    function glIsRenderbuffer(renderbuffer: GLuint): GLboolean;
-    procedure glBindRenderbuffer(target: GLenum; renderbuffer: GLuint);
-    procedure glDeleteRenderbuffers(n: GLsizei; const renderbuffers: PGLuint);
-    procedure glGenRenderbuffers(n: GLsizei; renderbuffers: PGLuint);
-    procedure glRenderbufferStorage(target: GLenum; internalformat: GLenum; Width, Height: GLsizei);
-    procedure glGetRenderbufferParameteriv(target: GLenum; pname: GLenum; params: PGLint);
-
-    function glIsFramebuffer(framebuffer: GLuint): GLboolean;
     procedure glBindFramebuffer(target: GLenum; framebuffer: GLuint);
-    procedure glDeleteFramebuffers(n: GLsizei; const framebuffers: PGLuint);
+    procedure glDeleteFramebuffers(n: GLsizei; framebuffers: PGLuint);
     procedure glGenFramebuffers(n: GLsizei; framebuffers: PGLuint);
     function glCheckFramebufferStatus(target: GLenum): GLenum;
-
     procedure glFramebufferTexture1D(target, attachment, textarget: GLenum; texture: GLuint; level: GLint);
     procedure glFramebufferTexture2D(target, attachment, textarget: GLenum; texture: GLuint; level: GLint);
     procedure glFramebufferTexture3D(target, attachment, textarget: GLenum; texture: GLuint; level, zoffset: GLint);
     procedure glFramebufferRenderbuffer(target, attachment, renderbuffertarget: GLenum; renderbuffer: GLuint);
-    procedure glGetFramebufferAttachmentParameteriv(target, attachment, pname: GLenum; params: PGLint);
-
     procedure glGenerateMipmap(target: GLenum);
 
-    procedure glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1: GLint; mask: GLbitfield; filter: GLenum);
+    procedure glBeginConditionalRender(id: GLuint; mode: GLenum);
+    procedure glEndConditionalRender;
 
-    procedure glRenderbufferStorageMultisample(target: GLenum; samples: GLsizei; internalformat: GLenum; Width, Height: GLsizei);
-
-    procedure glFramebufferTextureLayer(target, attachment: GLenum; texture: GLuint; level, layer: GLint);
-
-    function glMapBufferRange(target: GLenum; offset: GLintptr; length: GLsizeiptr; access: GLbitfield): Pointer;
-    procedure glFlushMappedBufferRange(target: GLenum; offset: GLintptr; length: GLsizeiptr);
-    procedure glBindVertexArray(array_: GLuint);
-    procedure glDeleteVertexArrays(n: GLsizei; const arrays: PGLuint);
-    procedure glGenVertexArrays(n: GLsizei; arrays: PGLuint);
-    function glIsVertexArray(array_: GLuint): GLboolean;
+    procedure glBeginTransformFeedback(primitiveMode: GLenum);
+    procedure glEndTransformFeedback;
+    procedure glTransformFeedbackVaryings(program_: GLuint; Count: GLsizei; const varyings: PPGLchar; bufferMode: GLenum);
+    procedure glGetTransformFeedbackVarying(program_: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLint; atype: PGLenum; Name: PGLchar);
   end;
-  // -------------------------------------------------------------------------
-  // OpenGL 3.1
-  // -------------------------------------------------------------------------
+
   IOpenGL31 = interface(IOpenGL30)
     ['{477CB265-7902-4C72-B438-7B40F7690CF1}']
-    procedure glDrawArraysInstanced(mode: GLenum; First: GLint; Count: GLsizei; instancecount: GLsizei); overload;
-    procedure glDrawElementsInstanced(mode: GLenum; Count: GLsizei; aType: GLenum; const indices: Pointer; instancecount: GLsizei); overload;
-    procedure glTexBuffer(target: GLenum; internalformat: GLenum; buffer: GLuint); overload;
-    procedure glPrimitiveRestartIndex(index: GLuint); overload;
-    procedure glCopyBufferSubData(readTarget, writeTarget: GLenum; readOffset, writeOffset: GLintptr; size: GLsizeiptr); overload;
-    procedure glGetUniformIndices(aProgram: GLuint; uniformCount: GLsizei; const uniformNames: PPGLchar; uniformIndices: PGLuint); overload;
-    procedure glGetActiveUniformsiv(aProgram: GLuint; uniformCount: GLsizei; const uniformIndices: PGLuint; pname: GLenum; params: PGLint); overload;
-    procedure glGetActiveUniformName(aProgram: GLuint; uniformIndex: GLuint; bufSize: GLsizei; length: PGLsizei; uniformName: PGLchar); overload;
-    function glGetUniformBlockIndex(aProgram: GLuint; const uniformBlockName: PGLchar): GLuint; overload;
-    procedure glGetActiveUniformBlockiv(aProgram: GLuint; uniformBlockIndex: GLuint; pname: GLenum; params: PGLint); overload;
-    procedure glGetActiveUniformBlockName(aProgram: GLuint; uniformBlockIndex: GLuint; bufSize: GLsizei; length: PGLsizei; uniformBlockName: PGLchar); overload;
-    procedure glUniformBlockBinding(aProgram: GLuint; uniformBlockIndex: GLuint; uniformBlockBinding: GLuint); overload;
+    procedure glDrawArraysInstanced(mode: GLenum; First: GLint; Count: GLsizei; instancecount: GLsizei);
+    procedure glDrawElementsInstanced(mode: GLenum; Count: GLsizei; atype: GLenum; indices: Pointer; instancecount: GLsizei);
+    procedure glPrimitiveRestartIndex(index: GLuint);
+    procedure glBindBufferBase(target: GLenum; index: GLuint; buffer: GLuint);
+    procedure glBindBufferRange(target: GLenum; index: GLuint; buffer: GLuint; offset: GLintptr; size: GLsizeiptr);
+    procedure glGetActiveUniformBlockiv(program_: GLuint; uniformBlockIndex: GLuint; pname: GLenum; params: PGLint);
+    procedure glGetActiveUniformBlockName(program_: GLuint; uniformBlockIndex: GLuint; bufSize: GLsizei; length: PGLsizei; uniformBlockName: PGLchar);
+    function glGetUniformBlockIndex(program_: GLuint; uniformBlockName: PGLchar): GLuint;
+    procedure glUniformBlockBinding(program_: GLuint; uniformBlockIndex: GLuint; uniformBlockBinding: GLuint);
   end;
 
-  // -------------------------------------------------------------------------
-  // OpenGL 3.2
-  // -------------------------------------------------------------------------
   IOpenGL32 = interface(IOpenGL31)
     ['{08EDCAE5-6C64-4F67-9BB9-66E1230E2F0E}']
-    procedure glDrawElementsBaseVertex(mode: GLenum; Count: GLsizei; aType: GLenum; const indices: Pointer; basevertex: GLint); overload;
-    procedure glDrawRangeElementsBaseVertex(mode: GLenum; start, end_: GLuint; Count: GLsizei; aType: GLenum; const indices: Pointer; basevertex: GLint); overload;
-    procedure glDrawElementsInstancedBaseVertex(mode: GLenum; Count: GLsizei; aType: GLenum; const indices: Pointer; instancecount: GLsizei; basevertex: GLint); overload;
-    procedure glMultiDrawElementsBaseVertex(mode: GLenum; const Count: PGLsizei; aType: GLenum; const indices: PPointer; drawcount: GLsizei; const basevertex: PGLint); overload;
-    procedure glProvokingVertex(mode: GLenum); overload;
+    procedure glFramebufferTexture(target: GLenum; attachment: GLenum; texture: GLuint; level: GLint);  // layered
+    procedure glDrawElementsBaseVertex(mode: GLenum; Count: GLsizei; atype: GLenum; indices: Pointer; basevertex: GLint);
+    procedure glDrawRangeElementsBaseVertex(mode: GLenum; start, aend: GLuint; Count: GLsizei; atype: GLenum; indices: Pointer; basevertex: GLint);
+    procedure glDrawElementsInstancedBaseVertex(mode: GLenum; Count: GLsizei; atype: GLenum; indices: Pointer; instancecount: GLsizei; basevertex: GLint);
 
-    function glFenceSync(condition: GLenum; flags: GLbitfield): GLsync; overload;
-    function glIsSync(sync: GLsync): GLboolean; overload;
-    procedure glDeleteSync(sync: GLsync); overload;
-    function glClientWaitSync(sync: GLsync; flags: GLbitfield; timeout: GLuint64): GLenum; overload;
-    procedure glWaitSync(sync: GLsync; flags: GLbitfield; timeout: GLuint64); overload;
-
-    procedure glGetInteger64v(pname: GLenum; Data: PGLint64); overload;
-    procedure glGetSynciv(sync: GLsync; pname: GLenum; bufSize: GLsizei; length: PGLsizei; values: PGLint); overload;
-    procedure glGetInteger64i_v(target: GLenum; index: GLuint; Data: PGLint64); overload;
-    procedure glGetBufferParameteri64v(target, pname: GLenum; params: PGLint64); overload;
-
-    procedure glFramebufferTexture(target, attachment: GLenum; texture: GLuint; level: GLint); overload;
-
-    procedure glTexImage2DMultisample(target: GLenum; samples: GLsizei; internalformat: GLenum; Width, Height: GLsizei; fixedsamplelocations: GLboolean); overload;
-    procedure glTexImage3DMultisample(target: GLenum; samples: GLsizei; internalformat: GLenum; Width, Height, depth: GLsizei; fixedsamplelocations: GLboolean); overload;
-
-    procedure glGetMultisamplefv(pname: GLenum; index: GLuint; val: PGLfloat); overload;
-    procedure glSampleMaski(maskNumber: GLuint; mask: GLbitfield); overload;
+    function glFenceSync(condition: GLenum; flags: GLbitfield): GLsync;
+    function glIsSync(sync: GLsync): GLboolean;
+    procedure glDeleteSync(sync: GLsync);
+    function glClientWaitSync(sync: GLsync; flags: GLbitfield; timeout: GLuint64): GLenum;
+    procedure glWaitSync(sync: GLsync; flags: GLbitfield; timeout: GLuint64);
+    procedure glGetSynciv(sync: GLsync; pname: GLenum; bufSize: GLsizei; length: PGLsizei; values: PGLint);
   end;
 
-  // -------------------------------------------------------------------------
-  // OpenGL 3.3
-  // -------------------------------------------------------------------------
   IOpenGL33 = interface(IOpenGL32)
     ['{AB21BC73-A8AA-4FE4-A735-9B16719C6F7C}']
-    procedure glBindFragDataLocationIndexed(aProgram: GLuint; colorNumber: GLuint; index: GLuint; const Name: PGLchar); overload;
-    function glGetFragDataIndex(aProgram: GLuint; const Name: PGLchar): GLint; overload;
+    procedure glBindSampler(unit_: GLuint; sampler: GLuint);
+    procedure glDeleteSamplers(Count: GLsizei; samplers: PGLuint);
+    procedure glGenSamplers(Count: GLsizei; samplers: PGLuint);
+    function glIsSampler(sampler: GLuint): GLboolean;
+    procedure glSamplerParameteri(sampler: GLuint; pname: GLenum; param: GLint);
+    procedure glSamplerParameterf(sampler: GLuint; pname: GLenum; param: GLfloat);
+    procedure glSamplerParameteriv(sampler: GLuint; pname: GLenum; param: PGLint);
+    procedure glSamplerParameterfv(sampler: GLuint; pname: GLenum; param: PGLfloat);
 
-    procedure glGenSamplers(Count: GLsizei; samplers: PGLuint); overload;
-    procedure glDeleteSamplers(Count: GLsizei; const samplers: PGLuint); overload;
-    function glIsSampler(sampler: GLuint): GLboolean; overload;
-    procedure glBindSampler(aUnit: GLuint; sampler: GLuint); overload;
+    procedure glVertexAttribDivisor(index: GLuint; divisor: GLuint);
 
-    procedure glSamplerParameteri(sampler: GLuint; pname: GLenum; param: GLint); overload;
-    procedure glSamplerParameteriv(sampler: GLuint; pname: GLenum; const param: PGLint); overload;
-    procedure glSamplerParameterf(sampler: GLuint; pname: GLenum; param: GLfloat); overload;
-    procedure glSamplerParameterfv(sampler: GLuint; pname: GLenum; const param: PGLfloat); overload;
-    procedure glSamplerParameterIiv(sampler: GLuint; pname: GLenum; const param: PGLint); overload;
-    procedure glSamplerParameterIuiv(sampler: GLuint; pname: GLenum; const param: PGLuint); overload;
-
-    procedure glGetSamplerParameteriv(sampler: GLuint; pname: GLenum; params: PGLint); overload;
-    procedure glGetSamplerParameterIiv(sampler: GLuint; pname: GLenum; params: PGLint); overload;
-    procedure glGetSamplerParameterfv(sampler: GLuint; pname: GLenum; params: PGLfloat); overload;
-    procedure glGetSamplerParameterIuiv(sampler: GLuint; pname: GLenum; params: PGLuint); overload;
-
-    procedure glQueryCounter(id: GLuint; target: GLenum); overload;
-    procedure glGetQueryObjecti64v(id: GLuint; pname: GLenum; params: PGLint64); overload;
-    procedure glGetQueryObjectui64v(id: GLuint; pname: GLenum; params: PGLuint64); overload;
-
-    procedure glVertexAttribDivisor(index: GLuint; divisor: GLuint); overload;
-
-    procedure glVertexAttribP1ui(index: GLuint; aType: GLenum; normalized: GLboolean; Value: GLuint); overload;
-    procedure glVertexAttribP1uiv(index: GLuint; aType: GLenum; normalized: GLboolean; const Value: PGLuint); overload;
-    procedure glVertexAttribP2ui(index: GLuint; aType: GLenum; normalized: GLboolean; Value: GLuint); overload;
-    procedure glVertexAttribP2uiv(index: GLuint; aType: GLenum; normalized: GLboolean; const Value: PGLuint); overload;
-    procedure glVertexAttribP3ui(index: GLuint; aType: GLenum; normalized: GLboolean; Value: GLuint); overload;
-    procedure glVertexAttribP3uiv(index: GLuint; aType: GLenum; normalized: GLboolean; const Value: PGLuint); overload;
-    procedure glVertexAttribP4ui(index: GLuint; aType: GLenum; normalized: GLboolean; Value: GLuint); overload;
-    procedure glVertexAttribP4uiv(index: GLuint; aType: GLenum; normalized: GLboolean; const Value: PGLuint); overload;
+    procedure glQueryCounter(id: GLuint; target: GLenum);
+    procedure glGetQueryObjecti64v(id: GLuint; pname: GLenum; params: PGLint64);
+    procedure glGetQueryObjectui64v(id: GLuint; pname: GLenum; params: PGLuint64);
   end;
 
-  // -------------------------------------------------------------------------
-  // OpenGL 4.0
-  // -------------------------------------------------------------------------
   IOpenGL40 = interface(IOpenGL33)
     ['{C32F36D3-578E-480F-AEF5-A460A950A029}']
-    procedure glMinSampleShading(Value: GLfloat); overload;
+    procedure glPatchParameteri(pname: GLenum; Value: GLint);
+    procedure glPatchParameterfv(pname: GLenum; values: PGLfloat);
 
-    procedure glBlendEquationi(buf: GLuint; mode: GLenum); overload;
-    procedure glBlendEquationSeparatei(buf: GLuint; modeRGB, modeAlpha: GLenum); overload;
-    procedure glBlendFunci(buf: GLuint; src, dst: GLenum); overload;
-    procedure glBlendFuncSeparatei(buf: GLuint; srcRGB, dstRGB, srcAlpha, dstAlpha: GLenum); overload;
+    procedure glBlendEquationi(buf: GLuint; mode: GLenum);
+    procedure glBlendEquationSeparatei(buf: GLuint; modeRGB, modeAlpha: GLenum);
+    procedure glBlendFunci(buf: GLuint; sfactor, dfactor: GLenum);
+    procedure glBlendFuncSeparatei(buf: GLuint; sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha: GLenum);
 
-    procedure glDrawArraysIndirect(mode: GLenum; const indirect: Pointer); overload;
-    procedure glDrawElementsIndirect(mode: GLenum; aType: GLenum; const indirect: Pointer); overload;
-
-    procedure glUniform1d(location: GLint; x: GLdouble); overload;
-    procedure glUniform2d(location: GLint; x, y: GLdouble); overload;
-    procedure glUniform3d(location: GLint; x, y, z: GLdouble); overload;
-    procedure glUniform4d(location: GLint; x, y, z, w: GLdouble); overload;
-
-    procedure glUniform1dv(location: GLint; Count: GLsizei; const Value: PGLdouble); overload;
-    procedure glUniform2dv(location: GLint; Count: GLsizei; const Value: PGLdouble); overload;
-    procedure glUniform3dv(location: GLint; Count: GLsizei; const Value: PGLdouble); overload;
-    procedure glUniform4dv(location: GLint; Count: GLsizei; const Value: PGLdouble); overload;
-
-    procedure glUniformMatrix2dv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glUniformMatrix3dv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glUniformMatrix4dv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glUniformMatrix2x3dv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glUniformMatrix2x4dv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glUniformMatrix3x2dv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glUniformMatrix3x4dv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glUniformMatrix4x2dv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glUniformMatrix4x3dv(location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-
-    procedure glGetUniformdv(aProgram: GLuint; location: GLint; params: PGLdouble); overload;
-
-    function glGetSubroutineUniformLocation(aProgram: GLuint; shadertype: GLenum; const Name: PGLchar): GLint; overload;
-    function glGetSubroutineIndex(aProgram: GLuint; shadertype: GLenum; const Name: PGLchar): GLuint; overload;
-
-    procedure glGetActiveSubroutineUniformiv(aProgram: GLuint; shadertype: GLenum; index: GLuint; pname: GLenum; values: PGLint); overload;
-    procedure glGetActiveSubroutineUniformName(aProgram: GLuint; shadertype: GLenum; index: GLuint; bufSize: GLsizei; length: PGLsizei; Name: PGLchar); overload;
-    procedure glGetActiveSubroutineName(aProgram: GLuint; shadertype: GLenum; index: GLuint; bufSize: GLsizei; length: PGLsizei; Name: PGLchar); overload;
-
-    procedure glUniformSubroutinesuiv(shadertype: GLenum; Count: GLsizei; const indices: PGLuint); overload;
-    procedure glGetUniformSubroutineuiv(shadertype: GLenum; location: GLint; params: PGLuint); overload;
-
-    procedure glGetProgramStageiv(aProgram: GLuint; shadertype: GLenum; pname: GLenum; values: PGLint); overload;
-
-    procedure glPatchParameteri(pname: GLenum; Value: GLint); overload;
-    procedure glPatchParameterfv(pname: GLenum; const values: PGLfloat); overload;
-
-    procedure glBindTransformFeedback(target: GLenum; id: GLuint); overload;
-    procedure glDeleteTransformFeedbacks(n: GLsizei; const ids: PGLuint); overload;
-    procedure glGenTransformFeedbacks(n: GLsizei; ids: PGLuint); overload;
-    function glIsTransformFeedback(id: GLuint): GLboolean; overload;
-    procedure glPauseTransformFeedback; overload;
-    procedure glResumeTransformFeedback; overload;
-    procedure glDrawTransformFeedback(mode: GLenum; id: GLuint); overload;
-    procedure glDrawTransformFeedbackStream(mode: GLenum; id: GLuint; stream: GLuint); overload;
-
-    procedure glBeginQueryIndexed(target: GLenum; index: GLuint; id: GLuint); overload;
-    procedure glEndQueryIndexed(target: GLenum; index: GLuint); overload;
-    procedure glGetQueryIndexediv(target: GLenum; index: GLuint; pname: GLenum; params: PGLint); overload;
+    procedure glMinSampleShading(Value: GLfloat);
   end;
 
-  // -------------------------------------------------------------------------
-  // OpenGL 4.1
-  // -------------------------------------------------------------------------
   IOpenGL41 = interface(IOpenGL40)
     ['{4F1FC8E8-8CF0-462D-A574-12777032F559}']
-    procedure glReleaseShaderCompiler; overload;
-    procedure glShaderBinary(Count: GLsizei; const shaders: PGLuint; binaryFormat: GLenum; const binary: Pointer; length: GLsizei); overload;
-    procedure glGetShaderPrecisionFormat(shadertype, precisiontype: GLenum; range_, precision: PGLint); overload;
+    procedure glViewportArrayv(First: GLuint; Count: GLsizei; v: PGLfloat);
+    procedure glViewportIndexedf(index: GLuint; x, y, w, h: GLfloat);
+    procedure glViewportIndexedfv(index: GLuint; v: PGLfloat);
+    procedure glScissorArrayv(First: GLuint; Count: GLsizei; v: PGLint);
+    procedure glScissorIndexed(index: GLuint; left, bottom: GLint; Width, Height: GLsizei);
+    procedure glScissorIndexedv(index: GLuint; v: PGLint);
+    procedure glDepthRangeArrayv(First: GLuint; Count: GLsizei; v: PGLdouble);
+    procedure glDepthRangeIndexed(index: GLuint; n, f: GLdouble);
 
-    procedure glDepthRangef(n, f: GLfloat); overload;
-    procedure glClearDepthf(d: GLfloat); overload;
-
-    procedure glGetProgramBinary(aProgram: GLuint; bufSize: GLsizei; length: PGLsizei; binaryFormat: PGLenum; binary: Pointer); overload;
-    procedure glProgramBinary(aProgram: GLuint; binaryFormat: GLenum; const binary: Pointer; length: GLsizei); overload;
-    procedure glProgramParameteri(aProgram: GLuint; pname: GLenum; Value: GLint); overload;
-
-    procedure glUseProgramStages(pipeline: GLuint; stages: GLbitfield; aProgram: GLuint); overload;
-    procedure glActiveShaderProgram(pipeline, aProgram: GLuint); overload;
-    function glCreateShaderProgramv(aType: GLenum; Count: GLsizei; const strings: PPGLchar): GLuint;
-
-    procedure glBindProgramPipeline(pipeline: GLuint); overload;
-    procedure glDeleteProgramPipelines(n: GLsizei; const pipelines: PGLuint); overload;
-    procedure glGenProgramPipelines(n: GLsizei; pipelines: PGLuint); overload;
-    function glIsProgramPipeline(pipeline: GLuint): GLboolean;
-    procedure glGetProgramPipelineiv(pipeline: GLuint; pname: GLenum; params: PGLint); overload;
-    procedure glValidateProgramPipeline(pipeline: GLuint); overload;
-    procedure glGetProgramPipelineInfoLog(pipeline: GLuint; bufSize: GLsizei; length: PGLsizei; infoLog: PGLchar); overload;
-
-    // ProgramUniform* (Separate Shader Objects)
-    procedure glProgramUniform1i(aProgram: GLuint; location: GLint; v0: GLint); overload;
-    procedure glProgramUniform1iv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLint); overload;
-    procedure glProgramUniform1f(aProgram: GLuint; location: GLint; v0: GLfloat); overload;
-    procedure glProgramUniform1fv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLfloat); overload;
-    procedure glProgramUniform1d(aProgram: GLuint; location: GLint; v0: GLdouble); overload;
-    procedure glProgramUniform1dv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLdouble); overload;
-    procedure glProgramUniform1ui(aProgram: GLuint; location: GLint; v0: GLuint); overload;
-    procedure glProgramUniform1uiv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLuint); overload;
-
-    procedure glProgramUniform2i(aProgram: GLuint; location: GLint; v0, v1: GLint); overload;
-    procedure glProgramUniform2iv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLint); overload;
-    procedure glProgramUniform2f(aProgram: GLuint; location: GLint; v0, v1: GLfloat); overload;
-    procedure glProgramUniform2fv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLfloat); overload;
-    procedure glProgramUniform2d(aProgram: GLuint; location: GLint; v0, v1: GLdouble); overload;
-    procedure glProgramUniform2dv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLdouble); overload;
-    procedure glProgramUniform2ui(aProgram: GLuint; location: GLint; v0, v1: GLuint); overload;
-    procedure glProgramUniform2uiv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLuint); overload;
-
-    procedure glProgramUniform3i(aProgram: GLuint; location: GLint; v0, v1, v2: GLint); overload;
-    procedure glProgramUniform3iv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLint); overload;
-    procedure glProgramUniform3f(aProgram: GLuint; location: GLint; v0, v1, v2: GLfloat); overload;
-    procedure glProgramUniform3fv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLfloat); overload;
-    procedure glProgramUniform3d(aProgram: GLuint; location: GLint; v0, v1, v2: GLdouble); overload;
-    procedure glProgramUniform3dv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLdouble); overload;
-    procedure glProgramUniform3ui(aProgram: GLuint; location: GLint; v0, v1, v2: GLuint); overload;
-    procedure glProgramUniform3uiv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLuint); overload;
-
-    procedure glProgramUniform4i(aProgram: GLuint; location: GLint; v0, v1, v2, v3: GLint); overload;
-    procedure glProgramUniform4iv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLint); overload;
-    procedure glProgramUniform4f(aProgram: GLuint; location: GLint; v0, v1, v2, v3: GLfloat); overload;
-    procedure glProgramUniform4fv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLfloat); overload;
-    procedure glProgramUniform4d(aProgram: GLuint; location: GLint; v0, v1, v2, v3: GLdouble); overload;
-    procedure glProgramUniform4dv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLdouble); overload;
-    procedure glProgramUniform4ui(aProgram: GLuint; location: GLint; v0, v1, v2, v3: GLuint); overload;
-    procedure glProgramUniform4uiv(aProgram: GLuint; location: GLint; Count: GLsizei; const Value: PGLuint); overload;
-
-    procedure glProgramUniformMatrix2fv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glProgramUniformMatrix3fv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glProgramUniformMatrix4fv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glProgramUniformMatrix2dv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glProgramUniformMatrix3dv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glProgramUniformMatrix4dv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-
-    procedure glProgramUniformMatrix2x3fv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glProgramUniformMatrix3x2fv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glProgramUniformMatrix2x4fv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glProgramUniformMatrix4x2fv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glProgramUniformMatrix3x4fv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-    procedure glProgramUniformMatrix4x3fv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLfloat); overload;
-
-    procedure glProgramUniformMatrix2x3dv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glProgramUniformMatrix3x2dv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glProgramUniformMatrix2x4dv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glProgramUniformMatrix4x2dv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glProgramUniformMatrix3x4dv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-    procedure glProgramUniformMatrix4x3dv(aProgram: GLuint; location: GLint; Count: GLsizei; transpose: GLboolean; const Value: PGLdouble); overload;
-
-    // Double-precision vertex attributes
-    procedure glVertexAttribL1d(index: GLuint; x: GLdouble); overload;
-    procedure glVertexAttribL2d(index: GLuint; x, y: GLdouble); overload;
-    procedure glVertexAttribL3d(index: GLuint; x, y, z: GLdouble); overload;
-    procedure glVertexAttribL4d(index: GLuint; x, y, z, w: GLdouble); overload;
-    procedure glVertexAttribL1dv(index: GLuint; const v: PGLdouble); overload;
-    procedure glVertexAttribL2dv(index: GLuint; const v: PGLdouble); overload;
-    procedure glVertexAttribL3dv(index: GLuint; const v: PGLdouble); overload;
-    procedure glVertexAttribL4dv(index: GLuint; const v: PGLdouble); overload;
-    procedure glVertexAttribLPointer(index: GLuint; size: GLint; aType: GLenum; stride: GLsizei; const pointer: Pointer); overload;
-    procedure glGetVertexAttribLdv(index: GLuint; pname: GLenum; params: PGLdouble); overload;
-
-    // Viewport / Scissor / DepthRange arrays
-    procedure glViewportArrayv(First: GLuint; Count: GLsizei; const v: PGLfloat); overload;
-    procedure glViewportIndexedf(index: GLuint; x, y, w, h: GLfloat); overload;
-    procedure glViewportIndexedfv(index: GLuint; const v: PGLfloat); overload;
-
-    procedure glScissorArrayv(First: GLuint; Count: GLsizei; const v: PGLint); overload;
-    procedure glScissorIndexed(index: GLuint; left, bottom: GLint; Width, Height: GLsizei); overload;
-    procedure glScissorIndexedv(index: GLuint; const v: PGLint); overload;
-
-    procedure glDepthRangeArrayv(First: GLuint; Count: GLsizei; const v: PGLdouble); overload;
-    procedure glDepthRangeIndexed(index: GLuint; n, f: GLdouble); overload;
-
-    procedure glGetFloati_v(target: GLenum; index: GLuint; Data: PGLfloat); overload;
-    procedure glGetDoublei_v(target: GLenum; index: GLuint; Data: PGLdouble); overload;
+    procedure glGetProgramSubroutineParameteruiv(target: GLenum; index: GLuint; values: PGLuint);
+    procedure glUniformSubroutinesuiv(shadertype: GLenum; Count: GLsizei; values: PGLuint);
+    function glGetSubroutineUniformLocation(program_: GLuint; shadertype: GLenum; Name: PGLchar): GLint;
+    function glGetSubroutineIndex(program_: GLuint; shadertype: GLenum; Name: PGLchar): GLuint;
   end;
 
-  // -------------------------------------------------------------------------
-  // OpenGL 4.2
-  // -------------------------------------------------------------------------
   IOpenGL42 = interface(IOpenGL41)
     ['{912AC4D4-DFCA-4C21-9785-B2F9F4FE1A13}']
-    procedure glDrawArraysInstancedBaseInstance(mode: GLenum; First: GLint; Count: GLsizei; instancecount: GLsizei; baseinstance: GLuint); overload;
-    procedure glDrawElementsInstancedBaseInstance(mode: GLenum; Count: GLsizei; aType: GLenum; const indices: Pointer; instancecount: GLsizei; baseinstance: GLuint); overload;
-    procedure glDrawElementsInstancedBaseVertexBaseInstance(mode: GLenum; Count: GLsizei; aType: GLenum; const indices: Pointer; instancecount: GLsizei; basevertex: GLint; baseinstance: GLuint); overload;
-    procedure glGetInternalformativ(target: GLenum; internalformat: GLenum; pname: GLenum; Count: GLsizei; params: PGLint); overload;
-    procedure glGetActiveAtomicCounterBufferiv(aProgram: GLuint; bufferIndex: GLuint; pname: GLenum; params: PGLint); overload;
-    procedure glBindImageTexture(aUnit: GLuint; texture: GLuint; level: GLint; layered: GLboolean; layer: GLint; access: GLenum; format: GLenum); overload;
-    procedure glMemoryBarrier(barriers: GLbitfield); overload;
-    procedure glTexStorage1D(target: GLenum; levels: GLsizei; internalformat: GLenum; Width: GLsizei); overload;
-    procedure glTexStorage2D(target: GLenum; levels: GLsizei; internalformat: GLenum; Width: GLsizei; Height: GLsizei); overload;
-    procedure glTexStorage3D(target: GLenum; levels: GLsizei; internalformat: GLenum; Width: GLsizei; Height: GLsizei; depth: GLsizei); overload;
-    procedure glDrawTransformFeedbackInstanced(mode: GLenum; id: GLuint; instancecount: GLsizei); overload;
-    procedure glDrawTransformFeedbackStreamInstanced(mode: GLenum; id: GLuint; stream: GLuint; instancecount: GLsizei); overload;
+    procedure glBindImageTexture(unit_: GLuint; texture: GLuint; level: GLint; layered: GLboolean; layer: GLint; access: GLenum; format: GLenum);
+    procedure glMemoryBarrier(barriers: GLbitfield);
+
+    procedure glTexStorage1D(target: GLenum; levels: GLsizei; internalformat: GLenum; Width: GLsizei);
+    procedure glTexStorage2D(target: GLenum; levels: GLsizei; internalformat: GLenum; Width, Height: GLsizei);
+    procedure glTexStorage3D(target: GLenum; levels: GLsizei; internalformat: GLenum; Width, Height, depth: GLsizei);
   end;
 
-  // -------------------------------------------------------------------------
-  // OpenGL 4.3
-  // -------------------------------------------------------------------------
   IOpenGL43 = interface(IOpenGL42)
     ['{958657BC-D67D-4CC1-8A65-E5F7542DFAAD}']
-    procedure glClearBufferData(target: GLenum; internalformat: GLenum; format: GLenum; aType: GLenum; const Data: Pointer); overload;
-    procedure glClearBufferSubData(target: GLenum; internalformat: GLenum; offset: GLintptr; size: GLsizeiptr; format: GLenum; aType: GLenum; const Data: Pointer); overload;
+    procedure glDispatchCompute(num_groups_x, num_groups_y, num_groups_z: GLuint);
+    procedure glDispatchComputeIndirect(indirect: GLintptr);
 
-    procedure glDispatchCompute(num_groups_x, num_groups_y, num_groups_z: GLuint); overload;
-    procedure glDispatchComputeIndirect(indirect: GLintptr); overload;
+    procedure glDebugMessageCallback(callback: GLDEBUGPROC; userParam: Pointer);
+    procedure glDebugMessageControl(Source, atype, severity: GLenum; Count: GLsizei; ids: PGLuint; Enabled: GLboolean);
+    procedure glDebugMessageInsert(Source, atype, id, severity: GLenum; length: GLsizei; buf: PGLchar);
 
-    procedure glCopyImageSubData(srcName: GLuint; srcTarget: GLenum; srcLevel, srcX, srcY, srcZ: GLint; dstName: GLuint; dstTarget: GLenum; dstLevel, dstX, dstY, dstZ: GLint; srcWidth, srcHeight, srcDepth: GLsizei); overload;
-
-    procedure glFramebufferParameteri(target: GLenum; pname: GLenum; param: GLint); overload;
-    procedure glGetFramebufferParameteriv(target: GLenum; pname: GLenum; params: PGLint); overload;
-
-    procedure glGetInternalformati64v(target: GLenum; internalformat: GLenum; pname: GLenum; Count: GLsizei; params: PGLint64); overload;
-
-    procedure glInvalidateTexSubImage(texture: GLuint; level: GLint; xoffset, yoffset, zoffset: GLint; Width, Height, depth: GLsizei); overload;
-    procedure glInvalidateTexImage(texture: GLuint; level: GLint); overload;
-    procedure glInvalidateBufferSubData(buffer: GLuint; offset: GLintptr; length: GLsizeiptr); overload;
-    procedure glInvalidateBufferData(buffer: GLuint); overload;
-    procedure glInvalidateFramebuffer(target: GLenum; numAttachments: GLsizei; const attachments: PGLenum); overload;
-    procedure glInvalidateSubFramebuffer(target: GLenum; numAttachments: GLsizei; const attachments: PGLenum; x, y: GLint; Width, Height: GLsizei); overload;
-
-    procedure glMultiDrawArraysIndirect(mode: GLenum; const indirect: Pointer; drawcount: GLsizei; stride: GLsizei); overload;
-    procedure glMultiDrawElementsIndirect(mode: GLenum; aType: GLenum; const indirect: Pointer; drawcount: GLsizei; stride: GLsizei); overload;
-
-    procedure glGetProgramInterfaceiv(aProgram: GLuint; programInterface: GLenum; pname: GLenum; params: PGLint); overload;
-    function glGetProgramResourceIndex(aProgram: GLuint; programInterface: GLenum; const Name: PGLchar): GLuint; overload;
-    procedure glGetProgramResourceName(aProgram: GLuint; programInterface: GLenum; index: GLuint; bufSize: GLsizei; length: PGLsizei; Name: PGLchar); overload;
-    procedure glGetProgramResourceiv(aProgram: GLuint; programInterface: GLenum; index: GLuint; propCount: GLsizei; const props: PGLenum; Count: GLsizei; length: PGLsizei; params: PGLint); overload;
-    function glGetProgramResourceLocation(aProgram: GLuint; programInterface: GLenum; const Name: PGLchar): GLint; overload;
-    function glGetProgramResourceLocationIndex(aProgram: GLuint; programInterface: GLenum; const Name: PGLchar): GLint; overload;
-
-    procedure glShaderStorageBlockBinding(aProgram: GLuint; storageBlockIndex: GLuint; storageBlockBinding: GLuint); overload;
-
-    procedure glTexBufferRange(target: GLenum; internalformat: GLenum; buffer: GLuint; offset: GLintptr; size: GLsizeiptr); overload;
-
-    procedure glTexStorage2DMultisample(target: GLenum; samples: GLsizei; internalformat: GLenum; Width, Height: GLsizei; fixedsamplelocations: GLboolean); overload;
-    procedure glTexStorage3DMultisample(target: GLenum; samples: GLsizei; internalformat: GLenum; Width, Height, depth: GLsizei; fixedsamplelocations: GLboolean); overload;
-
-    procedure glTextureView(texture, target: GLuint; origtexture: GLuint; internalformat: GLenum; minlevel, numlevels, minlayer, numlayers: GLuint); overload;
-
-    procedure glBindVertexBuffer(bindingindex: GLuint; buffer: GLuint; offset: GLintptr; stride: GLsizei); overload;
-    procedure glVertexAttribFormat(attribindex: GLuint; size: GLint; aType: GLenum; normalized: GLboolean; relativeoffset: GLuint); overload;
-    procedure glVertexAttribIFormat(attribindex: GLuint; size: GLint; aType: GLenum; relativeoffset: GLuint); overload;
-    procedure glVertexAttribLFormat(attribindex: GLuint; size: GLint; aType: GLenum; relativeoffset: GLuint); overload;
-    procedure glVertexAttribBinding(attribindex, bindingindex: GLuint); overload;
-    procedure glVertexBindingDivisor(bindingindex: GLuint; divisor: GLuint); overload;
-
-    // Debug
-    procedure glDebugMessageControl(Source, aType, severity: GLenum; Count: GLsizei; const ids: PGLuint; Enabled: GLboolean); overload;
-    procedure glDebugMessageInsert(Source, aType: GLenum; id: GLuint; severity: GLenum; length: GLsizei; const buf: PGLchar); overload;
-    procedure glDebugMessageCallback(callback: GLDEBUGPROC; const userParam: Pointer); overload;
-    function glGetDebugMessageLog(Count: GLuint; bufSize: GLsizei; sources, types: PGLenum; ids, severities: PGLuint; lengths: PGLsizei; messageLog: PGLchar): GLuint; overload;
-    procedure glPushDebugGroup(Source: GLenum; id: GLuint; length: GLsizei; const message: PGLchar); overload;
-    procedure glPopDebugGroup; overload;
-    procedure glObjectLabel(identifier: GLenum; Name: GLuint; length: GLsizei; const aLabel: PGLchar); overload;
-    procedure glGetObjectLabel(identifier: GLenum; Name: GLuint; bufSize: GLsizei; length: PGLsizei; aLabel: PGLchar); overload;
-    procedure glObjectPtrLabel(const ptr: Pointer; length: GLsizei; const aLabel: PGLchar); overload;
-    procedure glGetObjectPtrLabel(const ptr: Pointer; bufSize: GLsizei; length: PGLsizei; aLabel: PGLchar); overload;
+    procedure glCreateTextures(target: GLenum; n: GLsizei; textures: PGLuint);
+    procedure glTextureStorage2D(texture: GLuint; levels: GLsizei; internalformat: GLenum; Width, Height: GLsizei);
+    procedure glCreateBuffers(n: GLsizei; buffers: PGLuint);
+    procedure glNamedBufferStorage(buffer: GLuint; size: GLsizeiptr; Data: Pointer; flags: GLbitfield);
   end;
 
-  // -------------------------------------------------------------------------
-  // OpenGL 4.4
-  // -------------------------------------------------------------------------
   IOpenGL44 = interface(IOpenGL43)
     ['{E9BA9DBC-CED7-41C3-9C12-229284A348F2}']
-    procedure glBufferStorage(target: GLenum; size: GLsizeiptr; const Data: Pointer; flags: GLbitfield); overload;
-    procedure glClearTexImage(texture: GLuint; level: GLint; format: GLenum; aType: GLenum; const Data: Pointer); overload;
-    procedure glClearTexSubImage(texture: GLuint; level: GLint; xoffset, yoffset, zoffset: GLint; Width, Height, depth: GLsizei; format: GLenum; aType: GLenum; const Data: Pointer); overload;
-    procedure glBindBuffersBase(target: GLenum; First: GLuint; Count: GLsizei; const buffers: PGLuint); overload;
-    procedure glBindBuffersRange(target: GLenum; First: GLuint; Count: GLsizei; const buffers: PGLuint; const offsets: PGLintptr; const sizes: PGLsizeiptr); overload;
-    procedure glBindTextures(First: GLuint; Count: GLsizei; const textures: PGLuint); overload;
-    procedure glBindSamplers(First: GLuint; Count: GLsizei; const samplers: PGLuint); overload;
-    procedure glBindImageTextures(First: GLuint; Count: GLsizei; const textures: PGLuint); overload;
-    procedure glBindVertexBuffers(First: GLuint; Count: GLsizei; const buffers: PGLuint; const offsets: PGLintptr; const strides: PGLsizei); overload;
+    procedure glBufferStorage(target: GLenum; size: GLsizeiptr; Data: Pointer; flags: GLbitfield);
+    procedure glClearTexImage(texture: GLuint; level: GLint; format, atype: GLenum; Data: Pointer);
+    procedure glClearTexSubImage(texture: GLuint; level: GLint; xoffset, yoffset, zoffset: GLint; Width, Height, depth: GLsizei; format, atype: GLenum; Data: Pointer);
   end;
 
-  // -------------------------------------------------------------------------
-  // OpenGL 4.5
-  // -------------------------------------------------------------------------
   IOpenGL45 = interface(IOpenGL44)
     ['{CDD0EBE9-BA3E-4E8A-B679-9F681632AD0F}']
-    procedure glClipControl(origin: GLenum; depth: GLenum); overload;
-    procedure glCreateTransformFeedbacks(n: GLsizei; ids: PGLuint); overload;
-    procedure glTransformFeedbackBufferBase(xfb: GLuint; index: GLuint; buffer: GLuint); overload;
-    procedure glTransformFeedbackBufferRange(xfb: GLuint; index: GLuint; buffer: GLuint; offset: GLintptr; size: GLsizeiptr); overload;
-    procedure glGetTransformFeedbackiv(xfb: GLuint; pname: GLenum; param: PGLint); overload;
-    procedure glGetTransformFeedbacki_v(xfb: GLuint; pname: GLenum; index: GLuint; param: PGLint); overload;
-    procedure glGetTransformFeedbacki64_v(xfb: GLuint; pname: GLenum; index: GLuint; param: PGLint64); overload;
-
-    procedure glCreateBuffers(n: GLsizei; buffers: PGLuint); overload;
-    procedure glNamedBufferStorage(buffer: GLuint; size: GLsizeiptr; const Data: Pointer; flags: GLbitfield); overload;
-    procedure glNamedBufferData(buffer: GLuint; size: GLsizeiptr; const Data: Pointer; usage: GLenum); overload;
-    procedure glNamedBufferSubData(buffer: GLuint; offset: GLintptr; size: GLsizeiptr; const Data: Pointer); overload;
-    procedure glCopyNamedBufferSubData(readBuffer, writeBuffer: GLuint; readOffset, writeOffset: GLintptr; size: GLsizeiptr); overload;
-    procedure glClearNamedBufferData(buffer: GLuint; internalformat, format, aType: GLenum; const Data: Pointer); overload;
-    procedure glClearNamedBufferSubData(buffer: GLuint; internalformat: GLenum; offset: GLintptr; size: GLsizeiptr; format, aType: GLenum; const Data: Pointer); overload;
-    function glMapNamedBuffer(buffer: GLuint; access: GLenum): Pointer;
-    function glMapNamedBufferRange(buffer: GLuint; offset: GLintptr; length: GLsizeiptr; access: GLbitfield): Pointer;
-    function glUnmapNamedBuffer(buffer: GLuint): GLboolean;
-    procedure glFlushMappedNamedBufferRange(buffer: GLuint; offset: GLintptr; length: GLsizeiptr); overload;
-    procedure glGetNamedBufferParameteriv(buffer: GLuint; pname: GLenum; params: PGLint); overload;
-    procedure glGetNamedBufferParameteri64v(buffer: GLuint; pname: GLenum; params: PGLint64); overload;
-    procedure glGetNamedBufferPointerv(buffer: GLuint; pname: GLenum; params: PPointer); overload;
-    procedure glGetNamedBufferSubData(buffer: GLuint; offset: GLintptr; size: GLsizeiptr; Data: Pointer); overload;
-
-    procedure glCreateFramebuffers(n: GLsizei; framebuffers: PGLuint); overload;
-    procedure glNamedFramebufferRenderbuffer(framebuffer: GLuint; attachment: GLenum; renderbuffertarget: GLenum; renderbuffer: GLuint); overload;
-    procedure glNamedFramebufferParameteri(framebuffer: GLuint; pname: GLenum; param: GLint); overload;
-    procedure glNamedFramebufferTexture(framebuffer: GLuint; attachment: GLenum; texture: GLuint; level: GLint); overload;
-    procedure glNamedFramebufferTextureLayer(framebuffer: GLuint; attachment: GLenum; texture: GLuint; level, layer: GLint); overload;
-    procedure glNamedFramebufferDrawBuffer(framebuffer: GLuint; buf: GLenum); overload;
-    procedure glNamedFramebufferDrawBuffers(framebuffer: GLuint; n: GLsizei; const bufs: PGLenum); overload;
-    procedure glNamedFramebufferReadBuffer(framebuffer: GLuint; src: GLenum); overload;
-    procedure glInvalidateNamedFramebufferData(framebuffer: GLuint; numAttachments: GLsizei; const attachments: PGLenum); overload;
-    procedure glInvalidateNamedFramebufferSubData(framebuffer: GLuint; numAttachments: GLsizei; const attachments: PGLenum; x, y: GLint; Width, Height: GLsizei); overload;
-    procedure glClearNamedFramebufferiv(framebuffer: GLuint; buffer: GLenum; drawbuffer: GLint; const Value: PGLint); overload;
-    procedure glClearNamedFramebufferuiv(framebuffer: GLuint; buffer: GLenum; drawbuffer: GLint; const Value: PGLuint); overload;
-    procedure glClearNamedFramebufferfv(framebuffer: GLuint; buffer: GLenum; drawbuffer: GLint; const Value: PGLfloat); overload;
-    procedure glClearNamedFramebufferfi(framebuffer: GLuint; buffer: GLenum; drawbuffer: GLint; depth: GLfloat; stencil: GLint); overload;
-    procedure glBlitNamedFramebuffer(readFramebuffer, drawFramebuffer: GLuint; srcX0, srcY0, srcX1, srcY1: GLint; dstX0, dstY0, dstX1, dstY1: GLint; mask: GLbitfield; filter: GLenum); overload;
-    function glCheckNamedFramebufferStatus(framebuffer: GLuint; target: GLenum): GLenum;
-    procedure glGetNamedFramebufferParameteriv(framebuffer: GLuint; pname: GLenum; param: PGLint); overload;
-    procedure glGetNamedFramebufferAttachmentParameteriv(framebuffer: GLuint; attachment, pname: GLenum; params: PGLint); overload;
-
-    procedure glCreateRenderbuffers(n: GLsizei; renderbuffers: PGLuint); overload;
-    procedure glNamedRenderbufferStorage(renderbuffer: GLuint; internalformat: GLenum; Width, Height: GLsizei); overload;
-    procedure glNamedRenderbufferStorageMultisample(renderbuffer: GLuint; samples: GLsizei; internalformat: GLenum; Width, Height: GLsizei); overload;
-    procedure glGetNamedRenderbufferParameteriv(renderbuffer: GLuint; pname: GLenum; params: PGLint); overload;
-
-    procedure glCreateTextures(target: GLenum; n: GLsizei; textures: PGLuint); overload;
-    procedure glTextureBuffer(texture: GLuint; internalformat: GLenum; buffer: GLuint); overload;
-    procedure glTextureBufferRange(texture: GLuint; internalformat: GLenum; buffer: GLuint; offset: GLintptr; size: GLsizeiptr); overload;
-    procedure glTextureStorage1D(texture: GLuint; levels: GLsizei; internalformat: GLenum; Width: GLsizei); overload;
-    procedure glTextureStorage2D(texture: GLuint; levels: GLsizei; internalformat: GLenum; Width, Height: GLsizei); overload;
-    procedure glTextureStorage3D(texture: GLuint; levels: GLsizei; internalformat: GLenum; Width, Height, depth: GLsizei); overload;
-    procedure glTextureStorage2DMultisample(texture: GLuint; samples: GLsizei; internalformat: GLenum; Width, Height: GLsizei; fixedsamplelocations: GLboolean); overload;
-    procedure glTextureStorage3DMultisample(texture: GLuint; samples: GLsizei; internalformat: GLenum; Width, Height, depth: GLsizei; fixedsamplelocations: GLboolean); overload;
-    procedure glTextureSubImage1D(texture: GLuint; level, xoffset: GLint; Width: GLsizei; format, aType: GLenum; const pixels: Pointer); overload;
-    procedure glTextureSubImage2D(texture: GLuint; level, xoffset, yoffset: GLint; Width, Height: GLsizei; format, aType: GLenum; const pixels: Pointer); overload;
-    procedure glTextureSubImage3D(texture: GLuint; level, xoffset, yoffset, zoffset: GLint; Width, Height, depth: GLsizei; format, aType: GLenum; const pixels: Pointer); overload;
-    procedure glCompressedTextureSubImage1D(texture: GLuint; level, xoffset: GLint; Width: GLsizei; format: GLenum; imageSize: GLsizei; const Data: Pointer); overload;
-    procedure glCompressedTextureSubImage2D(texture: GLuint; level, xoffset, yoffset: GLint; Width, Height: GLsizei; format: GLenum; imageSize: GLsizei; const Data: Pointer); overload;
-    procedure glCompressedTextureSubImage3D(texture: GLuint; level, xoffset, yoffset, zoffset: GLint; Width, Height, depth: GLsizei; format: GLenum; imageSize: GLsizei; const Data: Pointer); overload;
-    procedure glCopyTextureSubImage1D(texture: GLuint; level, xoffset, x, y: GLint; Width: GLsizei); overload;
-    procedure glCopyTextureSubImage2D(texture: GLuint; level, xoffset, yoffset, x, y: GLint; Width, Height: GLsizei); overload;
-    procedure glCopyTextureSubImage3D(texture: GLuint; level, xoffset, yoffset, zoffset, x, y: GLint; Width, Height: GLsizei); overload;
-    procedure glTextureParameterf(texture: GLuint; pname: GLenum; param: GLfloat); overload;
-    procedure glTextureParameterfv(texture: GLuint; pname: GLenum; const param: PGLfloat); overload;
-    procedure glTextureParameteri(texture: GLuint; pname: GLenum; param: GLint); overload;
-    procedure glTextureParameterIiv(texture: GLuint; pname: GLenum; const params: PGLint); overload;
-    procedure glTextureParameterIuiv(texture: GLuint; pname: GLenum; const params: PGLuint); overload;
-    procedure glTextureParameteriv(texture: GLuint; pname: GLenum; const param: PGLint); overload;
-    procedure glGenerateTextureMipmap(texture: GLuint); overload;
-    procedure glBindTextureUnit(unit_: GLuint; texture: GLuint); overload;
-    procedure glGetTextureImage(texture: GLuint; level: GLint; format, aType: GLenum; bufSize: GLsizei; pixels: Pointer); overload;
-    procedure glGetCompressedTextureImage(texture: GLuint; level: GLint; bufSize: GLsizei; pixels: Pointer); overload;
-    procedure glGetTextureLevelParameterfv(texture: GLuint; level: GLint; pname: GLenum; params: PGLfloat); overload;
-    procedure glGetTextureLevelParameteriv(texture: GLuint; level: GLint; pname: GLenum; params: PGLint); overload;
-    procedure glGetTextureParameterfv(texture: GLuint; pname: GLenum; params: PGLfloat); overload;
-    procedure glGetTextureParameterIiv(texture: GLuint; pname: GLenum; params: PGLint); overload;
-    procedure glGetTextureParameterIuiv(texture: GLuint; pname: GLenum; params: PGLuint); overload;
-    procedure glGetTextureParameteriv(texture: GLuint; pname: GLenum; params: PGLint); overload;
-
-    procedure glCreateVertexArrays(n: GLsizei; arrays: PGLuint); overload;
-    procedure glDisableVertexArrayAttrib(vaobj: GLuint; index: GLuint); overload;
-    procedure glEnableVertexArrayAttrib(vaobj: GLuint; index: GLuint); overload;
-    procedure glVertexArrayElementBuffer(vaobj: GLuint; buffer: GLuint); overload;
-    procedure glVertexArrayVertexBuffer(vaobj: GLuint; bindingindex: GLuint; buffer: GLuint; offset: GLintptr; stride: GLsizei); overload;
-    procedure glVertexArrayVertexBuffers(vaobj: GLuint; First: GLuint; Count: GLsizei; const buffers: PGLuint; const offsets: PGLintptr; const strides: PGLsizei); overload;
-    procedure glVertexArrayAttribBinding(vaobj: GLuint; attribindex: GLuint; bindingindex: GLuint); overload;
-    procedure glVertexArrayAttribFormat(vaobj: GLuint; attribindex: GLuint; size: GLint; aType: GLenum; normalized: GLboolean; relativeoffset: GLuint); overload;
-    procedure glVertexArrayAttribIFormat(vaobj: GLuint; attribindex: GLuint; size: GLint; aType: GLenum; relativeoffset: GLuint); overload;
-    procedure glVertexArrayAttribLFormat(vaobj: GLuint; attribindex: GLuint; size: GLint; aType: GLenum; relativeoffset: GLuint); overload;
-    procedure glVertexArrayBindingDivisor(vaobj: GLuint; bindingindex: GLuint; divisor: GLuint); overload;
-    procedure glGetVertexArrayiv(vaobj: GLuint; pname: GLenum; param: PGLint); overload;
-    procedure glGetVertexArrayIndexediv(vaobj: GLuint; index: GLuint; pname: GLenum; param: PGLint); overload;
-    procedure glGetVertexArrayIndexed64iv(vaobj: GLuint; index: GLuint; pname: GLenum; param: PGLint64); overload;
-
-    procedure glCreateSamplers(n: GLsizei; samplers: PGLuint); overload;
-    procedure glCreateProgramPipelines(n: GLsizei; pipelines: PGLuint); overload;
-    procedure glCreateQueries(target: GLenum; n: GLsizei; ids: PGLuint); overload;
-
-    procedure glGetQueryBufferObjecti64v(id: GLuint; buffer: GLuint; pname: GLenum; offset: GLintptr); overload;
-    procedure glGetQueryBufferObjectiv(id: GLuint; buffer: GLuint; pname: GLenum; offset: GLintptr); overload;
-    procedure glGetQueryBufferObjectui64v(id: GLuint; buffer: GLuint; pname: GLenum; offset: GLintptr); overload;
-    procedure glGetQueryBufferObjectuiv(id: GLuint; buffer: GLuint; pname: GLenum; offset: GLintptr); overload;
-
-    procedure glMemoryBarrierByRegion(barriers: GLbitfield); overload;
-
-    procedure glGetTextureSubImage(texture: GLuint; level, xoffset, yoffset, zoffset: GLint; Width, Height, depth: GLsizei; format, aType: GLenum; bufSize: GLsizei; pixels: Pointer); overload;
-    procedure glGetCompressedTextureSubImage(texture: GLuint; level, xoffset, yoffset, zoffset: GLint; Width, Height, depth: GLsizei; bufSize: GLsizei; pixels: Pointer); overload;
-
-    function glGetGraphicsResetStatus: GLenum; overload;
-    procedure glGetnCompressedTexImage(target: GLenum; lod: GLint; bufSize: GLsizei; pixels: Pointer); overload;
-    procedure glGetnTexImage(target: GLenum; level: GLint; format, aType: GLenum; bufSize: GLsizei; pixels: Pointer); overload;
-    procedure glGetnUniformdv(aProgram: GLuint; location: GLint; bufSize: GLsizei; params: PGLdouble); overload;
-    procedure glGetnUniformfv(aProgram: GLuint; location: GLint; bufSize: GLsizei; params: PGLfloat); overload;
-    procedure glGetnUniformiv(aProgram: GLuint; location: GLint; bufSize: GLsizei; params: PGLint); overload;
-    procedure glGetnUniformuiv(aProgram: GLuint; location: GLint; bufSize: GLsizei; params: PGLuint); overload;
-    procedure glReadnPixels(x, y: GLint; Width, Height: GLsizei; format, aType: GLenum; bufSize: GLsizei; Data: Pointer); overload;
-
-    procedure glTextureBarrier; overload;
+    procedure glCreateFramebuffers(n: GLsizei; framebuffers: PGLuint);
+    procedure glCreateRenderbuffers(n: GLsizei; renderbuffers: PGLuint);
+    procedure glCreateVertexArrays(n: GLsizei; arrays: PGLuint);
+    procedure glClipControl(origin: GLenum; depth: GLenum);
+    procedure glTextureBarrier;
   end;
 
-  // -------------------------------------------------------------------------
-  // OpenGL 4.6 – ultima riga
-  // -------------------------------------------------------------------------
   IOpenGL46 = interface(IOpenGL45)
     ['{C4AE511D-A8E5-46FE-8C26-75A2FBD02F3B}']
-    function glGetTextureHandleARB(texture: GLuint): GLuint64; overload;
-    function glGetTextureSamplerHandleARB(texture: GLuint; sampler: GLuint): GLuint64; overload;
-    procedure glMakeTextureHandleResidentARB(handle: GLuint64); overload;
-    procedure glMakeTextureHandleNonResidentARB(handle: GLuint64); overload;
-
-    function glGetImageHandleARB(texture: GLuint; level: GLint; layered: GLboolean; layer: GLint; format: GLenum): GLuint64; overload;
-    procedure glMakeImageHandleResidentARB(handle: GLuint64; access: GLenum); overload;
-    procedure glMakeImageHandleNonResidentARB(handle: GLuint64); overload;
-
-    procedure glUniformHandleui64ARB(location: GLint; Value: GLuint64); overload;
-    procedure glUniformHandleui64vARB(location: GLint; Count: GLsizei; const Value: PGLuint64); overload;
-    procedure glProgramUniformHandleui64ARB(aProgram: GLuint; location: GLint; Value: GLuint64); overload;
-    procedure glProgramUniformHandleui64vARB(aProgram: GLuint; location: GLint; Count: GLsizei; const values: PGLuint64); overload;
-
-    function glIsTextureHandleResidentARB(handle: GLuint64): GLboolean; overload;
-    function glIsImageHandleResidentARB(handle: GLuint64): GLboolean; overload;
-
-    procedure glVertexAttribL1ui64ARB(index: GLuint; x: GLuint64EXT); overload;
-    procedure glVertexAttribL1ui64vARB(index: GLuint; const v: PGLuint64EXT); overload;
-    procedure glGetVertexAttribLui64vARB(index: GLuint; pname: GLenum; params: PGLuint64EXT); overload;
+    procedure glSpecializeShader(shader: GLuint; pEntryPoint: PGLchar; numSpecializationConstants: GLuint; pConstantIndex: PGLuint; pConstantValue: PGLuint);
+    procedure glPolygonOffsetClamp(factor, units, clamp: GLfloat);
+    procedure glMultiDrawArraysIndirectCount(mode: GLenum; indirect: Pointer; drawcount: GLintptr; maxdrawcount: GLsizei; stride: GLsizei);
+    procedure glMultiDrawElementsIndirectCount(mode: GLenum; atype: GLenum; indirect: Pointer; drawcount: GLintptr; maxdrawcount: GLsizei; stride: GLsizei);
   end;
 
   IOpenGL = IOpenGL46;
