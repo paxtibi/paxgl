@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="12"/>
+    <BuildModes Active="Default"/>
+    <Units>
+      <Unit>
+        <Filename Value="glboing.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <TopLine Value="436"/>
+        <CursorPos Y="453"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="372"/>
+        <CursorPos Y="391"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="1204"/>
+        <CursorPos Y="1223"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+    </Units>
+    <JumpHistory HistoryIndex="29">
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="2577" Column="19" TopLine="2561"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="5125" Column="54" TopLine="5089"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="5095" Column="11" TopLine="5053"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="2545" Column="51" TopLine="2510"/>
+      </Position>
+      <Position>
+        <Filename Value="glboing.lpr"/>
+        <Caret Line="181" Column="37" TopLine="159"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="1536" Column="62" TopLine="1520"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="42" TopLine="21"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="541" Column="42" TopLine="518"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="20" Column="54" TopLine="8"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="231" Column="5" TopLine="212"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="236" Column="3" TopLine="217"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="100" Column="3" TopLine="81"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="236" Column="5" TopLine="217"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="237" Column="5" TopLine="218"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="242" Column="5" TopLine="223"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="250" Column="5" TopLine="226"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="1423" Column="53" TopLine="1411"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="100" TopLine="81"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="110" TopLine="85"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="125" TopLine="97"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="112" TopLine="97"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="118" TopLine="99"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="132" TopLine="113"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="135" TopLine="116"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="151" TopLine="132"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="210" TopLine="191"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="391" TopLine="372"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="392" TopLine="372"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.gl.pas"/>
+        <Caret Line="391" TopLine="372"/>
+      </Position>
+      <Position>
+        <Filename Value="glboing.lpr"/>
+        <Caret Line="453" TopLine="436"/>
+      </Position>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode=""/>
+    </RunParams>
+  </ProjectSession>
+</CONFIG>

@@ -29,13 +29,73 @@ const
   GL_COLOR_BUFFER_BIT = $00004000;
   GL_FALSE = 0;
   GL_TRUE = 1;
-  GL_POINTS = $0000;
-  GL_LINES = $0001;
-  GL_LINE_LOOP = $0002;
-  GL_LINE_STRIP = $0003;
-  GL_TRIANGLES = $0004;
+
+  GL_POINTS         = $0000;
+  GL_LINES          = $0001;
+  GL_LINE_LOOP      = $0002;
+  GL_LINE_STRIP     = $0003;
+  GL_TRIANGLES      = $0004;
   GL_TRIANGLE_STRIP = $0005;
-  GL_TRIANGLE_FAN = $0006;
+  GL_TRIANGLE_FAN   = $0006;
+  GL_QUADS          = $0007;
+  GL_QUAD_STRIP     = $0008;
+  GL_POLYGON        = $0009;
+
+  // Modalità di shading
+  GL_FLAT           = $1D00;
+  GL_SMOOTH         = $1D01;
+
+  // Matrici
+  GL_MODELVIEW      = $1700;
+  GL_PROJECTION     = $1701;
+  GL_TEXTURE        = $1702;
+
+  // Stack di matrici
+  GL_MODELVIEW_MATRIX  = $0BA6;
+  GL_PROJECTION_MATRIX = $0BA7;
+
+  // Abilitazione stati
+  GL_DEPTH_TEST     = $0B71;
+  GL_CULL_FACE      = $0B44;
+  GL_LIGHTING       = $0B50;
+  GL_COLOR_MATERIAL = $0B57;
+  GL_NORMALIZE      = $0BA1;
+  GL_ALPHA_TEST     = $0BC0;
+  GL_BLEND          = $0BE2;
+  GL_FOG            = $0B60;
+
+  // Facce per culling
+  GL_FRONT          = $0404;
+  GL_BACK           = $0405;
+  GL_FRONT_AND_BACK = $0408;
+
+  // Direzione winding per culling
+  GL_CW             = $0900;
+  GL_CCW            = $0901;
+
+  // Funzioni di blending comuni
+  GL_ZERO                = 0;
+  GL_ONE                 = 1;
+  GL_SRC_COLOR           = $0300;
+  GL_ONE_MINUS_SRC_COLOR = $0301;
+  GL_DST_COLOR           = $0306;
+  GL_ONE_MINUS_DST_COLOR = $0307;
+  GL_SRC_ALPHA           = $0302;
+  GL_ONE_MINUS_SRC_ALPHA = $0303;
+  GL_DST_ALPHA           = $0304;
+  GL_ONE_MINUS_DST_ALPHA = $0305;
+  GL_CONSTANT_COLOR      = $8001;
+  GL_ONE_MINUS_CONSTANT_COLOR = $8002;
+  GL_CONSTANT_ALPHA      = $8003;
+  GL_ONE_MINUS_CONSTANT_ALPHA = $8004;
+
+  GL_LIGHT0         = $4000;
+  GL_AMBIENT        = $1200;
+  GL_DIFFUSE        = $1201;
+  GL_SPECULAR       = $1202;
+  GL_POSITION       = $1203;
+  GL_EMISSION       = $1600;
+
   {$IFNDEF OPENGL_CORE_4_6}
   GL_QUADS = $0007;
   {$ENDIF}
@@ -47,34 +107,19 @@ const
   GL_NOTEQUAL = $0205;
   GL_GEQUAL = $0206;
   GL_ALWAYS = $0207;
-  GL_ZERO = 0;
-  GL_ONE = 1;
-  GL_SRC_COLOR = $0300;
-  GL_ONE_MINUS_SRC_COLOR = $0301;
-  GL_SRC_ALPHA = $0302;
-  GL_ONE_MINUS_SRC_ALPHA = $0303;
-  GL_DST_ALPHA = $0304;
-  GL_ONE_MINUS_DST_ALPHA = $0305;
-  GL_DST_COLOR = $0306;
-  GL_ONE_MINUS_DST_COLOR = $0307;
   GL_SRC_ALPHA_SATURATE = $0308;
   GL_NONE = 0;
   GL_FRONT_LEFT = $0400;
   GL_FRONT_RIGHT = $0401;
   GL_BACK_LEFT = $0402;
   GL_BACK_RIGHT = $0403;
-  GL_FRONT = $0404;
-  GL_BACK = $0405;
   GL_LEFT = $0406;
   GL_RIGHT = $0407;
-  GL_FRONT_AND_BACK = $0408;
   GL_NO_ERROR = 0;
   GL_INVALID_ENUM = $0500;
   GL_INVALID_VALUE = $0501;
   GL_INVALID_OPERATION = $0502;
   GL_OUT_OF_MEMORY = $0505;
-  GL_CW = $0900;
-  GL_CCW = $0901;
   GL_POINT_SIZE = $0B11;
   GL_POINT_SIZE_RANGE = $0B12;
   GL_POINT_SIZE_GRANULARITY = $0B13;
@@ -84,11 +129,9 @@ const
   GL_LINE_WIDTH_GRANULARITY = $0B23;
   GL_POLYGON_MODE = $0B40;
   GL_POLYGON_SMOOTH = $0B41;
-  GL_CULL_FACE = $0B44;
   GL_CULL_FACE_MODE = $0B45;
   GL_FRONT_FACE = $0B46;
   GL_DEPTH_RANGE = $0B70;
-  GL_DEPTH_TEST = $0B71;
   GL_DEPTH_WRITEMASK = $0B72;
   GL_DEPTH_CLEAR_VALUE = $0B73;
   GL_DEPTH_FUNC = $0B74;
@@ -105,7 +148,6 @@ const
   GL_DITHER = $0BD0;
   GL_BLEND_DST = $0BE0;
   GL_BLEND_SRC = $0BE1;
-  GL_BLEND = $0BE2;
   GL_LOGIC_OP_MODE = $0BF0;
   GL_DRAW_BUFFER = $0C01;
   GL_READ_BUFFER = $0C02;
@@ -165,7 +207,6 @@ const
   GL_OR_INVERTED = $150D;
   GL_NAND = $150E;
   GL_SET = $150F;
-  GL_TEXTURE = $1702;
   GL_COLOR = $1800;
   GL_DEPTH = $1801;
   GL_STENCIL = $1802;
@@ -347,10 +388,6 @@ const
   GL_TEXTURE_COMPARE_FUNC = $884D;
   GL_BLEND_COLOR = $8005;
   GL_BLEND_EQUATION = $8009;
-  GL_CONSTANT_COLOR = $8001;
-  GL_ONE_MINUS_CONSTANT_COLOR = $8002;
-  GL_CONSTANT_ALPHA = $8003;
-  GL_ONE_MINUS_CONSTANT_ALPHA = $8004;
   GL_FUNC_ADD = $8006;
   GL_FUNC_REVERSE_SUBTRACT = $800B;
   GL_FUNC_SUBTRACT = $800A;
@@ -1529,6 +1566,37 @@ type
 
     procedure glDepthRange(n, f: GLdouble); overload;
     procedure glViewport(x, y: GLint; Width, Height: GLsizei); overload;
+    procedure glBegin(mode: GLenum);
+    procedure glEnd;
+
+    procedure glVertex2f(x, y: GLfloat);
+    procedure glVertex2fv(v: PGLfloat);
+    procedure glVertex3f(x, y, z: GLfloat);
+    procedure glVertex3fv(v: PGLfloat);
+
+    procedure glColor3f(red, green, blue: GLfloat);
+    procedure glColor3fv(v: PGLfloat);
+    procedure glColor4f(red, green, blue, alpha: GLfloat);
+    procedure glColor4fv(v: PGLfloat);
+
+    procedure glNormal3f(nx, ny, nz: GLfloat);
+    procedure glNormal3fv(v: PGLfloat);
+
+    procedure glTexCoord2f(s, t: GLfloat);
+    procedure glTexCoord2fv(v: PGLfloat);
+
+    procedure glMatrixMode(mode: GLenum);
+    procedure glLoadIdentity;
+    procedure glLoadMatrixf(const m: PGLfloat);
+    procedure glMultMatrixf(const m: PGLfloat);
+    procedure glPushMatrix;
+    procedure glPopMatrix;
+
+    procedure glTranslatef(x, y, z: GLfloat);
+    procedure glRotatef(angle, x, y, z: GLfloat);
+    procedure glScalef(x, y, z: GLfloat);
+
+    procedure glShadeModel(mode: GLenum);
   end;
 
   IOpenGL11 = interface(IOpenGL10)
@@ -2481,6 +2549,37 @@ type
     FGLIsEnabled: TGLIsEnabled;
     FGLDepthRange: TGLDepthRange;
     FGLViewport: TGLViewport;
+    FglBegin: procedure(mode: GLenum); cdecl;
+    FglEnd: procedure; cdecl;
+
+    FglVertex2f: procedure(x, y: GLfloat); cdecl;
+    FglVertex2fv: procedure(v: PGLfloat); cdecl;
+    FglVertex3f: procedure(x, y, z: GLfloat); cdecl;
+    FglVertex3fv: procedure(v: PGLfloat); cdecl;
+
+    FglColor3f: procedure(red, green, blue: GLfloat); cdecl;
+    FglColor3fv: procedure(v: PGLfloat); cdecl;
+    FglColor4f: procedure(red, green, blue, alpha: GLfloat); cdecl;
+    FglColor4fv: procedure(v: PGLfloat); cdecl;
+
+    FglNormal3f: procedure(nx, ny, nz: GLfloat); cdecl;
+    FglNormal3fv: procedure(v: PGLfloat); cdecl;
+
+    FglTexCoord2f: procedure(s, t: GLfloat); cdecl;
+    FglTexCoord2fv: procedure(v: PGLfloat); cdecl;
+
+    FglMatrixMode: procedure(mode: GLenum); cdecl;
+    FglLoadIdentity: procedure; cdecl;
+    FglLoadMatrixf: procedure(const m: PGLfloat); cdecl;
+    FglMultMatrixf: procedure(const m: PGLfloat); cdecl;
+    FglPushMatrix: procedure; cdecl;
+    FglPopMatrix: procedure; cdecl;
+
+    FglTranslatef: procedure(x, y, z: GLfloat); cdecl;
+    FglRotatef: procedure(angle, x, y, z: GLfloat); cdecl;
+    FglScalef: procedure(x, y, z: GLfloat); cdecl;
+
+    FglShadeModel: procedure(mode: GLenum); cdecl;
   protected
     procedure bindEntry; override;
   public
@@ -2544,6 +2643,40 @@ type
 
     procedure glDepthRange(n, f: GLdouble); overload;
     procedure glViewport(x, y: GLint; Width, Height: GLsizei); overload;
+
+    procedure glBegin(mode: GLenum); inline; overload;
+    procedure glEnd; inline; overload;
+
+    procedure glVertex2f(x, y: GLfloat); inline; overload;
+    procedure glVertex2fv(v: PGLfloat); inline; overload;
+    procedure glVertex3f(x, y, z: GLfloat); inline; overload;
+    procedure glVertex3fv(v: PGLfloat); inline; overload;
+
+    procedure glColor3f(red, green, blue: GLfloat); inline; overload;
+    procedure glColor3fv(v: PGLfloat); inline; overload;
+    procedure glColor4f(red, green, blue, alpha: GLfloat); inline; overload;
+    procedure glColor4fv(v: PGLfloat); inline; overload;
+
+    procedure glNormal3f(nx, ny, nz: GLfloat); inline; overload;
+    procedure glNormal3fv(v: PGLfloat); inline; overload;
+
+    procedure glTexCoord2f(s, t: GLfloat); inline; overload;
+    procedure glTexCoord2fv(v: PGLfloat); inline; overload;
+
+    // Matrix Stack & Transformations
+    procedure glMatrixMode(mode: GLenum); inline; overload;
+    procedure glLoadIdentity; inline; overload;
+    procedure glLoadMatrixf(const m: PGLfloat); inline; overload;
+    procedure glMultMatrixf(const m: PGLfloat); inline; overload;
+    procedure glPushMatrix; inline; overload;
+    procedure glPopMatrix; inline; overload;
+
+    procedure glTranslatef(x, y, z: GLfloat); inline; overload;
+    procedure glRotatef(angle, x, y, z: GLfloat); inline; overload;
+    procedure glScalef(x, y, z: GLfloat); inline; overload;
+
+    // State
+    procedure glShadeModel(mode: GLenum); inline; overload;
   end;
 
   { TOpenGL_1_1 }
@@ -5027,6 +5160,37 @@ begin
   Pointer(FGLIsEnabled) := LoadProc('glIsEnabled');
   Pointer(FGLDepthRange) := LoadProc('glDepthRange');
   Pointer(FGLViewport) := LoadProc('glViewport');
+  Pointer(FglBegin) := LoadProc('glBegin');
+  Pointer(FglEnd) := LoadProc('glEnd');
+
+  Pointer(FglVertex2f) := LoadProc('glVertex2f');
+  Pointer(FglVertex2fv) := LoadProc('glVertex2fv');
+  Pointer(FglVertex3f) := LoadProc('glVertex3f');
+  Pointer(FglVertex3fv) := LoadProc('glVertex3fv');
+
+  Pointer(FglColor3f) := LoadProc('glColor3f');
+  Pointer(FglColor3fv) := LoadProc('glColor3fv');
+  Pointer(FglColor4f) := LoadProc('glColor4f');
+  Pointer(FglColor4fv) := LoadProc('glColor4fv');
+
+  Pointer(FglNormal3f) := LoadProc('glNormal3f');
+  Pointer(FglNormal3fv) := LoadProc('glNormal3fv');
+
+  Pointer(FglTexCoord2f) := LoadProc('glTexCoord2f');
+  Pointer(FglTexCoord2fv) := LoadProc('glTexCoord2fv');
+
+  Pointer(FglMatrixMode) := LoadProc('glMatrixMode');
+  Pointer(FglLoadIdentity) := LoadProc('glLoadIdentity');
+  Pointer(FglLoadMatrixf) := LoadProc('glLoadMatrixf');
+  Pointer(FglMultMatrixf) := LoadProc('glMultMatrixf');
+  Pointer(FglPushMatrix) := LoadProc('glPushMatrix');
+  Pointer(FglPopMatrix) := LoadProc('glPopMatrix');
+
+  Pointer(FglTranslatef) := LoadProc('glTranslatef');
+  Pointer(FglRotatef) := LoadProc('glRotatef');
+  Pointer(FglScalef) := LoadProc('glScalef');
+
+  Pointer(FglShadeModel) := LoadProc('glShadeModel');
 end;
 
 procedure TOpenGL_1_0.glCullFace(mode: GLenum);
@@ -5276,6 +5440,127 @@ end;
 procedure TOpenGL_1_0.glViewport(x, y: GLint; Width, Height: GLsizei);
 begin
   if Assigned(FGLViewport) then FGLViewport(x, y, Width, Height);
+end;
+
+procedure TOpenGL_1_0.glBegin(mode: GLenum);
+begin
+  if Assigned(FglBegin) then FglBegin(mode);
+end;
+
+procedure TOpenGL_1_0.glEnd;
+begin
+  if Assigned(FglEnd) then FglEnd;
+end;
+
+procedure TOpenGL_1_0.glVertex2f(x, y: GLfloat);
+begin
+  if Assigned(FglVertex2f) then FglVertex2f(x, y);
+end;
+
+procedure TOpenGL_1_0.glVertex2fv(v: PGLfloat);
+begin
+  if Assigned(FglVertex2fv) then FglVertex2fv(v);
+end;
+
+procedure TOpenGL_1_0.glVertex3f(x, y, z: GLfloat);
+begin
+  if Assigned(FglVertex3f) then FglVertex3f(x, y, z);
+end;
+
+procedure TOpenGL_1_0.glVertex3fv(v: PGLfloat);
+begin
+  if Assigned(FglVertex3fv) then FglVertex3fv(v);
+end;
+
+procedure TOpenGL_1_0.glColor3f(red, green, blue: GLfloat);
+begin
+  if Assigned(FglColor3f) then FglColor3f(red, green, blue);
+end;
+
+procedure TOpenGL_1_0.glColor3fv(v: PGLfloat);
+begin
+  if Assigned(FglColor3fv) then FglColor3fv(v);
+end;
+
+procedure TOpenGL_1_0.glColor4f(red, green, blue, alpha: GLfloat);
+begin
+  if Assigned(FglColor4f) then FglColor4f(red, green, blue, alpha);
+end;
+
+procedure TOpenGL_1_0.glColor4fv(v: PGLfloat);
+begin
+  if Assigned(FglColor4fv) then FglColor4fv(v);
+end;
+
+procedure TOpenGL_1_0.glNormal3f(nx, ny, nz: GLfloat);
+begin
+  if Assigned(FglNormal3f) then FglNormal3f(nx, ny, nz);
+end;
+
+procedure TOpenGL_1_0.glNormal3fv(v: PGLfloat);
+begin
+  if Assigned(FglNormal3fv) then FglNormal3fv(v);
+end;
+
+procedure TOpenGL_1_0.glTexCoord2f(s, t: GLfloat);
+begin
+  if Assigned(FglTexCoord2f) then FglTexCoord2f(s, t);
+end;
+
+procedure TOpenGL_1_0.glTexCoord2fv(v: PGLfloat);
+begin
+  if Assigned(FglTexCoord2fv) then FglTexCoord2fv(v);
+end;
+
+// Matrix Stack & Transformations
+procedure TOpenGL_1_0.glMatrixMode(mode: GLenum);
+begin
+  if Assigned(FglMatrixMode) then FglMatrixMode(mode);
+end;
+
+procedure TOpenGL_1_0.glLoadIdentity;
+begin
+  if Assigned(FglLoadIdentity) then FglLoadIdentity;
+end;
+
+procedure TOpenGL_1_0.glLoadMatrixf(const m: PGLfloat);
+begin
+  if Assigned(FglLoadMatrixf) then FglLoadMatrixf(m);
+end;
+
+procedure TOpenGL_1_0.glMultMatrixf(const m: PGLfloat);
+begin
+  if Assigned(FglMultMatrixf) then FglMultMatrixf(m);
+end;
+
+procedure TOpenGL_1_0.glPushMatrix;
+begin
+  if Assigned(FglPushMatrix) then FglPushMatrix;
+end;
+
+procedure TOpenGL_1_0.glPopMatrix;
+begin
+  if Assigned(FglPopMatrix) then FglPopMatrix;
+end;
+
+procedure TOpenGL_1_0.glTranslatef(x, y, z: GLfloat);
+begin
+  if Assigned(FglTranslatef) then FglTranslatef(x, y, z);
+end;
+
+procedure TOpenGL_1_0.glRotatef(angle, x, y, z: GLfloat);
+begin
+  if Assigned(FglRotatef) then FglRotatef(angle, x, y, z);
+end;
+
+procedure TOpenGL_1_0.glScalef(x, y, z: GLfloat);
+begin
+  if Assigned(FglScalef) then FglScalef(x, y, z);
+end;
+
+procedure TOpenGL_1_0.glShadeModel(mode: GLenum);
+begin
+  if Assigned(FglShadeModel) then FglShadeModel(mode);
 end;
 
 { TOpenGL_1_1 }
