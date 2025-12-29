@@ -300,7 +300,7 @@ const
       glInterleavedArrays(GL_T2F_C4UB_V3F, 0, @vertex_array);
 
       // Attendi che la fisica abbia finito questo frame
-      thread_sync.particles_lock.Acquire;
+      //thread_sync.particles_lock.Acquire;
       while (glfwWindowShouldClose(window) = 0) and (thread_sync.p_frame <= thread_sync.d_frame) do
       begin
         // Piccola attesa con timeout (100ms)
@@ -583,16 +583,10 @@ var
   begin
     with GetOpenGL do
     begin
-      // Calcolo delta time
       dt := single(t - t_old);
       t_old := t;
 
-      // Proiezione prospettica
-      Mat4x4_Perspective(projection,
-        DegToRad(65.0),
-        aspect_ratio,
-        1.0,
-        60.0);
+      Mat4x4_Perspective(projection, DegToRad(65.0), aspect_ratio, 1.0, 60.0);
 
       glClearColor(0.1, 0.1, 0.1, 1.0);
       glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
@@ -600,72 +594,56 @@ var
       glMatrixMode(GL_PROJECTION);
       glLoadMatrixf(@projection);
 
-      // Reset modelview
       glMatrixMode(GL_MODELVIEW);
       glLoadIdentity();
 
-      // Rotazione camera (leggermente modificata rispetto all'originale per stabilità)
-      angle_x := 90.0 - 10.0;                   // inclinazione verticale fissa
-      angle_y := 10.0 * sin(0.3 * t);           // oscillazione orizzontale lenta
-      angle_z := 10.0 * t;                      // rotazione continua
+      angle_x := 90.0 - 10.0;
+      angle_y := 10.0 * sin(0.3 * t);
+      angle_z := 10.0 * t;
 
       glRotated(-angle_x, 1.0, 0.0, 0.0);
       glRotated(-angle_y, 0.0, 1.0, 0.0);
       glRotated(-angle_z, 0.0, 0.0, 1.0);
 
-      // Posizione camera (orbita attorno alla fontana)
       xpos := 15.0 * sin(DegToRad(angle_z)) + 2.0 * sin(DegToRad(3.1 * t));
       ypos := -15.0 * cos(DegToRad(angle_z)) + 2.0 * cos(DegToRad(2.9 * t));
       zpos := 4.0 + 2.0 * cos(DegToRad(4.9 * t));
 
       glTranslated(-xpos, -ypos, -zpos);
 
-      // Impostazioni base rendering
       glFrontFace(GL_CCW);
       glCullFace(GL_BACK);
       glEnable(GL_CULL_FACE);
 
-      // Luci
       setup_lights;
       glEnable(GL_LIGHTING);
 
-      // Nebbia (fog)
       glEnable(GL_FOG);
       glFogi(GL_FOG_MODE, GL_EXP);
       glFogf(GL_FOG_DENSITY, 0.05);
       glFogfv(GL_FOG_COLOR, @fog_color);
 
-      // Pavimento
-      draw_floor;
+      draw_floor();
 
-      // Abilitazione depth test per oggetti solidi
       glEnable(GL_DEPTH_TEST);
       glDepthFunc(GL_LEQUAL);
       glDepthMask(GL_TRUE);
 
-      // Fontana
       draw_fountain;
 
-      // Disattivazione illuminazione e nebbia prima delle particelle
       glDisable(GL_LIGHTING);
       glDisable(GL_FOG);
 
-      // Particelle (sempre per ultime – trasparenti)
       draw_particles(window, t, dt);
 
-      // Non serve più il depth test alla fine
       glDisable(GL_DEPTH_TEST);
     end;
   end;
 
-
-
   procedure resize_callback(window: PGLFWwindow; Width, Height: integer); cdecl;
   begin
-
     GetOpenGL.glViewport(0, 0, Width, Height);
 
-    // Aggiorna il rapporto di aspetto globale
     if Height > 0 then
       aspect_ratio := Width / Height
     else
@@ -832,7 +810,7 @@ begin
     thread_sync.p_done := False;
     thread_sync.d_done := False;
 
-    thread_sync.particles_lock.Create();
+    thread_sync.particles_lock := TMutex.Create();
 
     // Avvio thread fisica
     BeginThread(@physics_thread_main, window, physics_thread);
@@ -840,7 +818,7 @@ begin
     glfwSetTime(0.0);
 
     // Loop principale
-    while glfwWindowShouldClose(window)=0 do
+    while glfwWindowShouldClose(window) = 0 do
     begin
       draw_scene(window, glfwGetTime());
 
@@ -853,6 +831,6 @@ begin
     glfwDestroyWindow(window);
     glfwTerminate;
 
-    DoneMutex(thread_sync.particles_lock);
+    thread_sync.particles_lock.Release;
   end;
 end.

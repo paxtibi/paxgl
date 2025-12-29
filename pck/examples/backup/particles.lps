@@ -9,18 +9,18 @@
         <Filename Value="particles.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="GLParticles"/>
-        <TopLine Value="828"/>
-        <CursorPos X="48" Y="847"/>
-        <UsageCount Value="82"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="378"/>
+        <CursorPos X="9" Y="383"/>
+        <UsageCount Value="89"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\src\pax.gl.pas"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
-        <TopLine Value="17305"/>
-        <CursorPos X="27" Y="17322"/>
-        <UsageCount Value="41"/>
+        <TopLine Value="23420"/>
+        <CursorPos Y="23444"/>
+        <UsageCount Value="44"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -28,7 +28,7 @@
         <EditorIndex Value="4"/>
         <TopLine Value="574"/>
         <CursorPos X="14" Y="588"/>
-        <UsageCount Value="13"/>
+        <UsageCount Value="17"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -36,14 +36,14 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="127"/>
         <CursorPos X="49" Y="11"/>
-        <UsageCount Value="29"/>
+        <UsageCount Value="28"/>
       </Unit>
       <Unit>
         <Filename Value="..\..\src\pax.gles.pas"/>
         <EditorIndex Value="6"/>
         <TopLine Value="544"/>
         <CursorPos X="59" Y="558"/>
-        <UsageCount Value="15"/>
+        <UsageCount Value="18"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -52,15 +52,15 @@
         <EditorIndex Value="3"/>
         <TopLine Value="52"/>
         <CursorPos X="29" Y="80"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="16"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="D:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\syncobjs.pp"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="210"/>
-        <CursorPos X="52" Y="221"/>
-        <UsageCount Value="12"/>
+        <TopLine Value="204"/>
+        <CursorPos X="23" Y="225"/>
+        <UsageCount Value="15"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -68,130 +68,130 @@
         <EditorIndex Value="1"/>
         <TopLine Value="20"/>
         <CursorPos X="3" Y="35"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="15"/>
         <Loaded Value="True"/>
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="144" Column="67" TopLine="121"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="530" TopLine="506"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="91" Column="27" TopLine="75"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="531" TopLine="507"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="7209" Column="24" TopLine="7196"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="536" TopLine="522"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="3852" Column="5" TopLine="3837"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="504" TopLine="489"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="8043" Column="54" TopLine="8025"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="538" TopLine="524"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="95" TopLine="89"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="504" TopLine="489"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="87" Column="55" TopLine="72"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="538" TopLine="524"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="3852" Column="6" TopLine="3837"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="628" TopLine="614"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="8038" Column="39" TopLine="8025"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="629" TopLine="614"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="8039" Column="49" TopLine="8025"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="630" TopLine="614"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="23307" Column="55" TopLine="23288"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="632" TopLine="614"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="17074" Column="7" TopLine="17059"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="634" TopLine="614"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="17060" Column="70" TopLine="17057"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="635" TopLine="614"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="17089" Column="127" TopLine="17060"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="637" TopLine="614"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="7215" Column="41" TopLine="7196"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="274" TopLine="259"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="92" Column="3" TopLine="76"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="275" TopLine="259"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="3851" Column="5" TopLine="3836"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="278" TopLine="259"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="8041" Column="16" TopLine="8026"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="281" TopLine="259"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="8048" Column="66" TopLine="8027"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="282" TopLine="259"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="6"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="283" TopLine="259"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="137" TopLine="108"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="285" TopLine="261"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="3891" Column="5" TopLine="3876"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="286" TopLine="262"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="17136" Column="7" TopLine="17121"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="287" TopLine="263"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="17122" Column="42" TopLine="17107"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="289" TopLine="266"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="17237" Column="44" TopLine="17208"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="290" TopLine="266"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="17251" Column="27" TopLine="17234"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="291" TopLine="267"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="17265" Column="27" TopLine="17248"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="293" TopLine="269"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="17279" Column="26" TopLine="17262"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="295" TopLine="271"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="17293" Column="27" TopLine="17276"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="296" TopLine="272"/>
       </Position>
       <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="17308" Column="27" TopLine="17290"/>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="300" TopLine="276"/>
       </Position>
     </JumpHistory>
     <RunParams>
@@ -199,4 +199,15 @@
       <Modes ActiveMode=""/>
     </RunParams>
   </ProjectSession>
+  <Debugging>
+    <BreakPoints>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="particles.lpr"/>
+        <Line Value="584"/>
+      </Item>
+    </BreakPoints>
+  </Debugging>
 </CONFIG>
