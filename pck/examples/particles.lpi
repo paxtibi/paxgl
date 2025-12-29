@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="glboing"/>
+      <Title Value="particles"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -31,8 +31,9 @@
     </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="glboing.lpr"/>
+        <Filename Value="particles.lpr"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="GLParticles"/>
       </Unit>
     </Units>
   </ProjectOptions>
@@ -40,7 +41,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\..\bin\$(TargetCPU)-$(TargetOS)glboing"/>
+      <Filename Value="..\..\bin\$(TargetCPU)-$(TargetOS)\particles"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
