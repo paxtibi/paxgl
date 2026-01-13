@@ -10,8 +10,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ContextSharingExample"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="170"/>
-        <CursorPos Y="195"/>
+        <TopLine Value="174"/>
+        <CursorPos X="47" Y="193"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
@@ -25,14 +25,6 @@
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="sharing.lpr"/>
-        <Caret Line="100" TopLine="69"/>
-      </Position>
-      <Position>
-        <Filename Value="sharing.lpr"/>
-        <Caret Line="102" TopLine="71"/>
-      </Position>
       <Position>
         <Filename Value="sharing.lpr"/>
         <Caret Line="103" TopLine="72"/>
@@ -142,6 +134,14 @@
       <Position>
         <Filename Value="..\..\src\pax.glfw.pas"/>
         <Caret Line="1565" Column="57" TopLine="1560"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="193" Column="46" TopLine="170"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="72" Column="52" TopLine="53"/>
       </Position>
     </JumpHistory>
     <RunParams>

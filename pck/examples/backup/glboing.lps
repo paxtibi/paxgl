@@ -9,8 +9,8 @@
         <Filename Value="glboing.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="439"/>
-        <CursorPos X="15" Y="463"/>
+        <TopLine Value="341"/>
+        <CursorPos X="49" Y="364"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
@@ -29,7 +29,7 @@
         <UsageCount Value="10"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="1">
+    <JumpHistory HistoryIndex="2">
       <Position>
         <Filename Value="glboing.lpr"/>
         <Caret Line="181" Column="37" TopLine="159"/>
@@ -37,6 +37,10 @@
       <Position>
         <Filename Value="glboing.lpr"/>
         <Caret Line="453" TopLine="436"/>
+      </Position>
+      <Position>
+        <Filename Value="glboing.lpr"/>
+        <Caret Line="463" Column="15" TopLine="439"/>
       </Position>
     </JumpHistory>
     <RunParams>

@@ -9,15 +9,20 @@
         <Filename Value="wave.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <CursorPos X="24" Y="13"/>
+        <TopLine Value="158"/>
+        <CursorPos X="43" Y="177"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
     </Units>
-    <JumpHistory>
+    <JumpHistory HistoryIndex="1">
       <Position>
         <Filename Value="wave.lpr"/>
         <Caret Line="147" Column="26" TopLine="135"/>
+      </Position>
+      <Position>
+        <Filename Value="wave.lpr"/>
+        <Caret Line="23" Column="51"/>
       </Position>
     </JumpHistory>
     <RunParams>

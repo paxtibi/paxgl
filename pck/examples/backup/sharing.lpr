@@ -69,7 +69,7 @@ type
   procedure KeyCallback(window: PGLFWwindow; key, scancode, action, mods: integer); cdecl;
   begin
     if (action = GLFW_PRESS) and (key = GLFW_KEY_ESCAPE) then
-      getGLFW.glfwSetWindowShouldClose(window, GLFW_TRUE);
+      getGLFW.glfwSetWindowShouldClose(window, true);
   end;
 
   procedure CreateSharedObjects;
@@ -190,7 +190,6 @@ begin
 
       for i := 0 to 1 do
       begin
-
         glfwGetFramebufferSize(Windows[i], @w, @h);
         glfwMakeContextCurrent(Windows[i]);
 

@@ -229,7 +229,7 @@ end;
 // Main
 // ============================================================================
 begin
-  with getGLFW do
+  with getGLFW, GetOpenGL do
   begin
     if not glfwInit then
     begin

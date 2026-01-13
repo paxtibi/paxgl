@@ -510,7 +510,7 @@ function glfwGetWindowTitle(window: PGLFWwindow): PChar;
     procedure glfwSetWindowSizeLimits(window: PGLFWwindow; minwidth, minheight, maxwidth, maxheight: integer);
     procedure glfwSetWindowAspectRatio(window: PGLFWwindow; numer, denom: integer);
     procedure glfwSetWindowSize(window: PGLFWwindow; Width, Height: integer);
-    procedure glfwGetFramebufferSize(window: PGLFWwindow; Width, Height: PInteger);
+    procedure glfwGetFramebufferSize(window: PGLFWwindow; var Width, Height: integer);
     procedure glfwGetWindowFrameSize(window: PGLFWwindow; left, top, right, bottom: PInteger);
     procedure glfwGetWindowContentScale(window: PGLFWwindow; xscale, yscale: PSingle);
     function glfwGetWindowOpacity(window: PGLFWwindow): single;
@@ -1107,7 +1107,7 @@ function glfwGetWindowTitle(window: PGLFWwindow): PChar; virtual;
     procedure glfwSetWindowSizeLimits(window: PGLFWwindow; minwidth, minheight, maxwidth, maxheight: integer); virtual;
     procedure glfwSetWindowAspectRatio(window: PGLFWwindow; numer, denom: integer); virtual;
     procedure glfwSetWindowSize(window: PGLFWwindow; Width, Height: integer); virtual;
-    procedure glfwGetFramebufferSize(window: PGLFWwindow; Width, Height: PInteger); virtual;
+    procedure glfwGetFramebufferSize(window: PGLFWwindow; var Width, Height: integer); virtual;
     procedure glfwGetWindowFrameSize(window: PGLFWwindow; left, top, right, bottom: PInteger); virtual;
     procedure glfwGetWindowContentScale(window: PGLFWwindow; xscale, yscale: PSingle); virtual;
     function glfwGetWindowOpacity(window: PGLFWwindow): single; virtual;
@@ -1642,10 +1642,10 @@ begin
     raise ENullPointerException.Create('glfwSetWindowAspectRatio');
 end;
 
-procedure TGLFW.glfwGetFramebufferSize(window: PGLFWwindow; Width, Height: PInteger);
+procedure TGLFW.glfwGetFramebufferSize(window: PGLFWwindow; var Width, Height: integer);
 begin
   if Assigned(FGLFWGetFramebufferSize) then
-    FGLFWGetFramebufferSize(window, Width, Height)
+    FGLFWGetFramebufferSize(window, @Width, @Height)
   else
     raise ENullPointerException.Create('glfwGetFramebufferSize');
 end;

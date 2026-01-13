@@ -37,7 +37,7 @@ const
     with getGLFW do
     begin
       if (key = GLFW_KEY_ESCAPE) and (action = GLFW_PRESS) then
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+        glfwSetWindowShouldClose(window, true);
     end;
   end;
 

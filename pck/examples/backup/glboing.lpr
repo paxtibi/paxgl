@@ -357,7 +357,7 @@ var
       if action <> GLFW_PRESS then Exit;
 
       if (key = GLFW_KEY_ESCAPE) and (mods = 0) then
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
+        glfwSetWindowShouldClose(window, true);
 
       if ((key = GLFW_KEY_ENTER) and (mods = GLFW_MOD_ALT)) or ((key = GLFW_KEY_F11) and (mods = GLFW_MOD_ALT)) then
       begin

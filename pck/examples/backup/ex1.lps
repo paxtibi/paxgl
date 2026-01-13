@@ -9,8 +9,8 @@
         <Filename Value="ex1.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="163"/>
-        <CursorPos X="49" Y="185"/>
+        <TopLine Value="21"/>
+        <CursorPos X="51" Y="42"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
@@ -45,7 +45,7 @@
         <UsageCount Value="10"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="28">
+    <JumpHistory HistoryIndex="29">
       <Position>
         <Filename Value="ex1.lpr"/>
         <Caret Line="103" Column="7" TopLine="76"/>
@@ -161,6 +161,10 @@
       <Position>
         <Filename Value="ex1.lpr"/>
         <Caret Line="122" Column="23" TopLine="97"/>
+      </Position>
+      <Position>
+        <Filename Value="ex1.lpr"/>
+        <Caret Line="185" Column="49" TopLine="163"/>
       </Position>
     </JumpHistory>
     <RunParams>

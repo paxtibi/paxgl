@@ -10,8 +10,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="GLParticles"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="660"/>
-        <CursorPos X="43" Y="679"/>
+        <TopLine Value="753"/>
+        <CursorPos X="43" Y="772"/>
         <UsageCount Value="89"/>
         <Loaded Value="True"/>
       </Unit>
@@ -73,14 +73,6 @@
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="particles.lpr"/>
-        <Caret Line="278" TopLine="259"/>
-      </Position>
-      <Position>
-        <Filename Value="particles.lpr"/>
-        <Caret Line="281" TopLine="259"/>
-      </Position>
       <Position>
         <Filename Value="particles.lpr"/>
         <Caret Line="282" TopLine="259"/>
@@ -192,6 +184,14 @@
       <Position>
         <Filename Value="particles.lpr"/>
         <Caret Line="829" Column="40" TopLine="798"/>
+      </Position>
+      <Position>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="679" Column="43" TopLine="660"/>
+      </Position>
+      <Position>
+        <Filename Value="particles.lpr"/>
+        <Caret Line="819" Column="48" TopLine="797"/>
       </Position>
     </JumpHistory>
     <RunParams>

@@ -769,7 +769,7 @@ begin
     glfwSetKeyCallback(window, @key_callback);
 
     // Inizializzazione aspect ratio
-    glfwGetFramebufferSize(window, @Width, @Height);
+    glfwGetFramebufferSize(window, Width, Height);
     resize_callback(window, Width, Height);
 
     // Creazione texture particelle
@@ -780,8 +780,7 @@ begin
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, P_TEX_WIDTH, P_TEX_HEIGHT,
-      0, GL_LUMINANCE, GL_UNSIGNED_BYTE, @particle_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, P_TEX_WIDTH, P_TEX_HEIGHT, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, @particle_texture);
 
     // Creazione texture pavimento
     glGenTextures(1, @floor_tex_id);

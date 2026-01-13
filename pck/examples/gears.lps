@@ -9,8 +9,8 @@
         <Filename Value="gears.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="299"/>
-        <CursorPos X="26" Y="299"/>
+        <TopLine Value="307"/>
+        <CursorPos X="43" Y="327"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
@@ -24,10 +24,6 @@
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="gears.lpr"/>
-        <Caret Line="303" TopLine="272"/>
-      </Position>
       <Position>
         <Filename Value="gears.lpr"/>
         <Caret Line="304" TopLine="273"/>
@@ -143,6 +139,10 @@
       <Position>
         <Filename Value="gears.lpr"/>
         <Caret Line="344" Column="5" TopLine="307"/>
+      </Position>
+      <Position>
+        <Filename Value="gears.lpr"/>
+        <Caret Line="317" Column="53" TopLine="299"/>
       </Position>
     </JumpHistory>
     <RunParams>

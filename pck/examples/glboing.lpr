@@ -452,7 +452,7 @@ begin
 
     glfwSwapInterval(1);
 
-    glfwGetFramebufferSize(window, @Width, @Height);
+    glfwGetFramebufferSize(window, Width, Height);
     Reshape(window, Width, Height);
 
     glfwSetTime(0.0);

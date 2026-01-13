@@ -181,7 +181,7 @@ begin
 
     while not glfwWindowShouldClose(window)  do
     begin
-      glfwGetFramebufferSize(window, @Width, @Height);
+      glfwGetFramebufferSize(window, Width, Height);
       ratio := Width / Height;
 
       glViewport(0, 0, Width, Height);

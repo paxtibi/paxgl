@@ -10,13 +10,13 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="HeightmapDemo"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="232"/>
-        <CursorPos X="26" Y="232"/>
+        <TopLine Value="241"/>
+        <CursorPos X="43" Y="260"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
     </Units>
-    <JumpHistory HistoryIndex="8">
+    <JumpHistory HistoryIndex="9">
       <Position>
         <Filename Value="heightmapdemo.lpr"/>
         <Caret Line="306" Column="8" TopLine="302"/>
@@ -52,6 +52,10 @@
       <Position>
         <Filename Value="heightmapdemo.lpr"/>
         <Caret Line="265" Column="49" TopLine="243"/>
+      </Position>
+      <Position>
+        <Filename Value="heightmapdemo.lpr"/>
+        <Caret Line="249" Column="41" TopLine="232"/>
       </Position>
     </JumpHistory>
     <RunParams>

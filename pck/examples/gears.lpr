@@ -324,7 +324,7 @@ begin
     glfwSetFramebufferSizeCallback(window, @Reshape);
     glfwSetKeyCallback(window, @KeyCallback);
 
-    glfwGetFramebufferSize(window, @Width, @Height);
+    glfwGetFramebufferSize(window, Width, Height);
     Reshape(window, Width, Height);
 
     InitGL;

@@ -769,7 +769,7 @@ begin
     glfwSetKeyCallback(window, @key_callback);
 
     // Inizializzazione aspect ratio
-    glfwGetFramebufferSize(window, @Width, @Height);
+    glfwGetFramebufferSize(window, Width, Height);
     resize_callback(window, Width, Height);
 
     // Creazione texture particelle
@@ -831,6 +831,5 @@ begin
     glfwDestroyWindow(window);
     glfwTerminate;
 
-    thread_sync.particles_lock.Release;
   end;
 end.

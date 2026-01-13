@@ -3,145 +3,147 @@ program wave;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, Math,
-  pax.glfw, pax.gl;
+  SysUtils,
+  Math,
+  pax.glfw,
+  pax.gl;
 
 var
   window: PGLFWwindow;
-  Width: Integer;
-  Height: integer = 640, 480;
+  Width: integer = 640;
+  Height: integer = 480;
 
   paused: boolean = False;
   wireframe: boolean = False;
   speed: single = 1.0;
 
-// ============================================================================
-// Disegna l'onda sinusoidale animata
-// ============================================================================
-procedure DrawWave(t: double);
-const
-  SEGMENTS = 200;
-  AMPLITUDE = 0.5;
-  FREQUENCY = 5.0;
-var
-  i: Integer;
-  x, y: single;
-begin
-  with getOpenGL do
+  // ============================================================================
+  // Disegna l'onda sinusoidale animata
+  // ============================================================================
+  procedure DrawWave(t: double);
+  const
+    SEGMENTS = 200;
+    AMPLITUDE = 0.5;
+    FREQUENCY = 5.0;
+  var
+    i: integer;
+    x, y: single;
   begin
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity;
-
-    glTranslatef(0.0, 0.0, -1.0);
-
-    if wireframe then
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-    else
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-    // Onda principale (sinusoidale)
-    glBegin(GL_LINE_STRIP);
-    glColor3f(1.0, 1.0, 1.0);
-    for i := 0 to SEGMENTS do
+    with getOpenGL do
     begin
-      x := -1.0 + 2.0 * (i / SEGMENTS);
-      y := AMPLITUDE * Sin(FREQUENCY * x + t * speed);
-      glVertex2f(x, y);
-    end;
-    glEnd;
+      glClearColor(0.0, 0.0, 0.0, 0.0);
+      glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
 
-    // Onda secondaria (più veloce, più piccola)
-    glBegin(GL_LINE_STRIP);
-    glColor3f(1.0, 0.5, 0.5);
-    for i := 0 to SEGMENTS do
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity;
+
+      glTranslatef(0.0, 0.0, -1.0);
+
+      if wireframe then
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+      else
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+      // Onda principale (sinusoidale)
+      glBegin(GL_LINE_STRIP);
+      glColor3f(1.0, 1.0, 1.0);
+      for i := 0 to SEGMENTS do
+      begin
+        x := -1.0 + 2.0 * (i / SEGMENTS);
+        y := AMPLITUDE * Sin(FREQUENCY * x + t * speed);
+        glVertex2f(x, y);
+      end;
+      glEnd;
+
+      // Onda secondaria (più veloce, più piccola)
+      glBegin(GL_LINE_STRIP);
+      glColor3f(1.0, 0.5, 0.5);
+      for i := 0 to SEGMENTS do
+      begin
+        x := -1.0 + 2.0 * (i / SEGMENTS);
+        y := 0.3 * AMPLITUDE * Sin(FREQUENCY * 2.5 * x + t * speed * 1.5);
+        glVertex2f(x, y);
+      end;
+      glEnd;
+
+      // Onda terza (lenta, grande)
+      glBegin(GL_LINE_STRIP);
+      glColor3f(0.5, 0.5, 1.0);
+      for i := 0 to SEGMENTS do
+      begin
+        x := -1.0 + 2.0 * (i / SEGMENTS);
+        y := 0.7 * AMPLITUDE * Sin(FREQUENCY * 0.8 * x + t * speed * 0.6);
+        glVertex2f(x, y);
+      end;
+      glEnd;
+    end;
+  end;
+
+  // ============================================================================
+  // Callback tasto premuto
+  // ============================================================================
+  procedure KeyCallback(window: PGLFWwindow; key, scancode, action, mods: integer); cdecl;
+  begin
+    if action <> GLFW_PRESS then Exit;
+
+    with getGLFW do
     begin
-      x := -1.0 + 2.0 * (i / SEGMENTS);
-      y := 0.3 * AMPLITUDE * Sin(FREQUENCY * 2.5 * x + t * speed * 1.5);
-      glVertex2f(x, y);
-    end;
-    glEnd;
+      case key of
+        GLFW_KEY_ESCAPE:
+          glfwSetWindowShouldClose(window, True);
 
-    // Onda terza (lenta, grande)
-    glBegin(GL_LINE_STRIP);
-    glColor3f(0.5, 0.5, 1.0);
-    for i := 0 to SEGMENTS do
+        GLFW_KEY_SPACE:
+          paused := not paused;
+
+        GLFW_KEY_W:
+          wireframe := not wireframe;
+
+        GLFW_KEY_UP:
+          speed += 0.5;
+
+        GLFW_KEY_DOWN:
+          speed := Max(0.1, speed - 0.5);
+      end;
+    end;
+  end;
+
+  // ============================================================================
+  // Callback ridimensionamento finestra
+  // ============================================================================
+  procedure Reshape(window: PGLFWwindow; w, h: integer); cdecl;
+  begin
+    Width := w;
+    Height := h;
+
+    with getOpenGL do
     begin
-      x := -1.0 + 2.0 * (i / SEGMENTS);
-      y := 0.7 * AMPLITUDE * Sin(FREQUENCY * 0.8 * x + t * speed * 0.6);
-      glVertex2f(x, y);
-    end;
-    glEnd;
-  end;
-end;
+      glViewport(0, 0, w, h);
 
-// ============================================================================
-// Callback tasto premuto
-// ============================================================================
-procedure KeyCallback(window: PGLFWwindow; key, scancode, action, mods: Integer); cdecl;
-begin
-  if action <> GLFW_PRESS then Exit;
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity;
+      glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 
-  with getGLFW do
-  begin
-    case key of
-      GLFW_KEY_ESCAPE:
-        glfwSetWindowShouldClose(window, True);
-
-      GLFW_KEY_SPACE:
-        paused := not paused;
-
-      GLFW_KEY_W:
-        wireframe := not wireframe;
-
-      GLFW_KEY_UP:
-        speed += 0.5;
-
-      GLFW_KEY_DOWN:
-        speed := Max(0.1, speed - 0.5);
+      glMatrixMode(GL_MODELVIEW);
     end;
   end;
-end;
 
-// ============================================================================
-// Callback ridimensionamento finestra
-// ============================================================================
-procedure Reshape(window: PGLFWwindow; w, h: Integer); cdecl;
-begin
-  Width := w;
-  Height := h;
-
-  with getOpenGL do
+  // ============================================================================
+  // Inizializzazione OpenGL
+  // ============================================================================
+  procedure InitGL;
   begin
-    glViewport(0, 0, w, h);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity;
-    glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-
-    glMatrixMode(GL_MODELVIEW);
+    with getOpenGL do
+    begin
+      glClearColor(0.0, 0.0, 0.0, 0.0);
+      glEnable(GL_LINE_SMOOTH);
+      glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+      glLineWidth(2.0);
+    end;
   end;
-end;
 
-// ============================================================================
-// Inizializzazione OpenGL
-// ============================================================================
-procedure InitGL;
-begin
-  with getOpenGL do
-  begin
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glEnable(GL_LINE_SMOOTH);
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    glLineWidth(2.0);
-  end;
-end;
-
-// ============================================================================
-// Main
-// ============================================================================
+  // ============================================================================
+  // Main
+  // ============================================================================
 var
   t: double;
 begin
