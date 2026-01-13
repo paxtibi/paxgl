@@ -461,7 +461,7 @@ type
 
   IGLFW = interface
     ['{FDD9B942-1A20-43AA-B654-05D9A58F0214}']
-    function glfwInit(): integer;
+    function glfwInit(): boolean;
     procedure glfwTerminate();
     procedure glfwInitHint(hint, Value: integer);
     {$IFDEF GLFW3_LASTEST}
@@ -497,8 +497,8 @@ function glfwPlatformSupported(platform: Integer): Integer;
     procedure glfwWindowHintString(hint: integer; Value: pchar);
     function glfwCreateWindow(Width, Height: integer; const title: pchar; monitor: PGLFWmonitor; share: PGLFWwindow): PGLFWwindow;
     procedure glfwDestroyWindow(window: PGLFWwindow);
-    function glfwWindowShouldClose(window: PGLFWwindow): integer;
-    procedure glfwSetWindowShouldClose(window: PGLFWwindow; Value: integer);
+    function glfwWindowShouldClose(window: PGLFWwindow): boolean;
+    procedure glfwSetWindowShouldClose(window: PGLFWwindow; Value: boolean);
     {$IFDEF GLFW3_LASTEST}
 function glfwGetWindowTitle(window: PGLFWwindow): PChar;
     {$ENDIF}
@@ -587,7 +587,7 @@ function glfwGetWindowTitle(window: PGLFWwindow): PChar;
     procedure glfwSwapInterval(interval: integer);
     function glfwExtensionSupported(const extension: pchar): integer;
     function glfwGetProcAddress(const procname: pchar): TGLFWGLProc;
-    function glfwVulkanSupported(): integer;
+    function glfwVulkanSupported(): boolean;
     function glfwGetRequiredInstanceExtensions(var Count: uint32): ppchar;
     {$IFDEF VK_VERSION_1_0}
 function glfwGetInstanceProcAddress(instance: VkInstance; const procname: PChar): TGLFWVKProc;
@@ -603,6 +603,9 @@ implementation
 
 var
   singleton: IGLFW;
+
+const
+  boolean_conversion_table: array[boolean] of integer = (GLFW_FALSE, GLFW_TRUE);
 
 type
   // ===================================================================
@@ -1054,7 +1057,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    function glfwInit(): integer; virtual;
+    function glfwInit(): boolean; virtual;
     procedure glfwTerminate(); virtual;
     procedure glfwInitHint(hint, Value: integer); virtual;
     {$IFDEF GLFW3_LASTEST}
@@ -1091,8 +1094,8 @@ function glfwPlatformSupported(platform: Integer): Integer;
     procedure glfwWindowHintString(hint: integer; Value: pchar); virtual;
     function glfwCreateWindow(Width, Height: integer; const title: pchar; monitor: PGLFWmonitor; share: PGLFWwindow): PGLFWwindow; virtual;
     procedure glfwDestroyWindow(window: PGLFWwindow); virtual;
-    function glfwWindowShouldClose(window: PGLFWwindow): integer; virtual;
-    procedure glfwSetWindowShouldClose(window: PGLFWwindow; Value: integer); virtual;
+    function glfwWindowShouldClose(window: PGLFWwindow): boolean; virtual;
+    procedure glfwSetWindowShouldClose(window: PGLFWwindow; Value: boolean); virtual;
     {$IFDEF GLFW3_LASTEST}
 function glfwGetWindowTitle(window: PGLFWwindow): PChar; virtual;
     {$ENDIF}
@@ -1181,7 +1184,7 @@ function glfwGetWindowTitle(window: PGLFWwindow): PChar; virtual;
     procedure glfwSwapInterval(interval: integer); virtual;
     function glfwExtensionSupported(const extension: pchar): integer; virtual;
     function glfwGetProcAddress(const procname: pchar): TGLFWGLProc; virtual;
-    function glfwVulkanSupported(): integer; virtual;
+    function glfwVulkanSupported(): boolean; virtual;
     function glfwGetRequiredInstanceExtensions(var Count: uint32): ppchar; virtual;
     {$IFDEF VK_VERSION_1_0}
 function glfwGetInstanceProcAddress(instance: VkInstance; const procname: PChar): TGLFWVKProc; virtual;
@@ -1463,10 +1466,10 @@ begin
   inherited Destroy;
 end;
 
-function TGLFW.glfwInit(): integer;
+function TGLFW.glfwInit: boolean;
 begin
   if Assigned(FGLFWInit) then
-    Result := FGLFWInit()
+    Result := (FglfwInit() = GLFW_TRUE)
   else
     raise ENullPointerException.Create('glfwInit');
 end;
@@ -1543,7 +1546,7 @@ begin
     raise ENullPointerException.Create('glfwWindowHintString');
 end;
 
-function TGLFW.glfwCreateWindow(Width, Height: integer; const title: pchar; monitor, share: PGLFWwindow): PGLFWwindow;
+function TGLFW.glfwCreateWindow(Width, Height: integer; const title: pchar; monitor: PGLFWmonitor; share: PGLFWwindow): PGLFWwindow;
 begin
   if Assigned(FGLFWCreateWindow) then
     Result := FGLFWCreateWindow(Width, Height, title, monitor, share)
@@ -1559,18 +1562,18 @@ begin
     raise ENullPointerException.Create('glfwDestroyWindow');
 end;
 
-function TGLFW.glfwWindowShouldClose(window: PGLFWwindow): integer;
+function TGLFW.glfwWindowShouldClose(window: PGLFWwindow): boolean;
 begin
   if Assigned(FGLFWWindowShouldClose) then
-    Result := FGLFWWindowShouldClose(window)
+    Result := FGLFWWindowShouldClose(window) = GLFW_TRUE
   else
     raise ENullPointerException.Create('glfwWindowShouldClose');
 end;
 
-procedure TGLFW.glfwSetWindowShouldClose(window: PGLFWwindow; Value: integer);
+procedure TGLFW.glfwSetWindowShouldClose(window: PGLFWwindow; Value: boolean);
 begin
   if Assigned(FGLFWSetWindowShouldClose) then
-    FGLFWSetWindowShouldClose(window, Value)
+    FGLFWSetWindowShouldClose(window, boolean_conversion_table[Value])
   else
     raise ENullPointerException.Create('glfwSetWindowShouldClose');
 end;
@@ -2055,7 +2058,7 @@ begin
     raise ENullPointerException.Create('glfwSetDropCallback');
 end;
 
-function TGLFW.glfwJoystickPresent(jid: integer): integer;
+function TGLFW.glfwJoystickPresent(jId: integer): integer;
 begin
   if Assigned(FGLFWJoystickPresent) then
     Result := FGLFWJoystickPresent(jid)
@@ -2063,7 +2066,7 @@ begin
     raise ENullPointerException.Create('glfwJoystickPresent');
 end;
 
-function TGLFW.glfwGetJoystickAxes(jid: integer; Count: PInteger): PSingle;
+function TGLFW.glfwGetJoystickAxes(jId: integer; Count: PInteger): PSingle;
 begin
   if Assigned(FGLFWGetJoystickAxes) then
     Result := FGLFWGetJoystickAxes(jid, Count)
@@ -2071,7 +2074,7 @@ begin
     raise ENullPointerException.Create('glfwGetJoystickAxes');
 end;
 
-function TGLFW.glfwGetJoystickButtons(jid: integer; Count: PInteger): pbyte;
+function TGLFW.glfwGetJoystickButtons(jId: integer; Count: PInteger): pbyte;
 begin
   if Assigned(FGLFWGetJoystickButtons) then
     Result := FGLFWGetJoystickButtons(jid, Count)
@@ -2079,7 +2082,7 @@ begin
     raise ENullPointerException.Create('glfwGetJoystickButtons');
 end;
 
-function TGLFW.glfwGetJoystickHats(jid: integer; Count: PInteger): pbyte;
+function TGLFW.glfwGetJoystickHats(jId: integer; Count: PInteger): pbyte;
 begin
   if Assigned(FGLFWGetJoystickHats) then
     Result := FGLFWGetJoystickHats(jid, Count)
@@ -2087,7 +2090,7 @@ begin
     raise ENullPointerException.Create('glfwGetJoystickHats');
 end;
 
-function TGLFW.glfwGetJoystickName(jid: integer): pchar;
+function TGLFW.glfwGetJoystickName(jId: integer): pchar;
 begin
   if Assigned(FGLFWGetJoystickName) then
     Result := FGLFWGetJoystickName(jid)
@@ -2095,7 +2098,7 @@ begin
     raise ENullPointerException.Create('glfwGetJoystickName');
 end;
 
-function TGLFW.glfwGetJoystickGUID(jid: integer): pchar;
+function TGLFW.glfwGetJoystickGUID(jId: integer): pchar;
 begin
   if Assigned(FGLFWGetJoystickGUID) then
     Result := FGLFWGetJoystickGUID(jid)
@@ -2103,7 +2106,7 @@ begin
     raise ENullPointerException.Create('glfwGetJoystickGUID');
 end;
 
-procedure TGLFW.glfwSetJoystickUserPointer(jid: integer; userpointer: Pointer);
+procedure TGLFW.glfwSetJoystickUserPointer(jId: integer; userPointer: Pointer);
 begin
   if Assigned(FGLFWSetJoystickUserPointer) then
     FGLFWSetJoystickUserPointer(jid, userpointer)
@@ -2111,7 +2114,7 @@ begin
     raise ENullPointerException.Create('glfwSetJoystickUserPointer');
 end;
 
-function TGLFW.glfwGetJoystickUserPointer(jid: integer): Pointer;
+function TGLFW.glfwGetJoystickUserPointer(jId: integer): Pointer;
 begin
   if Assigned(FGLFWGetJoystickUserPointer) then
     Result := FGLFWGetJoystickUserPointer(jid)
@@ -2119,7 +2122,7 @@ begin
     raise ENullPointerException.Create('glfwGetJoystickUserPointer');
 end;
 
-function TGLFW.glfwJoystickIsGamepad(jid: integer): integer;
+function TGLFW.glfwJoystickIsGamepad(jId: integer): integer;
 begin
   if Assigned(FGLFWJoystickIsGamepad) then
     Result := FGLFWJoystickIsGamepad(jid)
@@ -2143,7 +2146,7 @@ begin
     raise ENullPointerException.Create('glfwUpdateGamepadMappings');
 end;
 
-function TGLFW.glfwGetGamepadName(jid: integer): pchar;
+function TGLFW.glfwGetGamepadName(jId: integer): pchar;
 begin
   if Assigned(FGLFWGetGamepadName) then
     Result := FGLFWGetGamepadName(jid)
@@ -2151,7 +2154,7 @@ begin
     raise ENullPointerException.Create('glfwGetGamepadName');
 end;
 
-function TGLFW.glfwGetGamepadState(jid: integer; state: PGLFWgamepadstate): integer;
+function TGLFW.glfwGetGamepadState(jId: integer; state: PGLFWgamepadstate): integer;
 begin
   if Assigned(FGLFWGetGamepadState) then
     Result := FGLFWGetGamepadState(jid, state)
@@ -2255,15 +2258,15 @@ begin
     raise ENullPointerException.Create('glfwGetProcAddress');
 end;
 
-function TGLFW.glfwVulkanSupported(): integer;
+function TGLFW.glfwVulkanSupported: boolean;
 begin
   if Assigned(FGLFWVulkanSupported) then
-    Result := FGLFWVulkanSupported()
+    Result := FGLFWVulkanSupported() = GLFW_TRUE
   else
     raise ENullPointerException.Create('glfwVulkanSupported');
 end;
 
-function TGLFW.glfwGetRequiredInstanceExtensions(var Count: cardinal): ppchar;
+function TGLFW.glfwGetRequiredInstanceExtensions(var Count: uint32): ppchar;
 begin
   if Assigned(FGLFWGetRequiredInstanceExtensions) then
     Result := FGLFWGetRequiredInstanceExtensions(Count)
@@ -2408,7 +2411,7 @@ begin
     raise ENullPointerException.Create('glfwSetMonitorUserPointer');
 end;
 
-function TGLFW.glfwGetMonitorUserPointer(monitor: PGLFWmonitor): Pointer;
+function TGLFW.glfwGetMonitorUserPointer(monitor: PGLFWmonitor): pointer;
 begin
   if Assigned(FGLFWGetMonitorUserPointer) then
     Result := FGLFWGetMonitorUserPointer(monitor)

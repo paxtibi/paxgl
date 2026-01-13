@@ -301,7 +301,7 @@ const
 
       // Attendi che la fisica abbia finito questo frame
       //thread_sync.particles_lock.Acquire;
-      while (glfwWindowShouldClose(window) = 0) and (thread_sync.p_frame <= thread_sync.d_frame) do
+      while (not glfwWindowShouldClose(window)) and (thread_sync.p_frame <= thread_sync.d_frame) do
       begin
         // Piccola attesa con timeout (100ms)
         Sleep(1);
@@ -658,7 +658,7 @@ var
       begin
         case key of
           GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
+            glfwSetWindowShouldClose(window, True);
 
           GLFW_KEY_W:
           begin
@@ -694,12 +694,12 @@ var
         thread_sync.particles_lock.Acquire;
 
         // Attende che il rendering abbia finito di usare i dati precedenti
-        while (glfwWindowShouldClose(win) = 0) and (thread_sync.p_frame > thread_sync.d_frame) do
+        while (not glfwWindowShouldClose(win)) and (thread_sync.p_frame > thread_sync.d_frame) do
         begin
           Sleep(1);  // semplice polling – in produzione usare condition variables
         end;
 
-        if glfwWindowShouldClose(win) = 1 then
+        if glfwWindowShouldClose(win) then
         begin
           thread_sync.particles_lock.Release;
           Break;
@@ -723,7 +723,7 @@ begin
   with getGLFW, GetOpenGL do
   begin
     // Inizializzazione GLFW
-    if glfwInit() = 0 then
+    if not glfwInit() then
     begin
       WriteLn('Errore inizializzazione GLFW');
       Halt(1);
@@ -818,7 +818,7 @@ begin
     glfwSetTime(0.0);
 
     // Loop principale
-    while glfwWindowShouldClose(window) = 0 do
+    while not glfwWindowShouldClose(window) do
     begin
       draw_scene(window, glfwGetTime());
 
@@ -831,6 +831,5 @@ begin
     glfwDestroyWindow(window);
     glfwTerminate;
 
-    thread_sync.particles_lock.Release;
   end;
 end.

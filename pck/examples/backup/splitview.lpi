@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="particles"/>
+      <Title Value="splitview"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -24,16 +24,10 @@
     <RunParams>
       <FormatVersion Value="2"/>
     </RunParams>
-    <RequiredPackages>
-      <Item>
-        <PackageName Value="paxgl_package"/>
-      </Item>
-    </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="particles.lpr"/>
+        <Filename Value="splitview.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="GLParticles"/>
       </Unit>
     </Units>
   </ProjectOptions>
@@ -41,11 +35,12 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\..\bin\$(TargetCPU)-$(TargetOS)\particles"/>
+      <Filename Value="..\bin\$(TargetCPU)-$(TargetOS)\splitview"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <UnitOutputDirectory Value="..\..\lib\$(TargetCPU)-$(TargetOS)"/>
+      <OtherUnitFiles Value="..\src"/>
+      <UnitOutputDirectory Value="..\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
       <Debugging>
@@ -63,9 +58,6 @@
       </Item>
       <Item>
         <Name Value="EFOpenError"/>
-      </Item>
-      <Item>
-        <Name Value="External: INVALID HANDLE"/>
       </Item>
     </Exceptions>
   </Debugging>

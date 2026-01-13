@@ -6610,6 +6610,8 @@ type
     procedure glGetBufferPointerv(target: GLenum; pname: GLenum; params: Pointer); overload;
   end;
 
+  { IGL_VERSION_2_0 }
+
   IGL_VERSION_2_0 = interface(IGL_VERSION_1_5)
     ['{2D6A922E-29B7-4483-BD57-BB593B29EEDD}']
     procedure glBlendEquationSeparate(modeRGB: GLenum; modeAlpha: GLenum); overload;
@@ -8423,6 +8425,8 @@ type
     procedure glGetBufferParameteriv(target: GLenum; pname: GLenum; params: PGLint);
     procedure glGetBufferPointerv(target: GLenum; pname: GLenum; params: Pointer);
   end;
+
+  { TGL_VERSION_2_0 }
 
   TGL_VERSION_2_0 = class(TGL_VERSION_1_5, IGL_VERSION_2_0)
   protected

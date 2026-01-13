@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="12"/>
+    <BuildModes Active="Default"/>
+    <Units>
+      <Unit>
+        <Filename Value="sharing.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ContextSharingExample"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="170"/>
+        <CursorPos Y="195"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="1560"/>
+        <CursorPos X="57" Y="1565"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+    </Units>
+    <JumpHistory HistoryIndex="29">
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="100" TopLine="69"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="102" TopLine="71"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="103" TopLine="72"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="104" TopLine="73"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="105" TopLine="74"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="107" TopLine="77"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="108" TopLine="78"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="109" TopLine="79"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="110" TopLine="80"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="112" TopLine="82"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="113" TopLine="83"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="114" TopLine="84"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="87" TopLine="80"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="80" TopLine="61"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="123" TopLine="105"/>
+      </Position>
+      <Position>
+        <Filename Value="sharing.lpr"/>
+        <Caret Line="80" TopLine="61"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="1458" Column="39" TopLine="1451"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="590" Column="44" TopLine="560"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="805" Column="23" TopLine="774"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="1027" Column="47" TopLine="998"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="1184" Column="43" TopLine="1155"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="2261" Column="50" TopLine="2256"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="2260" Column="67" TopLine="2243"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="500" Column="65" TopLine="470"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="828" Column="11" TopLine="810"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="853" Column="51" TopLine="822"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="1094" Column="64" TopLine="1065"/>
+      </Position>
+      <Position>
+        <Filename Value="..\..\src\pax.glfw.pas"/>
+        <Caret Line="1565" Column="57" TopLine="1560"/>
+      </Position>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode=""/>
+    </RunParams>
+  </ProjectSession>
+  <Debugging>
+    <BreakPoints>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="sharing.lpr"/>
+        <Line Value="88"/>
+      </Item>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="sharing.lpr"/>
+        <Line Value="118"/>
+      </Item>
+    </BreakPoints>
+  </Debugging>
+</CONFIG>

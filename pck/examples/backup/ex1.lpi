@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="particles"/>
+      <Title Value="ex1"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -31,9 +31,13 @@
     </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="particles.lpr"/>
+        <Filename Value="ex1.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="GLParticles"/>
+      </Unit>
+      <Unit>
+        <Filename Value="linmath.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LinMath"/>
       </Unit>
     </Units>
   </ProjectOptions>
@@ -41,7 +45,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\..\bin\$(TargetCPU)-$(TargetOS)\particles"/>
+      <Filename Value="..\..\bin\$(TargetCPU)-$(TargetOS)\ex1"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
@@ -63,9 +67,6 @@
       </Item>
       <Item>
         <Name Value="EFOpenError"/>
-      </Item>
-      <Item>
-        <Name Value="External: INVALID HANDLE"/>
       </Item>
     </Exceptions>
   </Debugging>

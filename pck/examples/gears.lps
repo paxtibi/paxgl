@@ -9,8 +9,8 @@
         <Filename Value="gears.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="155"/>
-        <CursorPos X="26" Y="162"/>
+        <TopLine Value="299"/>
+        <CursorPos X="26" Y="299"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
@@ -24,34 +24,6 @@
       </Unit>
     </Units>
     <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="5269" Column="3" TopLine="5269"/>
-      </Position>
-      <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="2444" Column="65" TopLine="2424"/>
-      </Position>
-      <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="1601" Column="53" TopLine="1587"/>
-      </Position>
-      <Position>
-        <Filename Value="..\..\src\pax.gl.pas"/>
-        <Caret Line="5268" TopLine="5251"/>
-      </Position>
-      <Position>
-        <Filename Value="gears.lpr"/>
-        <Caret Line="318" Column="48" TopLine="294"/>
-      </Position>
-      <Position>
-        <Filename Value="gears.lpr"/>
-        <Caret Line="262" Column="36" TopLine="249"/>
-      </Position>
-      <Position>
-        <Filename Value="gears.lpr"/>
-        <Caret Line="297" TopLine="272"/>
-      </Position>
       <Position>
         <Filename Value="gears.lpr"/>
         <Caret Line="303" TopLine="272"/>
@@ -143,6 +115,34 @@
       <Position>
         <Filename Value="gears.lpr"/>
         <Caret Line="160" Column="33" TopLine="141"/>
+      </Position>
+      <Position>
+        <Filename Value="gears.lpr"/>
+        <Caret Line="79" Column="50" TopLine="60"/>
+      </Position>
+      <Position>
+        <Filename Value="gears.lpr"/>
+        <Caret Line="333" Column="47" TopLine="305"/>
+      </Position>
+      <Position>
+        <Filename Value="gears.lpr"/>
+        <Caret Line="276" Column="47" TopLine="253"/>
+      </Position>
+      <Position>
+        <Filename Value="gears.lpr"/>
+        <Caret Line="86" Column="55" TopLine="60"/>
+      </Position>
+      <Position>
+        <Filename Value="gears.lpr"/>
+        <Caret Line="357" Column="53" TopLine="334"/>
+      </Position>
+      <Position>
+        <Filename Value="gears.lpr"/>
+        <Caret Column="2"/>
+      </Position>
+      <Position>
+        <Filename Value="gears.lpr"/>
+        <Caret Line="344" Column="5" TopLine="307"/>
       </Position>
     </JumpHistory>
     <RunParams>

@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="particles"/>
+      <Title Value="sharing"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -31,9 +31,9 @@
     </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="particles.lpr"/>
+        <Filename Value="sharing.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="GLParticles"/>
+        <UnitName Value="ContextSharingExample"/>
       </Unit>
     </Units>
   </ProjectOptions>
@@ -41,10 +41,11 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\..\bin\$(TargetCPU)-$(TargetOS)\particles"/>
+      <Filename Value="..\..\bin\$(TargetCPU)-$(TargetOS)\sharing"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="..\src"/>
       <UnitOutputDirectory Value="..\..\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
@@ -63,9 +64,6 @@
       </Item>
       <Item>
         <Name Value="EFOpenError"/>
-      </Item>
-      <Item>
-        <Name Value="External: INVALID HANDLE"/>
       </Item>
     </Exceptions>
   </Debugging>
