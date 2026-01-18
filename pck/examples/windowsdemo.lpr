@@ -5,7 +5,7 @@ program WindowsDemo;
 uses
   SysUtils,
   pax.glfw,
-  pax.gl;
+  pax.gl, pax.vulkan.video;
 
 const
   MAX_WINDOWS = 4;

@@ -1,5 +1,6 @@
-
 program ex1;
+{$ModeSwitch advancedrecords}
+{$ModeSwitch typehelpers}
 
 uses
   pax.gl,
@@ -37,7 +38,7 @@ const
     with getGLFW do
     begin
       if (key = GLFW_KEY_ESCAPE) and (action = GLFW_PRESS) then
-        glfwSetWindowShouldClose(window, true);
+        glfwSetWindowShouldClose(window, True);
     end;
   end;
 
@@ -108,7 +109,10 @@ var
   Width, Height: integer;
   ratio: single;
   vertex_buffer, vertex_array: GLuint;
-  vertex_shader, fragment_shader, program_: GLuint;
+  vertex_shader, fragment_shader: GLuint;
+
+  program_: GLuint;
+
   mvp_location, vpos_location, vcol_location: GLint;
   m, p, mvp: TMat4x4;
   time: double;
@@ -179,7 +183,7 @@ begin
     glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
       SizeOf(TVertex), Pointer(@PVertex(nil)^.col));
 
-    while not glfwWindowShouldClose(window)  do
+    while not glfwWindowShouldClose(window) do
     begin
       glfwGetFramebufferSize(window, Width, Height);
       ratio := Width / Height;

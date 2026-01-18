@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="particles"/>
+      <Title Value="vulkan-04"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -31,9 +31,8 @@
     </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="particles.lpr"/>
+        <Filename Value="vulkan-04.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="GLParticles"/>
       </Unit>
     </Units>
   </ProjectOptions>
@@ -41,11 +40,12 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\..\bin\$(TargetCPU)-$(TargetOS)\particles"/>
+      <Filename Value="..\..\..\bin\$(TargetCPU)-$(TargetOS)\vulkan-04"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <UnitOutputDirectory Value="..\..\lib\$(TargetCPU)-$(TargetOS)"/>
+      <OtherUnitFiles Value="..\..\src"/>
+      <UnitOutputDirectory Value="..\..\..\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
       <Debugging>

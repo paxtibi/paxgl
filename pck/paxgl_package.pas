@@ -8,7 +8,7 @@ unit paxgl_package;
 interface
 
 uses
-  pax.gl, pax.gles, pax.glfw, LazarusPackageIntf;
+  pax.gl, pax.gles, pax.glfw, pax.vulkan, pax.vulkan.video, LazarusPackageIntf;
 
 implementation
 

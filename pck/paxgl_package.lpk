@@ -25,6 +25,14 @@
         <Filename Value="..\src\pax.glfw.pas"/>
         <UnitName Value="pax.glfw"/>
       </Item>
+      <Item>
+        <Filename Value="..\src\pax.vulkan.pas"/>
+        <UnitName Value="pax.vulkan"/>
+      </Item>
+      <Item>
+        <Filename Value="..\src\pax.vulkan.video.pas"/>
+        <UnitName Value="pax.vulkan.video"/>
+      </Item>
     </Files>
     <RequiredPkgs>
       <Item>

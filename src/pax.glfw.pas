@@ -424,29 +424,29 @@ type
   PGLFWVidMode = ^TGLFWVidMode;
   PPGLFWVidMode = ^PGLFWVidMode;
 
-  TGLFWgammaramp = record
+  TGLFWGammaRamp = record
     red: PWord;
     green: PWord;
     blue: PWord;
     size: cardinal;
   end;
-  PGLFWgammaramp = ^TGLFWgammaramp;
-  PPGLFWgammaramp = ^PGLFWgammaramp;
+  PGLFWGammaRamp = ^TGLFWGammaRamp;
+  PPGLFWGammaRamp = ^PGLFWGammaRamp;
 
-  TGLFWimage = record
+  TGLFWImage = record
     Width: integer;
     Height: integer;
     pixels: pbyte;
   end;
-  PGLFWimage = ^TGLFWimage;
-  PPGLFWimage = ^PGLFWimage;
+  PGLFWImage = ^TGLFWimage;
+  PPGLFWImage = ^PGLFWimage;
 
-  TGLFWgamepadstate = record
+  TGLFWGamePadState = record
     Buttons: array[0..14] of byte;
     axes: array[0..5] of single;
   end;
-  PGLFWgamepadstate = ^TGLFWgamepadstate;
-  PPGLFWgamepadstate = ^PGLFWgamepadstate;
+  PGLFWGamePadState = ^TGLFWGamePadState;
+  PPGLFWGamePadState = ^PGLFWGamePadState;
 
   {$IFDEF GLFW3_LASTEST}
   TGLFWallocator = record
@@ -469,7 +469,7 @@ procedure glfwInitAllocator(allocator: PGLFWallocator);
 {$IFDEF VK_VERSION_1_0}
 procedure glfwInitVulkanLoader(loader: TGLFWVKProc);
 {$ENDIF} {$ENDIF}
-    procedure glfwGetVersion(major, minor, rev: PInteger);
+    procedure glfwGetVersion(var major, minor, rev: integer);
     function glfwGetVersionString(): pchar;
     function glfwGetError(description: pchar): integer;
     function glfwSetErrorCallback(callback: TGLFWerrorfun): TGLFWerrorfun;
@@ -495,7 +495,7 @@ function glfwPlatformSupported(platform: Integer): Integer;
     procedure glfwDefaultWindowHints();
     procedure glfwWindowHint(hint, Value: integer);
     procedure glfwWindowHintString(hint: integer; Value: pchar);
-    function glfwCreateWindow(Width, Height: integer; const title: pchar; monitor: PGLFWmonitor; share: PGLFWwindow): PGLFWwindow;
+    function glfwCreateWindow(Width, Height: integer; const title: string; monitor: PGLFWmonitor; share: PGLFWwindow): PGLFWwindow;
     procedure glfwDestroyWindow(window: PGLFWwindow);
     function glfwWindowShouldClose(window: PGLFWwindow): boolean;
     procedure glfwSetWindowShouldClose(window: PGLFWwindow; Value: boolean);
@@ -1066,7 +1066,7 @@ procedure glfwInitAllocator(allocator: PGLFWallocator); virtual;
 procedure glfwInitVulkanLoader(loader: TGLFWVKProc); virtual;
 {$ENDIF}
     {$ENDIF}
-    procedure glfwGetVersion(major, minor, rev: PInteger); virtual;
+    procedure glfwGetVersion(var major, minor, rev: integer); virtual;
     function glfwGetVersionString(): pchar; virtual;
     function glfwGetError(description: pchar): integer; virtual;
     function glfwSetErrorCallback(callback: TGLFWerrorfun): TGLFWerrorfun; virtual;
@@ -1092,13 +1092,10 @@ function glfwPlatformSupported(platform: Integer): Integer;
     procedure glfwDefaultWindowHints(); virtual;
     procedure glfwWindowHint(hint, Value: integer); virtual;
     procedure glfwWindowHintString(hint: integer; Value: pchar); virtual;
-    function glfwCreateWindow(Width, Height: integer; const title: pchar; monitor: PGLFWmonitor; share: PGLFWwindow): PGLFWwindow; virtual;
+    function glfwCreateWindow(Width, Height: integer; const title: string; monitor: PGLFWmonitor; share: PGLFWwindow): PGLFWwindow; virtual;
     procedure glfwDestroyWindow(window: PGLFWwindow); virtual;
     function glfwWindowShouldClose(window: PGLFWwindow): boolean; virtual;
     procedure glfwSetWindowShouldClose(window: PGLFWwindow; Value: boolean); virtual;
-    {$IFDEF GLFW3_LASTEST}
-function glfwGetWindowTitle(window: PGLFWwindow): PChar; virtual;
-    {$ENDIF}
     procedure glfwSetWindowTitle(window: PGLFWwindow; const title: pchar); virtual;
     procedure glfwSetWindowIcon(window: PGLFWwindow; Count: integer; const images: PGLFWimage); virtual;
     procedure glfwGetWindowPos(window: PGLFWwindow; xpos, ypos: PInteger); virtual;
@@ -1490,10 +1487,10 @@ begin
     raise ENullPointerException.Create('glfwInitHint');
 end;
 
-procedure TGLFW.glfwGetVersion(major, minor, rev: PInteger);
+procedure TGLFW.glfwGetVersion(var major, minor, rev: integer);
 begin
   if Assigned(FGLFWGetVersion) then
-    FGLFWGetVersion(major, minor, rev)
+    FGLFWGetVersion(@major, @minor, @rev)
   else
     raise ENullPointerException.Create('glfwGetVersion');
 end;
@@ -1546,10 +1543,10 @@ begin
     raise ENullPointerException.Create('glfwWindowHintString');
 end;
 
-function TGLFW.glfwCreateWindow(Width, Height: integer; const title: pchar; monitor: PGLFWmonitor; share: PGLFWwindow): PGLFWwindow;
+function TGLFW.glfwCreateWindow(Width, Height: integer; const title: string; monitor: PGLFWmonitor; share: PGLFWwindow): PGLFWwindow;
 begin
   if Assigned(FGLFWCreateWindow) then
-    Result := FGLFWCreateWindow(Width, Height, title, monitor, share)
+    Result := FGLFWCreateWindow(Width, Height, PChar(title), monitor, share)
   else
     raise ENullPointerException.Create('glfwCreateWindow');
 end;

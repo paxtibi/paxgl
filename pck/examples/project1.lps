@@ -6,20 +6,15 @@
     <BuildModes Active="Default"/>
     <Units>
       <Unit>
-        <Filename Value="wave.lpr"/>
+        <Filename Value="project1.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <CursorPos X="51" Y="23"/>
+        <CursorPos X="3" Y="3"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit>
     </Units>
-    <JumpHistory>
-      <Position>
-        <Filename Value="wave.lpr"/>
-        <Caret Line="147" Column="26" TopLine="135"/>
-      </Position>
-    </JumpHistory>
+    <JumpHistory HistoryIndex="-1"/>
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes ActiveMode=""/>

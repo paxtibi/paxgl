@@ -39,6 +39,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="LinMath"/>
       </Unit>
+      <Unit>
+        <Filename Value="ex1_1.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="gears"/>
+      <Title Value="ex1_1"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -31,7 +31,19 @@
     </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="gears.lpr"/>
+        <Filename Value="ex1_1.lpr"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="gl_utils.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\src\pax.vulkan.video.codecav1.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\src\pax.vulkan.video.codecvp9.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
@@ -40,10 +52,11 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\..\bin\$(TargetCPU)-$(TargetOS)\gears"/>
+      <Filename Value="..\..\bin\$(TargetCPU)-$(TargetOS)\ex1_1"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="..\src;..\..\src"/>
       <UnitOutputDirectory Value="..\..\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>

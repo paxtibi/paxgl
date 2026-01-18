@@ -6175,7 +6175,7 @@ type
     function glGetError(): GLenum; overload;
     procedure glGetFloatv(pname: GLenum; Data: PGLfloat); overload;
     procedure glGetIntegerv(pname: GLenum; Data: PGLint); overload;
-    function glGetString(Name: GLenum): PGLubyte; overload;
+    function glGetString(Name: GLenum): string; overload;
     procedure glGetTexImage(target: GLenum; level: GLint; format: GLenum; aType: GLenum; pixels: Pointer); overload;
     procedure glGetTexParameterfv(target: GLenum; pname: GLenum; params: PGLfloat); overload;
     procedure glGetTexParameteriv(target: GLenum; pname: GLenum; params: PGLint); overload;
@@ -7264,7 +7264,7 @@ type
 
   IOpenGL = IGL_VERSION_4_6;
 
-function GetOpenGL: IOpenGL;
+function GetOpenGL: IOpenGL; inline;
 
 implementation
 
@@ -7303,7 +7303,6 @@ type
 
 var
   singleton: IGL_VERSION_4_6;
-  debugFile: Text;
 
 
 function ifThen(test: boolean; ifTrue, ifFalse: string): string;
@@ -7423,15 +7422,6 @@ begin
   Result := dynlibs.GetProcAddress(FHandle, Name);
   {$EndIf}
 
-  fileName := ExpandFileName(ParamStr(0)) + '.opengl.log';
-  AssignFile(debugFile, fileName);
-  if FileExists(fileName) then
-    Append(debugFile)
-  else
-    Rewrite(debugFile);
-  Writeln(debugFile, IfThen(assigned(Result), '     found:', ' not found:'), Name);
-  Flush(debugFile);
-  CloseFile(debugFile);
 end;
 
 procedure TOpenGLBase.Bind(var FuncPtr: Pointer; const Name: ansistring; Mandatory: boolean = False);
@@ -7480,6 +7470,9 @@ begin
 end;
 
 type
+
+  { TGL_VERSION_1_0 }
+
   TGL_VERSION_1_0 = class(TOpenGLBase, IGL_VERSION_1_0)
   protected
     FglCullFace: procedure(mode: GLenum); cdecl;
@@ -7830,7 +7823,7 @@ type
     function glGetError(): GLenum;
     procedure glGetFloatv(pname: GLenum; Data: PGLfloat);
     procedure glGetIntegerv(pname: GLenum; Data: PGLint);
-    function glGetString(Name: GLenum): PGLubyte;
+    function glGetString(Name: GLenum): string;
     procedure glGetTexImage(target: GLenum; level: GLint; format: GLenum; aType: GLenum; pixels: Pointer);
     procedure glGetTexParameterfv(target: GLenum; pname: GLenum; params: PGLfloat);
     procedure glGetTexParameteriv(target: GLenum; pname: GLenum; params: PGLint);
@@ -10492,11 +10485,11 @@ begin
   end;
 end;
 
-function TGL_VERSION_1_0.glGetString(Name: GLenum): PGLubyte;
+function TGL_VERSION_1_0.glGetString(Name: GLenum): string;
 begin
   if Assigned(FglGetString) then
   begin
-    Result := FglGetString(Name);
+    Result := string(PChar(FglGetString(Name)));
   end
   else
   begin
