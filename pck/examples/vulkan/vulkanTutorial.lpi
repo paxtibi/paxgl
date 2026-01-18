@@ -10,7 +10,7 @@
         <MainUnitHasScaledStatement Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="vulkan-04"/>
+      <Title Value="vulkanTutorial"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -31,7 +31,15 @@
     </RequiredPackages>
     <Units>
       <Unit>
-        <Filename Value="vulkan-04.lpr"/>
+        <Filename Value="vulkanTutorial.lpr"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\src\pax.vulkan.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
@@ -40,11 +48,11 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\..\..\bin\$(TargetCPU)-$(TargetOS)\vulkan-04"/>
+      <Filename Value="..\..\..\bin\$(TargetCPU)-$(TargetOS)\vulkanTutorial"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\..\src"/>
+      <OtherUnitFiles Value="..\src;..\..\..\src"/>
       <UnitOutputDirectory Value="..\..\..\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
@@ -63,6 +71,9 @@
       </Item>
       <Item>
         <Name Value="EFOpenError"/>
+      </Item>
+      <Item>
+        <Name Value="EVulkanNotBound"/>
       </Item>
     </Exceptions>
   </Debugging>

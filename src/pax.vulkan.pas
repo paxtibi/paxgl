@@ -31,7 +31,8 @@ const
   VK_API_VERSION_1_4 = (0 shl 29) or (1 shl 22) or (4 shl 12) or (0 shl 0);
   VK_HEADER_VERSION = 303;
   VK_HEADER_VERSION_COMPLETE = (0 shl 29) or (1 shl 22) or (4 shl 12) or (VK_HEADER_VERSION shl 0);
-
+  VK_FALSE = 0;
+  VK_TRUE = 1;
 
   {$IFDEF WINDOWS}
      vulkanLibName = 'vulkan-1.dll';
@@ -9586,17 +9587,137 @@ type
   TvkCmdSetRenderingAttachmentLocationsKHR = procedure(commandBuffer: VkCommandBuffer; pLocationInfo: PVkRenderingAttachmentLocationInfo); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
   TvkCmdSetRenderingInputAttachmentIndicesKHR = procedure(commandBuffer: VkCommandBuffer; pInputAttachmentIndexInfo: PVkRenderingInputAttachmentIndexInfo); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
 
+const
+  VK_EXT_debug_utils = 1;
+  VK_EXT_DEBUG_UTILS_SPEC_VERSION = 2;
+  VK_EXT_DEBUG_UTILS_EXTENSION_NAME = 'VK_EXT_debug_utils';
 
 type
+  VkDebugUtilsMessengerEXT = uint64;
+
+  VkDebugUtilsMessengerCallbackDataFlagsEXT = VkFlags;
+
+  VkDebugUtilsMessageSeverityFlagBitsEXT = (
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT = $00000001,
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT = $00000010,
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT = $00000100,
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT = $00001000,
+    VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT = $7FFFFFFF
+    );
+
+  VkDebugUtilsMessageTypeFlagBitsEXT = (
+    VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT = $00000001,
+    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT = $00000002,
+    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT = $00000004,
+    VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT = $00000008,
+    VK_DEBUG_UTILS_MESSAGE_TYPE_FLAG_BITS_MAX_ENUM_EXT = $7FFFFFFF
+    );
+
+  VkDebugUtilsMessageTypeFlagsEXT = VkFlags;
+  VkDebugUtilsMessageSeverityFlagsEXT = VkFlags;
+  VkDebugUtilsMessengerCreateFlagsEXT = VkFlags;
+
+  VkDebugUtilsLabelEXT = record
+    sType: VkStructureType;
+    pNext: Pointer;
+    pLabelName: pchar;
+    color: array[0..3] of single;
+  end;
+
+  VkDebugUtilsObjectNameInfoEXT = record
+    sType: VkStructureType;
+    pNext: Pointer;
+    objectType: VkObjectType;
+    objectHandle: uint64;
+    pObjectName: pchar;
+  end;
+
+  PVkDebugUtilsMessengerCallbackDataEXT = ^VkDebugUtilsMessengerCallbackDataEXT;
+
+  VkDebugUtilsMessengerCallbackDataEXT = record
+    sType: VkStructureType;
+    pNext: Pointer;
+    flags: VkDebugUtilsMessengerCallbackDataFlagsEXT;
+    pMessageIdName: pchar;
+    messageIdNumber: int32;
+    pMessage: pchar;
+    queueLabelCount: uint32;
+    pQueueLabels: ^VkDebugUtilsLabelEXT;
+    cmdBufLabelCount: uint32;
+    pCmdBufLabels: ^VkDebugUtilsLabelEXT;
+    objectCount: uint32;
+    pObjects: ^VkDebugUtilsObjectNameInfoEXT;
+  end;
+
+  vkDebugUtilsMessengerCallbackEXT = function(messageSeverity: VkDebugUtilsMessageSeverityFlagBitsEXT; messageTypes: VkDebugUtilsMessageTypeFlagsEXT; pCallbackData: PVkDebugUtilsMessengerCallbackDataEXT; pUserData: Pointer): VkBool32; cdecl;
+
+  VkDebugUtilsMessengerCreateInfoEXT = record
+    sType: VkStructureType;
+    pNext: Pointer;
+    flags: VkDebugUtilsMessengerCreateFlagsEXT;
+    messageSeverity: VkDebugUtilsMessageSeverityFlagsEXT;
+    messageType: VkDebugUtilsMessageTypeFlagsEXT;
+    pfnUserCallback: vkDebugUtilsMessengerCallbackEXT;
+    pUserData: Pointer;
+  end;
+
+  VkDebugUtilsObjectTagInfoEXT = record
+    sType: VkStructureType;
+    pNext: Pointer;
+    objectType: VkObjectType;
+    objectHandle: uint64;
+    tagName: uint64;
+    tagSize: nativeuint;
+    pTag: Pointer;
+  end;
+
+  PVkDebugUtilsObjectNameInfoEXT = ^VkDebugUtilsObjectNameInfoEXT;
+  PVkDebugUtilsObjectTagInfoEXT = ^VkDebugUtilsObjectTagInfoEXT;
+  PVkDebugUtilsLabelEXT = ^VkDebugUtilsLabelEXT;
+  PVkDebugUtilsMessengerCreateInfoEXT = ^VkDebugUtilsMessengerCreateInfoEXT;
+  PVkDebugUtilsMessengerEXT = ^VkDebugUtilsMessengerEXT;
+
+  vkSetDebugUtilsObjectNameEXT = function(device: VkDevice; pNameInfo: PVkDebugUtilsObjectNameInfoEXT): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  vkSetDebugUtilsObjectTagEXT = function(device: VkDevice; pTagInfo: PVkDebugUtilsObjectTagInfoEXT): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  vkQueueBeginDebugUtilsLabelEXT = procedure(queue: VkQueue; pLabelInfo: PVkDebugUtilsLabelEXT); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  vkQueueEndDebugUtilsLabelEXT = procedure(queue: VkQueue); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  vkQueueInsertDebugUtilsLabelEXT = procedure(queue: VkQueue; pLabelInfo: PVkDebugUtilsLabelEXT); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  vkCmdBeginDebugUtilsLabelEXT = procedure(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  vkCmdEndDebugUtilsLabelEXT = procedure(commandBuffer: VkCommandBuffer); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  vkCmdInsertDebugUtilsLabelEXT = procedure(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  vkCreateDebugUtilsMessengerEXT = function(instance: VkInstance; pCreateInfo: PVkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  vkDestroyDebugUtilsMessengerEXT = procedure(instance: VkInstance; messenger: VkDebugUtilsMessengerEXT; pAllocator: PVkAllocationCallbacks); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  vkSubmitDebugUtilsMessageEXT = procedure(instance: VkInstance; messageSeverity: VkDebugUtilsMessageSeverityFlagBitsEXT; messageTypes: VkDebugUtilsMessageTypeFlagsEXT; pCallbackData: PVkDebugUtilsMessengerCallbackDataEXT); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+
+type
+
+  IVulkanDebugUtilsExtension = interface
+    ['{65410DD0-80F9-4E62-B184-92706EC16E86}']
+    function vkSetDebugUtilsObjectNameEXT(pNameInfo: PVkDebugUtilsObjectNameInfoEXT): VkResult;
+    function vkSetDebugUtilsObjectTagEXT(pTagInfo: PVkDebugUtilsObjectTagInfoEXT): VkResult;
+    procedure vkQueueBeginDebugUtilsLabelEXT(queue: VkQueue; pLabelInfo: PVkDebugUtilsLabelEXT);
+    procedure vkQueueEndDebugUtilsLabelEXT(queue: VkQueue);
+    procedure vkQueueInsertDebugUtilsLabelEXT(queue: VkQueue; pLabelInfo: PVkDebugUtilsLabelEXT);
+    procedure vkCmdBeginDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT);
+    procedure vkCmdEndDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer);
+    procedure vkCmdInsertDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT);
+    function vkCreateDebugUtilsMessengerEXT(pCreateInfo: PVkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult;
+    procedure vkDestroyDebugUtilsMessengerEXT(messenger: VkDebugUtilsMessengerEXT; pAllocator: PVkAllocationCallbacks);
+    procedure vkSubmitDebugUtilsMessageEXT(messageSeverity: VkDebugUtilsMessageSeverityFlagBitsEXT; messageTypes: VkDebugUtilsMessageTypeFlagsEXT; pCallbackData: PVkDebugUtilsMessengerCallbackDataEXT);
+  end;
+
   IVulkan10 = interface
     ['{D30E7C05-D980-4641-8D0C-4CB6AAD3A68D}']
+    function SupportsExtension(const Ext: string): boolean;
+    function SupportsLayer(const Ext: string): boolean;
+
     function vkAllocateMemory(device: VkDevice; pAllocateInfo: PVkMemoryAllocateInfo; pAllocator: PVkAllocationCallbacks; pMemory: PVkDeviceMemory): VkResult;
     function vkBindBufferMemory(device: VkDevice; buffer: VkBuffer; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult;
     function vkBindImageMemory(device: VkDevice; image: VkImage; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult;
     function vkCreateDevice(physicalDevice: VkPhysicalDevice; pCreateInfo: PVkDeviceCreateInfo; pAllocator: PVkAllocationCallbacks; out pDevice: VkDevice): VkResult;
     function vkCreateFramebuffer(device: VkDevice; pCreateInfo: PVkFramebufferCreateInfo; pAllocator: PVkAllocationCallbacks; pFramebuffer: PVkFramebuffer): VkResult;
     function vkCreateGraphicsPipelines(device: VkDevice; pipelineCache: VkPipelineCache; createInfoCount: uint32; pCreateInfos: PVkGraphicsPipelineCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelines: PVkPipeline): VkResult;
-    function vkCreateInstance(pCreateInfo: PVkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
+    function vkCreateInstance(const pCreateInfo: VkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
     function vkCreateRenderPass(device: VkDevice; pCreateInfo: PVkRenderPassCreateInfo; pAllocator: PVkAllocationCallbacks; pRenderPass: PVkRenderPass): VkResult;
     function vkDeviceWaitIdle(device: VkDevice): VkResult;
     function vkEnumerateDeviceExtensionProperties(physicalDevice: VkPhysicalDevice; pLayerName: pansichar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
@@ -9654,7 +9775,9 @@ type
     procedure vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; samples: VkSampleCountFlagBits; usage: VkImageUsageFlags; tiling: VkImageTiling; pPropertyCount: Puint32; pProperties: PVkSparseImageFormatProperties);
     procedure vkGetRenderAreaGranularity(device: VkDevice; renderPass: VkRenderPass; pGranularity: PVkExtent2D);
     procedure vkUnmapMemory(device: VkDevice; memory: VkDeviceMemory);
+    function getDebugUtilsExtension(instance: VkInstance; device: VkDevice = nil): IVulkanDebugUtilsExtension;
   end;
+
 
   IVulkan11 = interface(IVulkan10)
     ['{72D7D5A8-E17A-405D-8633-E381B76E44E1}']
@@ -9769,25 +9892,29 @@ type
     procedure vkCmdSetRenderingInputAttachmentIndices(commandBuffer: VkCommandBuffer; pInputAttachmentIndexInfo: PVkRenderingInputAttachmentIndexInfo);
   end;
 
-  EVulkanError = class(Exception)
+  EVulkanException = class(Exception)
 
   end;
 
-  EVulkanNotBound = class(EVulkanError)
+  EVulkanNotBound = class(EVulkanException)
 
   end;
 
-  IVulkan = IVulkan12;
+  IVulkan = IVulkan14;
 
 
-function getVulkan: IVulkan;
+function getVulkan: IVulkan; inline;
 function VK_MAKE_VERSION(major, minor, patch: longword): longword; inline;
 
 operator := (enum: VkQueueFlagBits): uint32;
+operator and(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+operator or(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+operator or(enum1, enum2: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+operator or(flags: VkFlags; enum: VkDebugUtilsMessageTypeFlagBitsEXT): uint32;
+operator or(enum1, enum2: VkDebugUtilsMessageTypeFlagBitsEXT): uint32;
 operator and(flags: VkFlags; enum: VkQueueFlagBits): uint32;
 
 implementation
-
 
 var
   singleton: IVulkan;
@@ -9798,6 +9925,8 @@ type
   TVulkanBase = class(TInterfacedObject)
   private
   protected
+    FExtensions: array of string;
+    FLayers: array of string;
     FHandle: TLibHandle;
   protected
     function LoadProc(Name: ansistring): {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
@@ -9808,12 +9937,59 @@ type
     procedure BindDevice(var FuncPtr: Pointer; const Name: ansistring; Device: VkDevice; Mandatory: boolean = False); virtual; abstract;
     procedure BindInstance(var FuncPtr: Pointer; const Name: ansistring; Instance: VkInstance; Mandatory: boolean = False); virtual; abstract;
     function SupportsExtension(const Ext: string): boolean; virtual;
+    function SupportsLayer(const Ext: string): boolean; virtual;
     function SupportsVersion(Major, Minor: integer): boolean; virtual;
-    function canCall(var FuncPtr: Pointer; Name: string): boolean;
+    procedure loadExtensionNames; virtual; abstract;
+    procedure loadLayesName; virtual; abstract;
   public
     procedure LoadLibrary;
     procedure unLoadLibrary;
     destructor Destroy; override;
+  end;
+
+
+  { TVulkanDebugUtilsExtension }
+
+  TVulkanDebugUtilsExtension = class(TInterfacedObject, IVulkanDebugUtilsExtension)
+  private
+    FDevice: VkDevice;
+    FInstance: VkInstance;
+    procedure SetDevice(AValue: VkDevice);
+    procedure SetInstance(AValue: VkInstance);
+    procedure SetVkGetDeviceProcAddr(AValue: TVKGetDeviceProcAddr);
+    procedure SetVkGetInstanceProcAddr(AValue: TVKGetInstanceProcAddr);
+  protected
+    FvkSetDebugUtilsObjectNameEXT: vkSetDebugUtilsObjectNameEXT;
+    FvkSetDebugUtilsObjectTagEXT: vkSetDebugUtilsObjectTagEXT;
+    FvkQueueBeginDebugUtilsLabelEXT: vkQueueBeginDebugUtilsLabelEXT;
+    FvkQueueEndDebugUtilsLabelEXT: vkQueueEndDebugUtilsLabelEXT;
+    FvkQueueInsertDebugUtilsLabelEXT: vkQueueInsertDebugUtilsLabelEXT;
+    FvkCmdBeginDebugUtilsLabelEXT: vkCmdBeginDebugUtilsLabelEXT;
+    FvkCmdEndDebugUtilsLabelEXT: vkCmdEndDebugUtilsLabelEXT;
+    FvkCmdInsertDebugUtilsLabelEXT: vkCmdInsertDebugUtilsLabelEXT;
+    FvkCreateDebugUtilsMessengerEXT: vkCreateDebugUtilsMessengerEXT;
+    FvkDestroyDebugUtilsMessengerEXT: vkDestroyDebugUtilsMessengerEXT;
+    FvkSubmitDebugUtilsMessageEXT: vkSubmitDebugUtilsMessageEXT;
+    FVkGetInstanceProcAddr: TVKGetInstanceProcAddr;
+    FvkGetDeviceProcAddr: TVKGetDeviceProcAddr;
+  protected
+    procedure BindEntity;
+  public
+    function vkSetDebugUtilsObjectNameEXT(pNameInfo: PVkDebugUtilsObjectNameInfoEXT): VkResult;
+    function vkSetDebugUtilsObjectTagEXT(pTagInfo: PVkDebugUtilsObjectTagInfoEXT): VkResult;
+    procedure vkQueueBeginDebugUtilsLabelEXT(queue: VkQueue; pLabelInfo: PVkDebugUtilsLabelEXT);
+    procedure vkQueueEndDebugUtilsLabelEXT(queue: VkQueue);
+    procedure vkQueueInsertDebugUtilsLabelEXT(queue: VkQueue; pLabelInfo: PVkDebugUtilsLabelEXT);
+    procedure vkCmdBeginDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT);
+    procedure vkCmdEndDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer);
+    procedure vkCmdInsertDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT);
+    function vkCreateDebugUtilsMessengerEXT(pCreateInfo: PVkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult;
+    procedure vkDestroyDebugUtilsMessengerEXT(messenger: VkDebugUtilsMessengerEXT; pAllocator: PVkAllocationCallbacks);
+    procedure vkSubmitDebugUtilsMessageEXT(messageSeverity: VkDebugUtilsMessageSeverityFlagBitsEXT; messageTypes: VkDebugUtilsMessageTypeFlagsEXT; pCallbackData: PVkDebugUtilsMessengerCallbackDataEXT);
+    property Instance: VkInstance read FInstance write SetInstance;
+    property Device: VkDevice read FDevice write SetDevice;
+    property vkGetInstanceProcAddr: TVKGetInstanceProcAddr read FVkGetInstanceProcAddr write SetVkGetInstanceProcAddr;
+    property vkGetDeviceProcAddr: TVKGetDeviceProcAddr read FvkGetDeviceProcAddr write SetvkGetDeviceProcAddr;
   end;
 
   { TVulkan10 }
@@ -9885,6 +10061,8 @@ type
     FVKGetRenderAreaGranularity: TVKGetRenderAreaGranularity;
     FVKUnmapMemory: TVKUnmapMemory;
   protected
+    procedure loadExtensionNames; override;
+    procedure loadLayesName; override;
     procedure bindEntry; override;
     procedure bindEntryInstance(instance: VkInstance); override;
     procedure bindEntryDevice(device: VkDevice); override;
@@ -9897,7 +10075,7 @@ type
     function vkCreateDevice(physicalDevice: VkPhysicalDevice; pCreateInfo: PVkDeviceCreateInfo; pAllocator: PVkAllocationCallbacks; out pDevice: VkDevice): VkResult;
     function vkCreateFramebuffer(device: VkDevice; pCreateInfo: PVkFramebufferCreateInfo; pAllocator: PVkAllocationCallbacks; pFramebuffer: PVkFramebuffer): VkResult;
     function vkCreateGraphicsPipelines(device: VkDevice; pipelineCache: VkPipelineCache; createInfoCount: uint32; pCreateInfos: PVkGraphicsPipelineCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelines: PVkPipeline): VkResult;
-    function vkCreateInstance(pCreateInfo: PVkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
+    function vkCreateInstance(const pCreateInfo: VkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
     function vkCreateRenderPass(device: VkDevice; pCreateInfo: PVkRenderPassCreateInfo; pAllocator: PVkAllocationCallbacks; pRenderPass: PVkRenderPass): VkResult;
     function vkDeviceWaitIdle(device: VkDevice): VkResult;
     function vkEnumerateDeviceExtensionProperties(physicalDevice: VkPhysicalDevice; pLayerName: pansichar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
@@ -9955,6 +10133,7 @@ type
     procedure vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; samples: VkSampleCountFlagBits; usage: VkImageUsageFlags; tiling: VkImageTiling; pPropertyCount: Puint32; pProperties: PVkSparseImageFormatProperties);
     procedure vkGetRenderAreaGranularity(device: VkDevice; renderPass: VkRenderPass; pGranularity: PVkExtent2D);
     procedure vkUnmapMemory(device: VkDevice; memory: VkDeviceMemory);
+    function getDebugUtilsExtension(aInstance: VkInstance; aDevice: VkDevice): IVulkanDebugUtilsExtension;
   end;
 
   { TVulkan11 }
@@ -10241,6 +10420,30 @@ begin
   Result := Ord(enum);
 end;
 
+operator and(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(enum1, enum2: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+begin
+  Result := Ord(enum1) or Ord(enum2);
+end;
+
+operator or(flags: VkFlags; enum: VkDebugUtilsMessageTypeFlagBitsEXT): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(enum1, enum2: VkDebugUtilsMessageTypeFlagBitsEXT): uint32;
+begin
+  Result := Ord(enum1) or Ord(enum2);
+end;
 
 operator and(flags: VkFlags; enum: VkQueueFlagBits): uint32;
 begin
@@ -10248,6 +10451,12 @@ begin
 end;
 
 { TVulkanBase }
+procedure canCall(var FuncPtr: Pointer; Name: string);
+begin
+  if not assigned(FuncPtr) then
+    raise EVulkanNotBound.CreateFmt('routine %s not bound', [Name]);
+end;
+
 function TVulkanBase.LoadProc(Name: ansistring): {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
   {$IFDEF Debug}
 var
@@ -10309,18 +10518,201 @@ begin
   Result := False;
 end;
 
-function TVulkanBase.canCall(var FuncPtr: Pointer; Name: string): boolean;
-begin
-  if not assigned(FuncPtr) then
-    raise EVulkanNotBound.CreateFmt('function %s not bound', [Name]);
-end;
 
 function TVulkanBase.SupportsExtension(const Ext: string): boolean;
+var
+  s: string;
 begin
   Result := False;
+  if Length(FExtensions) = 0 then
+    loadExtensionNames;
+  if Length(FExtensions) > 0 then
+  begin
+    for s in FExtensions do
+    begin
+      if UpperCase(ext) = UpperCase(s) then
+        exit(True);
+    end;
+  end;
+end;
+
+function TVulkanBase.SupportsLayer(const Ext: string): boolean;
+var
+  s: string;
+begin
+  Result := False;
+  if Length(FLayers) = 0 then
+    loadExtensionNames;
+  if Length(FLayers) > 0 then
+  begin
+    for s in FLayers do
+    begin
+      if UpperCase(ext) = UpperCase(s) then
+        exit(True);
+    end;
+  end;
+end;
+
+
+{ TVulkanDebugUtilsExtension }
+
+procedure TVulkanDebugUtilsExtension.SetDevice(AValue: VkDevice);
+begin
+  if FDevice = AValue then Exit;
+  FDevice := AValue;
+end;
+
+procedure TVulkanDebugUtilsExtension.SetInstance(AValue: VkInstance);
+begin
+  if FInstance = AValue then Exit;
+  FInstance := AValue;
+end;
+
+procedure TVulkanDebugUtilsExtension.SetvkGetDeviceProcAddr(AValue: TVKGetDeviceProcAddr);
+begin
+  if FvkGetDeviceProcAddr = AValue then Exit;
+  FvkGetDeviceProcAddr := AValue;
+end;
+
+procedure TVulkanDebugUtilsExtension.SetVkGetInstanceProcAddr(AValue: TVKGetInstanceProcAddr);
+begin
+  if FVkGetInstanceProcAddr = AValue then Exit;
+  FVkGetInstanceProcAddr := AValue;
+end;
+
+procedure TVulkanDebugUtilsExtension.BindEntity;
+begin
+  if FInstance <> nil then
+  begin
+    Pointer(FvkCreateDebugUtilsMessengerEXT) := FvkGetInstanceProcAddr(FInstance, 'vkCreateDebugUtilsMessengerEXT');
+    Pointer(FvkDestroyDebugUtilsMessengerEXT) := FvkGetInstanceProcAddr(FInstance, 'vkDestroyDebugUtilsMessengerEXT');
+    Pointer(FvkSubmitDebugUtilsMessageEXT) := FvkGetInstanceProcAddr(FInstance, 'vkSubmitDebugUtilsMessageEXT');
+  end;
+
+  if FDevice <> nil then
+  begin
+    Pointer(FvkSetDebugUtilsObjectNameEXT) := FvkGetDeviceProcAddr(FDevice, 'vkSetDebugUtilsObjectNameEXT');
+    Pointer(FvkSetDebugUtilsObjectTagEXT) := FvkGetDeviceProcAddr(FDevice, 'vkSetDebugUtilsObjectTagEXT');
+    Pointer(FvkQueueBeginDebugUtilsLabelEXT) := FvkGetDeviceProcAddr(FDevice, 'vkQueueBeginDebugUtilsLabelEXT');
+    Pointer(FvkQueueEndDebugUtilsLabelEXT) := FvkGetDeviceProcAddr(FDevice, 'vkQueueEndDebugUtilsLabelEXT');
+    Pointer(FvkQueueInsertDebugUtilsLabelEXT) := FvkGetDeviceProcAddr(FDevice, 'vkQueueInsertDebugUtilsLabelEXT');
+    Pointer(FvkCmdBeginDebugUtilsLabelEXT) := FvkGetDeviceProcAddr(FDevice, 'vkCmdBeginDebugUtilsLabelEXT');
+    Pointer(FvkCmdEndDebugUtilsLabelEXT) := FvkGetDeviceProcAddr(FDevice, 'vkCmdEndDebugUtilsLabelEXT');
+    Pointer(FvkCmdInsertDebugUtilsLabelEXT) := FvkGetDeviceProcAddr(FDevice, 'vkCmdInsertDebugUtilsLabelEXT');
+  end;
+end;
+
+function TVulkanDebugUtilsExtension.vkSetDebugUtilsObjectNameEXT(pNameInfo: PVkDebugUtilsObjectNameInfoEXT): VkResult;
+begin
+  canCall(Pointer(FvkSetDebugUtilsObjectNameEXT), 'vkSetDebugUtilsObjectNameEXT');
+  Result := FvkSetDebugUtilsObjectNameEXT(FDevice, pNameInfo);
+end;
+
+function TVulkanDebugUtilsExtension.vkSetDebugUtilsObjectTagEXT(pTagInfo: PVkDebugUtilsObjectTagInfoEXT): VkResult;
+begin
+  canCall(Pointer(FvkSetDebugUtilsObjectTagEXT), 'vkSetDebugUtilsObjectTagEXT');
+  Result := FvkSetDebugUtilsObjectTagEXT(FDevice, pTagInfo);
+end;
+
+procedure TVulkanDebugUtilsExtension.vkQueueBeginDebugUtilsLabelEXT(queue: VkQueue; pLabelInfo: PVkDebugUtilsLabelEXT);
+begin
+  canCall(Pointer(FvkQueueBeginDebugUtilsLabelEXT), 'vkQueueBeginDebugUtilsLabelEXT');
+  FvkQueueBeginDebugUtilsLabelEXT(queue, pLabelInfo);
+end;
+
+procedure TVulkanDebugUtilsExtension.vkQueueEndDebugUtilsLabelEXT(queue: VkQueue);
+begin
+  canCall(Pointer(FvkQueueEndDebugUtilsLabelEXT), 'vkQueueEndDebugUtilsLabelEXT');
+  FvkQueueEndDebugUtilsLabelEXT(queue);
+end;
+
+procedure TVulkanDebugUtilsExtension.vkQueueInsertDebugUtilsLabelEXT(queue: VkQueue; pLabelInfo: PVkDebugUtilsLabelEXT);
+begin
+  canCall(Pointer(FvkQueueInsertDebugUtilsLabelEXT), 'vkQueueInsertDebugUtilsLabelEXT');
+  FvkQueueInsertDebugUtilsLabelEXT(queue, pLabelInfo);
+end;
+
+procedure TVulkanDebugUtilsExtension.vkCmdBeginDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT);
+begin
+  canCall(Pointer(FvkCmdBeginDebugUtilsLabelEXT), 'vkCmdBeginDebugUtilsLabelEXT');
+  FvkCmdBeginDebugUtilsLabelEXT(commandBuffer, pLabelInfo);
+end;
+
+procedure TVulkanDebugUtilsExtension.vkCmdEndDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer);
+begin
+  canCall(Pointer(FvkCmdEndDebugUtilsLabelEXT), 'vkCmdEndDebugUtilsLabelEXT');
+  FvkCmdEndDebugUtilsLabelEXT(commandBuffer);
+end;
+
+procedure TVulkanDebugUtilsExtension.vkCmdInsertDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT);
+begin
+  canCall(Pointer(FvkCmdInsertDebugUtilsLabelEXT), 'vkCmdInsertDebugUtilsLabelEXT');
+  FvkCmdInsertDebugUtilsLabelEXT(commandBuffer, pLabelInfo);
+end;
+
+function TVulkanDebugUtilsExtension.vkCreateDebugUtilsMessengerEXT(pCreateInfo: PVkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult;
+begin
+  canCall(Pointer(FvkCreateDebugUtilsMessengerEXT), 'vkCreateDebugUtilsMessengerEXT');
+  Result := FvkCreateDebugUtilsMessengerEXT(FInstance, pCreateInfo, pAllocator, pMessenger);
+end;
+
+procedure TVulkanDebugUtilsExtension.vkDestroyDebugUtilsMessengerEXT(messenger: VkDebugUtilsMessengerEXT; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyDebugUtilsMessengerEXT), 'vkDestroyDebugUtilsMessengerEXT');
+  FvkDestroyDebugUtilsMessengerEXT(FInstance, messenger, pAllocator);
+end;
+
+procedure TVulkanDebugUtilsExtension.vkSubmitDebugUtilsMessageEXT(messageSeverity: VkDebugUtilsMessageSeverityFlagBitsEXT; messageTypes: VkDebugUtilsMessageTypeFlagsEXT; pCallbackData: PVkDebugUtilsMessengerCallbackDataEXT);
+begin
+  canCall(Pointer(FvkSubmitDebugUtilsMessageEXT), 'vkSubmitDebugUtilsMessageEXT');
+  FvkSubmitDebugUtilsMessageEXT(FInstance, messageSeverity, messageTypes, pCallbackData);
 end;
 
 { TVulkan10 }
+
+procedure TVulkan10.loadExtensionNames;
+var
+  Count: uint32;
+  properties: array of VkExtensionProperties;
+  res: VkResult;
+  i: integer;
+begin
+  res := vkEnumerateInstanceExtensionProperties(nil, @Count, nil);
+  if res <> VK_SUCCESS then
+    raise EVulkanException.CreateFmt('Failed to enumerate instance extension count: %d', [res]);
+
+  SetLength(properties, Count);
+  res := vkEnumerateInstanceExtensionProperties(nil, @Count, @properties[0]);
+  if res <> VK_SUCCESS then
+    raise EVulkanException.CreateFmt('Failed to enumerate instance extensions: %d', [res]);
+
+  SetLength(FExtensions, Count);
+  for i := 0 to Count - 1 do
+    FExtensions[i] := properties[i].extensionName;
+end;
+
+procedure TVulkan10.loadLayesName;
+var
+  Count: uint32;
+  properties: array of VkLayerProperties;
+  res: VkResult;
+  i: integer;
+begin
+  res := vkEnumerateInstanceLayerProperties(@Count, nil);
+  if res <> VK_SUCCESS then
+    raise EVulkanException.CreateFmt('Failed to enumerate instance layer count: %d', [res]);
+
+  SetLength(properties, Count);
+  res := vkEnumerateInstanceLayerProperties(@Count, @properties[0]);
+  if res <> VK_SUCCESS then
+    raise EVulkanException.CreateFmt('Failed to enumerate instance layers: : %d', [res]);
+
+  // Assuming FLayerNames is a TList<string> or similar field in TVulkan10
+  SetLength(FLayers, Count);
+  for i := 0 to Count - 1 do
+    FLayers[i] := properties[i].layerName;
+end;
+
 
 procedure TVulkan10.bindEntry;
 begin
@@ -10329,72 +10721,6 @@ begin
   Bind(Pointer(FVKEnumerateInstanceLayerProperties), 'vkEnumerateInstanceLayerProperties');
   Bind(Pointer(FVKCreateInstance), 'vkCreateInstance', True); // Mandatory
   Bind(Pointer(FVKGetInstanceProcAddr), 'vkGetInstanceProcAddr', True); // Mandatory
-  {
-  Bind(Pointer(FVKAllocateMemory), 'vkAllocateMemory');
-  Bind(Pointer(FVKBindBufferMemory), 'vkBindBufferMemory');
-  Bind(Pointer(FVKBindImageMemory), 'vkBindImageMemory');
-  Bind(Pointer(FVKCreateDevice), 'vkCreateDevice');
-  Bind(Pointer(FVKCreateFramebuffer), 'vkCreateFramebuffer');
-  Bind(Pointer(FVKCreateGraphicsPipelines), 'vkCreateGraphicsPipelines');
-  Bind(Pointer(FVKCreateInstance), 'vkCreateInstance');
-  Bind(Pointer(FVKCreateRenderPass), 'vkCreateRenderPass');
-  Bind(Pointer(FVKDeviceWaitIdle), 'vkDeviceWaitIdle');
-  Bind(Pointer(FVKEnumerateDeviceExtensionProperties), 'vkEnumerateDeviceExtensionProperties');
-  Bind(Pointer(FVKEnumerateDeviceLayerProperties), 'vkEnumerateDeviceLayerProperties');
-  Bind(Pointer(FVKEnumerateInstanceExtensionProperties), 'vkEnumerateInstanceExtensionProperties');
-  Bind(Pointer(FVKEnumerateInstanceLayerProperties), 'vkEnumerateInstanceLayerProperties');
-  Bind(Pointer(FVKEnumeratePhysicalDevices), 'vkEnumeratePhysicalDevices');
-  Bind(Pointer(FVKFlushMappedMemoryRanges), 'vkFlushMappedMemoryRanges');
-  Bind(Pointer(FVKGetDeviceProcAddr), 'vkGetDeviceProcAddr');
-  Bind(Pointer(FVKGetInstanceProcAddr), 'vkGetInstanceProcAddr');
-  Bind(Pointer(FVKGetPhysicalDeviceImageFormatProperties), 'vkGetPhysicalDeviceImageFormatProperties');
-  Bind(Pointer(FVKInvalidateMappedMemoryRanges), 'vkInvalidateMappedMemoryRanges');
-  Bind(Pointer(FVKMapMemory), 'vkMapMemory');
-  Bind(Pointer(FVKQueueBindSparse), 'vkQueueBindSparse');
-  Bind(Pointer(FVKQueueSubmit), 'vkQueueSubmit');
-  Bind(Pointer(FVKQueueWaitIdle), 'vkQueueWaitIdle');
-  Bind(Pointer(FVKCmdBeginRenderPass), 'vkCmdBeginRenderPass');
-  Bind(Pointer(FVKCmdBindIndexBuffer), 'vkCmdBindIndexBuffer');
-  Bind(Pointer(FVKCmdBindVertexBuffers), 'vkCmdBindVertexBuffers');
-  Bind(Pointer(FVKCmdBlitImage), 'vkCmdBlitImage');
-  Bind(Pointer(FVKCmdClearAttachments), 'vkCmdClearAttachments');
-  Bind(Pointer(FVKCmdClearDepthStencilImage), 'vkCmdClearDepthStencilImage');
-  Bind(Pointer(FVKCmdDraw), 'vkCmdDraw');
-  Bind(Pointer(FVKCmdDrawIndexed), 'vkCmdDrawIndexed');
-  Bind(Pointer(FVKCmdDrawIndexedIndirect), 'vkCmdDrawIndexedIndirect');
-  Bind(Pointer(FVKCmdDrawIndirect), 'vkCmdDrawIndirect');
-  Bind(Pointer(FVKCmdEndRenderPass), 'vkCmdEndRenderPass');
-  Bind(Pointer(FVKCmdNextSubpass), 'vkCmdNextSubpass');
-  Bind(Pointer(FVKCmdPushConstants), 'vkCmdPushConstants');
-  Bind(Pointer(FVKCmdResolveImage), 'vkCmdResolveImage');
-  Bind(Pointer(FVKCmdSetBlendConstants), 'vkCmdSetBlendConstants');
-  Bind(Pointer(FVKCmdSetDepthBias), 'vkCmdSetDepthBias');
-  Bind(Pointer(FVKCmdSetDepthBounds), 'vkCmdSetDepthBounds');
-  Bind(Pointer(FVKCmdSetLineWidth), 'vkCmdSetLineWidth');
-  Bind(Pointer(FVKCmdSetScissor), 'vkCmdSetScissor');
-  Bind(Pointer(FVKCmdSetStencilCompareMask), 'vkCmdSetStencilCompareMask');
-  Bind(Pointer(FVKCmdSetStencilReference), 'vkCmdSetStencilReference');
-  Bind(Pointer(FVKCmdSetStencilWriteMask), 'vkCmdSetStencilWriteMask');
-  Bind(Pointer(FVKCmdSetViewport), 'vkCmdSetViewport');
-  Bind(Pointer(FVKDestroyDevice), 'vkDestroyDevice');
-  Bind(Pointer(FVKDestroyFramebuffer), 'vkDestroyFramebuffer');
-  Bind(Pointer(FVKDestroyInstance), 'vkDestroyInstance');
-  Bind(Pointer(FVKDestroyRenderPass), 'vkDestroyRenderPass');
-  Bind(Pointer(FVKFreeMemory), 'vkFreeMemory');
-  Bind(Pointer(FVKGetBufferMemoryRequirements), 'vkGetBufferMemoryRequirements');
-  Bind(Pointer(FVKGetDeviceMemoryCommitment), 'vkGetDeviceMemoryCommitment');
-  Bind(Pointer(FVKGetDeviceQueue), 'vkGetDeviceQueue');
-  Bind(Pointer(FVKGetImageMemoryRequirements), 'vkGetImageMemoryRequirements');
-  Bind(Pointer(FVKGetImageSparseMemoryRequirements), 'vkGetImageSparseMemoryRequirements');
-  Bind(Pointer(FVKGetPhysicalDeviceFeatures), 'vkGetPhysicalDeviceFeatures');
-  Bind(Pointer(FVKGetPhysicalDeviceFormatProperties), 'vkGetPhysicalDeviceFormatProperties');
-  Bind(Pointer(FVKGetPhysicalDeviceMemoryProperties), 'vkGetPhysicalDeviceMemoryProperties');
-  Bind(Pointer(FVKGetPhysicalDeviceProperties), 'vkGetPhysicalDeviceProperties');
-  Bind(Pointer(FVKGetPhysicalDeviceQueueFamilyProperties), 'vkGetPhysicalDeviceQueueFamilyProperties');
-  Bind(Pointer(FVKGetPhysicalDeviceSparseImageFormatProperties), 'vkGetPhysicalDeviceSparseImageFormatProperties');
-  Bind(Pointer(FVKGetRenderAreaGranularity), 'vkGetRenderAreaGranularity');
-  Bind(Pointer(FVKUnmapMemory), 'vkUnmapMemory');
-  }
 end;
 
 procedure TVulkan10.bindEntryInstance(instance: VkInstance);
@@ -10518,10 +10844,10 @@ begin
   Result := FvkCreateGraphicsPipelines(device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
 end;
 
-function TVulkan10.vkCreateInstance(pCreateInfo: PVkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
+function TVulkan10.vkCreateInstance(const pCreateInfo: VkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
 begin
   canCall(Pointer(FvkCreateInstance), 'vkCreateInstance');
-  Result := FvkCreateInstance(pCreateInfo, pAllocator, @pInstance);
+  Result := FvkCreateInstance(@pCreateInfo, pAllocator, @pInstance);
   if Result = VK_SUCCESS then
     bindEntryInstance(pInstance);
 end;
@@ -10866,6 +11192,22 @@ procedure TVulkan10.vkUnmapMemory(device: VkDevice; memory: VkDeviceMemory);
 begin
   canCall(Pointer(FvkUnmapMemory), 'vkUnmapMemory');
   FvkUnmapMemory(device, memory);
+end;
+
+function TVulkan10.getDebugUtilsExtension(aInstance: VkInstance; aDevice: VkDevice): IVulkanDebugUtilsExtension;
+var
+  concrete: TVulkanDebugUtilsExtension;
+begin
+  concrete := TVulkanDebugUtilsExtension.Create;
+  with concrete do
+  begin
+    concrete.Instance := aInstance;
+    concrete.Device := aDevice;
+    concrete.vkGetInstanceProcAddr := self.FVKGetInstanceProcAddr;
+    concrete.vkGetDeviceProcAddr := self.FVKGetDeviceProcAddr;
+    concrete.BindEntity;
+  end;
+  Result := concrete;
 end;
 
 

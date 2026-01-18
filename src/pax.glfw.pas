@@ -588,7 +588,7 @@ function glfwGetWindowTitle(window: PGLFWwindow): PChar;
     function glfwExtensionSupported(const extension: pchar): integer;
     function glfwGetProcAddress(const procname: pchar): TGLFWGLProc;
     function glfwVulkanSupported(): boolean;
-    function glfwGetRequiredInstanceExtensions(var Count: uint32): ppchar;
+    function glfwGetRequiredInstanceExtensions(var Count: uint32): PPChar;
     {$IFDEF VK_VERSION_1_0}
 function glfwGetInstanceProcAddress(instance: VkInstance; const procname: PChar): TGLFWVKProc;
 function glfwGetPhysicalDevicePresentationSupport(instance: VkInstance; device: VkPhysicalDevice; queuefamily: Cardinal): Integer;

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="12"/>
+    <BuildModes Active="Default"/>
+    <Units>
+      <Unit>
+        <Filename Value="vulkanTutorial.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <TopLine Value="24"/>
+        <CursorPos X="55" Y="31"/>
+        <UsageCount Value="32"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="491"/>
+        <CursorPos X="33" Y="493"/>
+        <UsageCount Value="32"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="D:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\custapp.pp"/>
+        <UnitName Value="CustApp"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="384"/>
+        <CursorPos X="11" Y="389"/>
+        <UsageCount Value="9"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\src\pax.glfw.pas"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="573"/>
+        <CursorPos X="47" Y="591"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\src\pax.vulkan.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="9708"/>
+        <CursorPos X="14" Y="9720"/>
+        <UsageCount Value="31"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="D:\fpcupdeluxe\fpcsrc\rtl\objpas\sysutils\sysutilh.inc"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="95"/>
+        <CursorPos X="4" Y="107"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+    </Units>
+    <JumpHistory HistoryIndex="29">
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="238" Column="29" TopLine="225"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="256" Column="33" TopLine="243"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="312" Column="53" TopLine="299"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="336" Column="63" TopLine="315"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="328" Column="43" TopLine="315"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="65" Column="51" TopLine="53"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="304" Column="3" TopLine="302"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="347" Column="44" TopLine="335"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="353" Column="43" TopLine="334"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="64" Column="35" TopLine="52"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="65" Column="35" TopLine="52"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="87" Column="60" TopLine="66"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="406" TopLine="393"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="87" Column="14" TopLine="71"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="65" Column="14" TopLine="52"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="317" TopLine="302"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="308" Column="19" TopLine="295"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="358" Column="33" TopLine="346"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="370" Column="59" TopLine="358"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="372" Column="49" TopLine="359"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="373" Column="59" TopLine="360"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="404" TopLine="381"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="413" Column="18" TopLine="400"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="434" Column="12" TopLine="416"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="463" Column="13" TopLine="450"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="493" Column="55" TopLine="480"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="523" Column="13" TopLine="508"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="520" Column="66" TopLine="508"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="537" Column="15" TopLine="519"/>
+      </Position>
+      <Position>
+        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Caret Line="85" Column="16" TopLine="69"/>
+      </Position>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode="default">
+        <Mode Name="default">
+          <local>
+            <CommandLineParams Value="-t 4"/>
+          </local>
+        </Mode>
+      </Modes>
+    </RunParams>
+    <HistoryLists>
+      <List Name="WorkingDirectory" Type="File" Count="1"/>
+      <List Name="LaunchingApplication" Type="File" Count="1">
+        <Item1 Value="C:\Windows\system32\cmd.exe /C ${TargetCmdLine}"/>
+      </List>
+      <List Name="CommandLineParameters" Count="4">
+        <Item1 Value="-t 4"/>
+        <Item2 Value="-t 3"/>
+        <Item3 Value="-t 2"/>
+        <Item4 Value="-t 1"/>
+      </List>
+    </HistoryLists>
+  </ProjectSession>
+  <Debugging>
+    <BreakPoints>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="vulkan_00.lpr"/>
+        <Line Value="26"/>
+      </Item>
+    </BreakPoints>
+  </Debugging>
+</CONFIG>
