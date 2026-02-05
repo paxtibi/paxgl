@@ -1,11 +1,11 @@
 unit pax.glfw;
 
 {$mode ObjFPC}{$H+}
-{ $DEFINE VK_VERSION_1_0}
+{$DEFINE VK_VERSION_1_0}
 interface
 
 uses
-  Classes, SysUtils, paxutils, dynlibs;
+  Classes, SysUtils, paxutils, dynlibs  {$IFDEF VK_VERSION_1_0}, pax.vulkan  {$EndIf};
 
 const
   libGLFW = 'glfw3.' + SharedSuffix;
@@ -590,9 +590,9 @@ function glfwGetWindowTitle(window: PGLFWwindow): PChar;
     function glfwVulkanSupported(): boolean;
     function glfwGetRequiredInstanceExtensions(var Count: uint32): PPChar;
     {$IFDEF VK_VERSION_1_0}
-function glfwGetInstanceProcAddress(instance: VkInstance; const procname: PChar): TGLFWVKProc;
-function glfwGetPhysicalDevicePresentationSupport(instance: VkInstance; device: VkPhysicalDevice; queuefamily: Cardinal): Integer;
-function glfwCreateWindowSurface(instance: VkInstance; window: PGLFWwindow; const allocator: PVkAllocationCallbacks; surface: PVkSurfaceKHR): TVkResult;
+    function glfwGetInstanceProcAddress(instance: VkInstance; const procname: pchar): TGLFWVKProc;
+    function glfwGetPhysicalDevicePresentationSupport(instance: VkInstance; device: VkPhysicalDevice; queuefamily: cardinal): integer;
+    function glfwCreateWindowSurface(instance: VkInstance; window: PGLFWwindow; const allocator: PVkAllocationCallbacks; out surface: VkSurfaceKHR): VkResult;
     {$ENDIF}
   end;
 
@@ -809,9 +809,9 @@ type
   TGLFWGetRequiredInstanceExtensions = function(var Count: cardinal): ppchar; cdecl;
 
   {$IFDEF VK_VERSION_1_0}
-    TGLFWGetInstanceProcAddress = function(instance: VkInstance; const procname: pchar): TGLFWVKProc; cdecl;
-    TGLFWGetPhysicalDevicePresentationSupport = function(instance: VkInstance; device: VkPhysicalDevice; queuefamily: Cardinal): Integer; cdecl;
-    TGLFWCreateWindowSurface = function(instance: VkInstance; window: PGLFWwindow; const allocator: PVkAllocationCallbacks; surface: PVkSurfaceKHR): TVkResult; cdecl;
+  TGLFWGetInstanceProcAddress = function(instance: VkInstance; const procname: pchar): TGLFWVKProc; cdecl;
+  TGLFWGetPhysicalDevicePresentationSupport = function(instance: VkInstance; device: VkPhysicalDevice; queuefamily: cardinal): integer; cdecl;
+  TGLFWCreateWindowSurface = function(instance: VkInstance; window: PGLFWwindow; const allocator: PVkAllocationCallbacks; out surface: VkSurfaceKHR): VkResult; cdecl;
   {$ENDIF}
 
   // ===================================================================
@@ -1184,9 +1184,9 @@ function glfwPlatformSupported(platform: Integer): Integer;
     function glfwVulkanSupported(): boolean; virtual;
     function glfwGetRequiredInstanceExtensions(var Count: uint32): ppchar; virtual;
     {$IFDEF VK_VERSION_1_0}
-function glfwGetInstanceProcAddress(instance: VkInstance; const procname: PChar): TGLFWVKProc; virtual;
-function glfwGetPhysicalDevicePresentationSupport(instance: VkInstance; device: VkPhysicalDevice; queuefamily: Cardinal): Integer; virtual;
-function glfwCreateWindowSurface(instance: VkInstance; window: PGLFWwindow; const allocator: PVkAllocationCallbacks; surface: PVkSurfaceKHR): TVkResult; virtual;
+    function glfwGetInstanceProcAddress(instance: VkInstance; const procname: pchar): TGLFWVKProc; virtual;
+    function glfwGetPhysicalDevicePresentationSupport(instance: VkInstance; device: VkPhysicalDevice; queuefamily: cardinal): integer; virtual;
+    function glfwCreateWindowSurface(instance: VkInstance; window: PGLFWwindow; const allocator: PVkAllocationCallbacks; out surface: VkSurfaceKHR): VkResult; virtual;
     {$ENDIF}
   end;
 
@@ -2280,7 +2280,7 @@ begin
     raise ENullPointerException.Create('glfwGetInstanceProcAddress');
 end;
 
-function TGLFW.glfwGetPhysicalDevicePresentationSupport(instance: VkInstance; device: VkPhysicalDevice; queuefamily: Cardinal): Integer;
+function TGLFW.glfwGetPhysicalDevicePresentationSupport(instance: VkInstance; device: VkPhysicalDevice; queuefamily: cardinal): integer;
 begin
   if Assigned(FGLFWGetPhysicalDevicePresentationSupport) then
     Result := FGLFWGetPhysicalDevicePresentationSupport(instance, device, queuefamily)
@@ -2288,8 +2288,7 @@ begin
     raise ENullPointerException.Create('glfwGetPhysicalDevicePresentationSupport');
 end;
 
-function TGLFW.glfwCreateWindowSurface(instance: VkInstance; window: PGLFWwindow;
-  const allocator: PVkAllocationCallbacks; surface: PVkSurfaceKHR): TVkResult;
+function TGLFW.glfwCreateWindowSurface(instance: VkInstance; window: PGLFWwindow; const allocator: PVkAllocationCallbacks; out surface: VkSurfaceKHR): VkResult;
 begin
   if Assigned(FGLFWCreateWindowSurface) then
     Result := FGLFWCreateWindowSurface(instance, window, allocator, surface)

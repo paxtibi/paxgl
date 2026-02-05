@@ -5,6 +5,7 @@ unit pax.vulkan;
 {$packrecords C}
 {$ModeSwitch advancedrecords}
 {$ModeSwitch typehelpers}
+{$M+}
 interface
 
 uses
@@ -31,8 +32,21 @@ const
   VK_API_VERSION_1_4 = (0 shl 29) or (1 shl 22) or (4 shl 12) or (0 shl 0);
   VK_HEADER_VERSION = 303;
   VK_HEADER_VERSION_COMPLETE = (0 shl 29) or (1 shl 22) or (4 shl 12) or (VK_HEADER_VERSION shl 0);
+
+const
   VK_FALSE = 0;
   VK_TRUE = 1;
+
+  VK_LOD_CLAMP_NONE = 1000.0;
+
+  VK_QUEUE_FAMILY_IGNORED = High(cardinal);       // ~0U
+  VK_ATTACHMENT_UNUSED = High(cardinal);       // ~0U
+  VK_SUBPASS_EXTERNAL = High(cardinal);       // ~0U
+
+  VK_REMAINING_ARRAY_LAYERS = High(cardinal);       // ~0U
+  VK_REMAINING_MIP_LEVELS = High(cardinal);       // ~0U
+
+  VK_WHOLE_SIZE = High(uint64);         // ~0ULL
 
   {$IFDEF WINDOWS}
      vulkanLibName = 'vulkan-1.dll';
@@ -53,53 +67,154 @@ type
   VkFlags = uint32;
   VkSampleMask = uint32;
 
-  VkBuffer = record
-  end;
-  VkImage = record
-  end;
+  VkBuffer = pointer;
+  VkImage = pointer;
   VkInstance = pointer;
   VkPhysicalDevice = pointer;
   VkDevice = pointer;
-  VkQueue = record
-  end;
-  VkSemaphore = record
-  end;
-  VkCommandBuffer = record
-  end;
-  VkFence = record
-  end;
-  VkDeviceMemory = record
-  end;
-  VkQueryPool = record
-  end;
-  VkImageView = record
-  end;
-  VkCommandPool = record
-  end;
-  VkRenderPass = record
-  end;
-  VkFramebuffer = record
-  end;
-  VkEvent = record
-  end;
-  VkBufferView = record
-  end;
-  VkShaderModule = record
-  end;
-  VkPipelineCache = record
-  end;
-  VkPipelineLayout = record
-  end;
-  VkPipeline = record
-  end;
-  VkDescriptorSetLayout = record
-  end;
-  VkSampler = record
-  end;
-  VkDescriptorSet = record
-  end;
-  VkDescriptorPool = record
-  end;
+  VkQueue = pointer;
+  VkSemaphore = pointer;
+  VkCommandBuffer = pointer;
+  VkFence = pointer;
+  VkDeviceMemory = pointer;
+  VkQueryPool = pointer;
+  VkImageView = pointer;
+  VkCommandPool = pointer;
+  VkRenderPass = pointer;
+  VkFramebuffer = pointer;
+  VkEvent = pointer;
+  VkBufferView = pointer;
+  VkShaderModule = pointer;
+  VkPipelineCache = pointer;
+  VkPipelineLayout = pointer;
+  VkPipeline = pointer;
+  VkDescriptorSetLayout = pointer;
+  VkSampler = pointer;
+  VkDescriptorSet = pointer;
+  VkDescriptorPool = pointer;
+
+
+  PVkAllocationCallbacks = ^VkAllocationCallbacks;
+  PVkApplicationInfo = ^VkApplicationInfo;
+  PVkAttachmentDescription = ^VkAttachmentDescription;
+  PVkAttachmentReference = ^VkAttachmentReference;
+  PVkBindSparseInfo = ^VkBindSparseInfo;
+  PVkBuffer = ^VkBuffer;
+  PVkBufferCopy = ^VkBufferCopy;
+  PVkBufferCreateInfo = ^VkBufferCreateInfo;
+  PVkBufferImageCopy = ^VkBufferImageCopy;
+  PVkBufferMemoryBarrier = ^VkBufferMemoryBarrier;
+  //PVkBufferMemoryRequirementsInfo = ^VkBufferMemoryRequirementsInfo;
+  PVkBufferView = ^VkBufferView;
+  PVkBufferViewCreateInfo = ^VkBufferViewCreateInfo;
+  PVkClearAttachment = ^VkClearAttachment;
+  PVkClearColorValue = ^VkClearColorValue;
+  PVkClearDepthStencilValue = ^VkClearDepthStencilValue;
+  PVkClearRect = ^VkClearRect;
+  PVkClearValue = ^VkClearValue;
+  PVkCommandBuffer = ^VkCommandBuffer;
+  PVkCommandBufferAllocateInfo = ^VkCommandBufferAllocateInfo;
+  PVkCommandBufferBeginInfo = ^VkCommandBufferBeginInfo;
+  PVkCommandBufferInheritanceInfo = ^VkCommandBufferInheritanceInfo;
+  PVkCommandPool = ^VkCommandPool;
+  PVkCommandPoolCreateInfo = ^VkCommandPoolCreateInfo;
+  PVkComponentMapping = ^VkComponentMapping;
+  PVkComputePipelineCreateInfo = ^VkComputePipelineCreateInfo;
+  PVkCopyDescriptorSet = ^VkCopyDescriptorSet;
+  PVkDescriptorBufferInfo = ^VkDescriptorBufferInfo;
+  PVkDescriptorImageInfo = ^VkDescriptorImageInfo;
+  PVkDescriptorPool = ^VkDescriptorPool;
+  PVkDescriptorPoolCreateInfo = ^VkDescriptorPoolCreateInfo;
+  PVkDescriptorPoolSize = ^VkDescriptorPoolSize;
+  PVkDescriptorSet = ^VkDescriptorSet;
+  PVkDescriptorSetAllocateInfo = ^VkDescriptorSetAllocateInfo;
+  PVkDescriptorSetLayout = ^VkDescriptorSetLayout;
+  PVkDescriptorSetLayoutBinding = ^VkDescriptorSetLayoutBinding;
+  PVkDescriptorSetLayoutCreateInfo = ^VkDescriptorSetLayoutCreateInfo;
+  PVkDevice = ^VkDevice;
+  PVkDeviceSize = ^VkDeviceSize;
+  PVkDeviceCreateInfo = ^VkDeviceCreateInfo;
+  PVkDeviceMemory = ^VkDeviceMemory;
+  PVkDeviceQueueCreateInfo = ^VkDeviceQueueCreateInfo;
+  PVkEvent = ^VkEvent;
+  PVkExtent2D = ^VkExtent2D;
+  PVkEventCreateInfo = ^VkEventCreateInfo;
+  PVkExtensionProperties = ^VkExtensionProperties;
+  PVkFence = ^VkFence;
+  PVkFenceCreateInfo = ^VkFenceCreateInfo;
+  PVkFramebuffer = ^VkFramebuffer;
+  PVkFramebufferCreateInfo = ^VkFramebufferCreateInfo;
+  PVkFormatProperties = ^VkFormatProperties;
+  PVkGraphicsPipelineCreateInfo = ^VkGraphicsPipelineCreateInfo;
+  PVkImage = ^VkImage;
+  PVkImageBlit = ^VkImageBlit;
+  PVkImageCopy = ^VkImageCopy;
+  PVkImageCreateInfo = ^VkImageCreateInfo;
+  PVkImageFormatProperties = ^VkImageFormatProperties;
+  PVkImageMemoryBarrier = ^VkImageMemoryBarrier;
+  PVkImageResolve = ^VkImageResolve;
+  PVkImageSubresource = ^VkImageSubresource;
+  PVkImageSubresourceLayers = ^VkImageSubresourceLayers;
+  PVkImageSubresourceRange = ^VkImageSubresourceRange;
+  PVkImageView = ^VkImageView;
+  PVkImageViewCreateInfo = ^VkImageViewCreateInfo;
+  PVkInstance = ^VkInstance;
+  PVkInstanceCreateInfo = ^VkInstanceCreateInfo;
+  PVkLayerProperties = ^VkLayerProperties;
+  PVkMappedMemoryRange = ^VkMappedMemoryRange;
+  PVkMemoryAllocateInfo = ^VkMemoryAllocateInfo;
+  PVkMemoryBarrier = ^VkMemoryBarrier;
+  PVkMemoryHeap = ^VkMemoryHeap;
+  PVkMemoryRequirements = ^VkMemoryRequirements;
+  PVkMemoryType = ^VkMemoryType;
+  PVkPhysicalDevice = ^VkPhysicalDevice;
+  PVkPhysicalDeviceFeatures = ^VkPhysicalDeviceFeatures;
+  PVkPhysicalDeviceLimits = ^VkPhysicalDeviceLimits;
+  PVkPhysicalDeviceMemoryProperties = ^VkPhysicalDeviceMemoryProperties;
+  PVkPhysicalDeviceProperties = ^VkPhysicalDeviceProperties;
+  PVkPipeline = ^VkPipeline;
+  PVkPipelineCache = ^VkPipelineCache;
+  PVkPipelineCacheCreateInfo = ^VkPipelineCacheCreateInfo;
+  PVkPipelineColorBlendAttachmentState = ^VkPipelineColorBlendAttachmentState;
+  PVkPipelineColorBlendStateCreateInfo = ^VkPipelineColorBlendStateCreateInfo;
+  PVkPipelineDepthStencilStateCreateInfo = ^VkPipelineDepthStencilStateCreateInfo;
+  PVkPipelineDynamicStateCreateInfo = ^VkPipelineDynamicStateCreateInfo;
+  PVkPipelineInputAssemblyStateCreateInfo = ^VkPipelineInputAssemblyStateCreateInfo;
+  PVkPipelineLayout = ^VkPipelineLayout;
+  PVkPipelineLayoutCreateInfo = ^VkPipelineLayoutCreateInfo;
+  PVkPipelineMultisampleStateCreateInfo = ^VkPipelineMultisampleStateCreateInfo;
+  PVkPipelineRasterizationStateCreateInfo = ^VkPipelineRasterizationStateCreateInfo;
+  PVkPipelineShaderStageCreateInfo = ^VkPipelineShaderStageCreateInfo;
+  PVkPipelineVertexInputStateCreateInfo = ^VkPipelineVertexInputStateCreateInfo;
+  PVkPipelineViewportStateCreateInfo = ^VkPipelineViewportStateCreateInfo;
+  PVkQueryPool = ^VkQueryPool;
+  PVkQueryPoolCreateInfo = ^VkQueryPoolCreateInfo;
+  PVkQueue = ^VkQueue;
+  PVkQueueFamilyProperties = ^VkQueueFamilyProperties;
+  PVkRect2D = ^VkRect2D;
+  PVkRenderPass = ^VkRenderPass;
+  PVkRenderPassBeginInfo = ^VkRenderPassBeginInfo;
+  PVkRenderPassCreateInfo = ^VkRenderPassCreateInfo;
+  PVkSampler = ^VkSampler;
+  PVkSamplerCreateInfo = ^VkSamplerCreateInfo;
+  PVkSemaphore = ^VkSemaphore;
+  PVkSemaphoreCreateInfo = ^VkSemaphoreCreateInfo;
+  PVkShaderModule = ^VkShaderModule;
+  PVkShaderModuleCreateInfo = ^VkShaderModuleCreateInfo;
+  PVkSparseImageFormatProperties = ^VkSparseImageFormatProperties;
+  PVkSparseImageMemoryRequirements = ^VkSparseImageMemoryRequirements;
+  PVkSpecializationInfo = ^VkSpecializationInfo;
+  PVkSpecializationMapEntry = ^VkSpecializationMapEntry;
+  PVkSubmitInfo = ^VkSubmitInfo;
+  PVkSubpassDependency = ^VkSubpassDependency;
+  PVkSubpassDescription = ^VkSubpassDescription;
+  PVkSubresourceLayout = ^VkSubresourceLayout;
+  PVkVertexInputAttributeDescription = ^VkVertexInputAttributeDescription;
+  PVkVertexInputBindingDescription = ^VkVertexInputBindingDescription;
+  PVkViewport = ^VkViewport;
+  PVkWriteDescriptorSet = ^VkWriteDescriptorSet;
+
+  TBlendConstants = array[0..3] of single;
 
   VkResult = (
     VK_SUCCESS = 0,
@@ -2414,6 +2529,7 @@ type
     VK_DYNAMIC_STATE_LINE_STIPPLE_KHR = VK_DYNAMIC_STATE_LINE_STIPPLE,
     VK_DYNAMIC_STATE_MAX_ENUM = $7FFFFFFF
     );
+  PVkDynamicState = ^VkDynamicState;
 
   VkFrontFace = (
     VK_FRONT_FACE_COUNTER_CLOCKWISE = 0,
@@ -3284,6 +3400,8 @@ type
     pfnInternalFree: TVKInternalFreeNotification;
   end;
 
+  { VkApplicationInfo }
+
   VkApplicationInfo = record
     sType: VkStructureType;
     pNext: Pointer;
@@ -3545,9 +3663,7 @@ type
     flags: VkDeviceCreateFlags;
     queueCreateInfoCount: uint32;
     pQueueCreateInfos: ^VkDeviceQueueCreateInfo;
-    // enabledLayerCount is legacy and should not be used
     enabledLayerCount: uint32;
-    // ppEnabledLayerNames is legacy and should not be used
     ppEnabledLayerNames: PPChar;
     enabledExtensionCount: uint32;
     ppEnabledExtensionNames: PPChar;
@@ -4149,7 +4265,7 @@ type
     logicOpEnable: VkBool32;
     logicOp: VkLogicOp;
     attachmentCount: uint32;
-    pAttachments: ^VkPipelineColorBlendAttachmentState;
+    pAttachments: PVkPipelineColorBlendAttachmentState;
     blendConstants: array[0..3] of single;
   end;
 
@@ -4158,7 +4274,7 @@ type
     pNext: Pointer;
     flags: VkPipelineDynamicStateCreateFlags;
     dynamicStateCount: uint32;
-    pDynamicStates: ^VkDynamicState;
+    pDynamicStates: PVkDynamicState;
   end;
 
   VkGraphicsPipelineCreateInfo = record
@@ -4240,11 +4356,11 @@ type
     pNext: Pointer;
     flags: VkRenderPassCreateFlags;
     attachmentCount: uint32;
-    pAttachments: ^VkAttachmentDescription;
+    pAttachments: PVkAttachmentDescription;
     subpassCount: uint32;
-    pSubpasses: ^VkSubpassDescription;
+    pSubpasses: PVkSubpassDescription;
     dependencyCount: uint32;
-    pDependencies: ^VkSubpassDependency;
+    pDependencies: PVkSubpassDependency;
   end;
 
   VkClearDepthStencilValue = record
@@ -4295,127 +4411,6 @@ type
     pClearValues: ^VkClearValue;
   end;
 
-  PVkAllocationCallbacks = ^VkAllocationCallbacks;
-  PVkApplicationInfo = ^VkApplicationInfo;
-  PVkAttachmentDescription = ^VkAttachmentDescription;
-  PVkAttachmentReference = ^VkAttachmentReference;
-  PVkBindSparseInfo = ^VkBindSparseInfo;
-  PVkBuffer = ^VkBuffer;
-  PVkBufferCopy = ^VkBufferCopy;
-  PVkBufferCreateInfo = ^VkBufferCreateInfo;
-  PVkBufferImageCopy = ^VkBufferImageCopy;
-  PVkBufferMemoryBarrier = ^VkBufferMemoryBarrier;
-  //PVkBufferMemoryRequirementsInfo = ^VkBufferMemoryRequirementsInfo;
-  PVkBufferView = ^VkBufferView;
-  PVkBufferViewCreateInfo = ^VkBufferViewCreateInfo;
-  PVkClearAttachment = ^VkClearAttachment;
-  PVkClearColorValue = ^VkClearColorValue;
-  PVkClearDepthStencilValue = ^VkClearDepthStencilValue;
-  PVkClearRect = ^VkClearRect;
-  PVkClearValue = ^VkClearValue;
-  PVkCommandBuffer = ^VkCommandBuffer;
-  PVkCommandBufferAllocateInfo = ^VkCommandBufferAllocateInfo;
-  PVkCommandBufferBeginInfo = ^VkCommandBufferBeginInfo;
-  PVkCommandBufferInheritanceInfo = ^VkCommandBufferInheritanceInfo;
-  PVkCommandPool = ^VkCommandPool;
-  PVkCommandPoolCreateInfo = ^VkCommandPoolCreateInfo;
-  PVkComponentMapping = ^VkComponentMapping;
-  PVkComputePipelineCreateInfo = ^VkComputePipelineCreateInfo;
-  PVkCopyDescriptorSet = ^VkCopyDescriptorSet;
-  PVkDescriptorBufferInfo = ^VkDescriptorBufferInfo;
-  PVkDescriptorImageInfo = ^VkDescriptorImageInfo;
-  PVkDescriptorPool = ^VkDescriptorPool;
-  PVkDescriptorPoolCreateInfo = ^VkDescriptorPoolCreateInfo;
-  PVkDescriptorPoolSize = ^VkDescriptorPoolSize;
-  PVkDescriptorSet = ^VkDescriptorSet;
-  PVkDescriptorSetAllocateInfo = ^VkDescriptorSetAllocateInfo;
-  PVkDescriptorSetLayout = ^VkDescriptorSetLayout;
-  PVkDescriptorSetLayoutBinding = ^VkDescriptorSetLayoutBinding;
-  PVkDescriptorSetLayoutCreateInfo = ^VkDescriptorSetLayoutCreateInfo;
-  PVkDevice = ^VkDevice;
-  PVkDeviceSize = ^VkDeviceSize;
-  PVkDeviceCreateInfo = ^VkDeviceCreateInfo;
-  PVkDeviceMemory = ^VkDeviceMemory;
-  PVkDeviceQueueCreateInfo = ^VkDeviceQueueCreateInfo;
-  PVkEvent = ^VkEvent;
-  PVkExtent2D = ^VkExtent2D;
-  PVkEventCreateInfo = ^VkEventCreateInfo;
-  PVkExtensionProperties = ^VkExtensionProperties;
-  PVkFence = ^VkFence;
-  PVkFenceCreateInfo = ^VkFenceCreateInfo;
-  PVkFramebuffer = ^VkFramebuffer;
-  PVkFramebufferCreateInfo = ^VkFramebufferCreateInfo;
-  PVkFormatProperties = ^VkFormatProperties;
-  PVkGraphicsPipelineCreateInfo = ^VkGraphicsPipelineCreateInfo;
-  PVkImage = ^VkImage;
-  PVkImageBlit = ^VkImageBlit;
-  PVkImageCopy = ^VkImageCopy;
-  PVkImageCreateInfo = ^VkImageCreateInfo;
-  PVkImageFormatProperties = ^VkImageFormatProperties;
-  PVkImageMemoryBarrier = ^VkImageMemoryBarrier;
-  PVkImageResolve = ^VkImageResolve;
-  PVkImageSubresource = ^VkImageSubresource;
-  PVkImageSubresourceLayers = ^VkImageSubresourceLayers;
-  PVkImageSubresourceRange = ^VkImageSubresourceRange;
-  PVkImageView = ^VkImageView;
-  PVkImageViewCreateInfo = ^VkImageViewCreateInfo;
-  PVkInstance = ^VkInstance;
-  PVkInstanceCreateInfo = ^VkInstanceCreateInfo;
-  PVkLayerProperties = ^VkLayerProperties;
-  PVkMappedMemoryRange = ^VkMappedMemoryRange;
-  PVkMemoryAllocateInfo = ^VkMemoryAllocateInfo;
-  PVkMemoryBarrier = ^VkMemoryBarrier;
-  PVkMemoryHeap = ^VkMemoryHeap;
-  PVkMemoryRequirements = ^VkMemoryRequirements;
-  PVkMemoryType = ^VkMemoryType;
-  PVkPhysicalDevice = ^VkPhysicalDevice;
-  PVkPhysicalDeviceFeatures = ^VkPhysicalDeviceFeatures;
-  PVkPhysicalDeviceLimits = ^VkPhysicalDeviceLimits;
-  PVkPhysicalDeviceMemoryProperties = ^VkPhysicalDeviceMemoryProperties;
-  PVkPhysicalDeviceProperties = ^VkPhysicalDeviceProperties;
-  PVkPipeline = ^VkPipeline;
-  PVkPipelineCache = ^VkPipelineCache;
-  PVkPipelineCacheCreateInfo = ^VkPipelineCacheCreateInfo;
-  PVkPipelineColorBlendAttachmentState = ^VkPipelineColorBlendAttachmentState;
-  PVkPipelineColorBlendStateCreateInfo = ^VkPipelineColorBlendStateCreateInfo;
-  PVkPipelineDepthStencilStateCreateInfo = ^VkPipelineDepthStencilStateCreateInfo;
-  PVkPipelineDynamicStateCreateInfo = ^VkPipelineDynamicStateCreateInfo;
-  PVkPipelineInputAssemblyStateCreateInfo = ^VkPipelineInputAssemblyStateCreateInfo;
-  PVkPipelineLayout = ^VkPipelineLayout;
-  PVkPipelineLayoutCreateInfo = ^VkPipelineLayoutCreateInfo;
-  PVkPipelineMultisampleStateCreateInfo = ^VkPipelineMultisampleStateCreateInfo;
-  PVkPipelineRasterizationStateCreateInfo = ^VkPipelineRasterizationStateCreateInfo;
-  PVkPipelineShaderStageCreateInfo = ^VkPipelineShaderStageCreateInfo;
-  PVkPipelineVertexInputStateCreateInfo = ^VkPipelineVertexInputStateCreateInfo;
-  PVkPipelineViewportStateCreateInfo = ^VkPipelineViewportStateCreateInfo;
-  PVkQueryPool = ^VkQueryPool;
-  PVkQueryPoolCreateInfo = ^VkQueryPoolCreateInfo;
-  PVkQueue = ^VkQueue;
-  PVkQueueFamilyProperties = ^VkQueueFamilyProperties;
-  PVkRect2D = ^VkRect2D;
-  PVkRenderPass = ^VkRenderPass;
-  PVkRenderPassBeginInfo = ^VkRenderPassBeginInfo;
-  PVkRenderPassCreateInfo = ^VkRenderPassCreateInfo;
-  PVkSampler = ^VkSampler;
-  PVkSamplerCreateInfo = ^VkSamplerCreateInfo;
-  PVkSemaphore = ^VkSemaphore;
-  PVkSemaphoreCreateInfo = ^VkSemaphoreCreateInfo;
-  PVkShaderModule = ^VkShaderModule;
-  PVkShaderModuleCreateInfo = ^VkShaderModuleCreateInfo;
-  PVkSparseImageFormatProperties = ^VkSparseImageFormatProperties;
-  PVkSparseImageMemoryRequirements = ^VkSparseImageMemoryRequirements;
-  PVkSpecializationInfo = ^VkSpecializationInfo;
-  PVkSpecializationMapEntry = ^VkSpecializationMapEntry;
-  PVkSubmitInfo = ^VkSubmitInfo;
-  PVkSubpassDependency = ^VkSubpassDependency;
-  PVkSubpassDescription = ^VkSubpassDescription;
-  PVkSubresourceLayout = ^VkSubresourceLayout;
-  PVkVertexInputAttributeDescription = ^VkVertexInputAttributeDescription;
-  PVkVertexInputBindingDescription = ^VkVertexInputBindingDescription;
-  PVkViewport = ^VkViewport;
-  PVkWriteDescriptorSet = ^VkWriteDescriptorSet;
-
-  TBlendConstants = array[0..3] of single;
 
 const
   VK_VERSION_1_1 = 1;
@@ -7605,14 +7600,11 @@ type
 
 const
   VK_KHR_surface = 1;
-  //VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSurfaceKHR)
   VK_KHR_SURFACE_SPEC_VERSION = 25;
   VK_KHR_SURFACE_EXTENSION_NAME = 'VK_KHR_surface';
 
+  // Present Modes
 type
-  PVkSurfaceKHR = ^VkSurfaceKHR;
-  VkSurfaceKHR = record
-  end;
   PVkPresentModeKHR = ^VkPresentModeKHR;
   VkPresentModeKHR = (
     VK_PRESENT_MODE_IMMEDIATE_KHR = 0,
@@ -7626,6 +7618,7 @@ type
     VK_PRESENT_MODE_MAX_ENUM_KHR = $7FFFFFFF
     );
 
+  // Color Spaces
   VkColorSpaceKHR = (
     VK_COLOR_SPACE_SRGB_NONLINEAR_KHR = 0,
     VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT = 1000104001,
@@ -7636,7 +7629,6 @@ type
     VK_COLOR_SPACE_BT709_NONLINEAR_EXT = 1000104006,
     VK_COLOR_SPACE_BT2020_LINEAR_EXT = 1000104007,
     VK_COLOR_SPACE_HDR10_ST2084_EXT = 1000104008,
-    // VK_COLOR_SPACE_DOLBYVISION_EXT is legacy, but no reason was given in the API XML
     VK_COLOR_SPACE_DOLBYVISION_EXT = 1000104009,
     VK_COLOR_SPACE_HDR10_HLG_EXT = 1000104010,
     VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT = 1000104011,
@@ -7644,13 +7636,15 @@ type
     VK_COLOR_SPACE_PASS_THROUGH_EXT = 1000104013,
     VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT = 1000104014,
     VK_COLOR_SPACE_DISPLAY_NATIVE_AMD = 1000213000,
-    // VK_COLORSPACE_SRGB_NONLINEAR_KHR is a legacy alias
+
+    // Alias di compatibilità (legacy)
     VK_COLORSPACE_SRGB_NONLINEAR_KHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
-    // VK_COLOR_SPACE_DCI_P3_LINEAR_EXT is a legacy alias
     VK_COLOR_SPACE_DCI_P3_LINEAR_EXT = VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT,
+
     VK_COLOR_SPACE_MAX_ENUM_KHR = $7FFFFFFF
     );
 
+  // Surface Transform Flags
   VkSurfaceTransformFlagBitsKHR = (
     VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR = $00000001,
     VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR = $00000002,
@@ -7664,6 +7658,8 @@ type
     VK_SURFACE_TRANSFORM_FLAG_BITS_MAX_ENUM_KHR = $7FFFFFFF
     );
 
+  VkSurfaceTransformFlagsKHR = VkFlags;
+
   VkCompositeAlphaFlagBitsKHR = (
     VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR = $00000001,
     VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR = $00000002,
@@ -7671,8 +7667,12 @@ type
     VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR = $00000008,
     VK_COMPOSITE_ALPHA_FLAG_BITS_MAX_ENUM_KHR = $7FFFFFFF
     );
+
   VkCompositeAlphaFlagsKHR = VkFlags;
-  VkSurfaceTransformFlagsKHR = VkFlags;
+
+  PVkSurfaceKHR = ^VkSurfaceKHR;
+  VkSurfaceKHR = pointer;
+
   PVkSurfaceCapabilitiesKHR = ^VkSurfaceCapabilitiesKHR;
 
   VkSurfaceCapabilitiesKHR = record
@@ -7695,11 +7695,11 @@ type
     colorSpace: VkColorSpaceKHR;
   end;
 
-  vkDestroySurfaceKHR = procedure(instance: VkInstance; surface: VkSurfaceKHR; pAllocator: PVkAllocationCallbacks);
-  vkGetPhysicalDeviceSurfaceSupportKHR = function(physicalDevice: VkPhysicalDevice; queueFamilyIndex: uint32; surface: VkSurfaceKHR; pSupported: PVkBool32): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  vkGetPhysicalDeviceSurfaceCapabilitiesKHR = function(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pSurfaceCapabilities: PVkSurfaceCapabilitiesKHR): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  vkGetPhysicalDeviceSurfaceFormatsKHR = function(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pSurfaceFormatCount: Puint32; pSurfaceFormats: PVkSurfaceFormatKHR): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  vkGetPhysicalDeviceSurfacePresentModesKHR = function(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pPresentModeCount: Puint32; pPresentModes: PVkPresentModeKHR): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TvkDestroySurfaceKHR = procedure(instance: VkInstance; surface: VkSurfaceKHR; pAllocator: PVkAllocationCallbacks); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TvkGetPhysicalDeviceSurfaceSupportKHR = function(physicalDevice: VkPhysicalDevice; queueFamilyIndex: uint32; surface: VkSurfaceKHR; pSupported: PVkBool32): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TvkGetPhysicalDeviceSurfaceCapabilitiesKHR = function(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pSurfaceCapabilities: PVkSurfaceCapabilitiesKHR): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TvkGetPhysicalDeviceSurfaceFormatsKHR = function(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pSurfaceFormatCount: Puint32; pSurfaceFormats: PVkSurfaceFormatKHR): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TvkGetPhysicalDeviceSurfacePresentModesKHR = function(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pPresentModeCount: Puint32; pPresentModes: PVkPresentModeKHR): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
 
 const
   // VK_KHR_swapchain is a preprocessor guard. Do not pass it to API calls.
@@ -7710,8 +7710,7 @@ const
 
 type
   PVkSwapchainKHR = ^VkSwapchainKHR;
-  VkSwapchainKHR = record
-  end;
+  VkSwapchainKHR = pointer;
 
   VkSwapchainCreateFlagBitsKHR = (
     VK_SWAPCHAIN_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT_KHR = $00000001,
@@ -9409,70 +9408,143 @@ type
 
 type
   // Vulkan 1.0
-  TVKAllocateMemory = function(device: VkDevice; pAllocateInfo: PVkMemoryAllocateInfo; pAllocator: PVkAllocationCallbacks; pMemory: PVkDeviceMemory): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKBindBufferMemory = function(device: VkDevice; buffer: VkBuffer; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKBindImageMemory = function(device: VkDevice; image: VkImage; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCreateDevice = function(physicalDevice: VkPhysicalDevice; pCreateInfo: PVkDeviceCreateInfo; pAllocator: PVkAllocationCallbacks; pDevice: PVkDevice): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCreateFramebuffer = function(device: VkDevice; pCreateInfo: PVkFramebufferCreateInfo; pAllocator: PVkAllocationCallbacks; pFramebuffer: PVkFramebuffer): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCreateGraphicsPipelines = function(device: VkDevice; pipelineCache: VkPipelineCache; createInfoCount: uint32; pCreateInfos: PVkGraphicsPipelineCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelines: PVkPipeline): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCreateInstance = function(pCreateInfo: PVkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; pInstance: PVkInstance): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCreateRenderPass = function(device: VkDevice; pCreateInfo: PVkRenderPassCreateInfo; pAllocator: PVkAllocationCallbacks; pRenderPass: PVkRenderPass): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKDeviceWaitIdle = function(device: VkDevice): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKEnumerateDeviceExtensionProperties = function(physicalDevice: VkPhysicalDevice; pLayerName: pansichar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKEnumerateDeviceLayerProperties = function(physicalDevice: VkPhysicalDevice; pPropertyCount: Puint32; pProperties: PVkLayerProperties): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKEnumerateInstanceExtensionProperties = function(pLayerName: pansichar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKEnumerateInstanceLayerProperties = function(pPropertyCount: Puint32; pProperties: PVkLayerProperties): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKEnumeratePhysicalDevices = function(instance: VkInstance; pPhysicalDeviceCount: Puint32; pPhysicalDevices: PVkPhysicalDevice): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKFlushMappedMemoryRanges = function(device: VkDevice; memoryRangeCount: uint32; pMemoryRanges: PVkMappedMemoryRange): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetDeviceProcAddr = function(device: VkDevice; pName: pansichar): TVKVoidFunction; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetInstanceProcAddr = function(instance: VkInstance; pName: pansichar): TVKVoidFunction; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetPhysicalDeviceImageFormatProperties = function(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; tiling: VkImageTiling; usage: VkImageUsageFlags; flags: VkImageCreateFlags; pImageFormatProperties: PVkImageFormatProperties): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKInvalidateMappedMemoryRanges = function(device: VkDevice; memoryRangeCount: uint32; pMemoryRanges: PVkMappedMemoryRange): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKMapMemory = function(device: VkDevice; memory: VkDeviceMemory; offset: VkDeviceSize; size: VkDeviceSize; flags: VkMemoryMapFlags; ppData: PPointer): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKQueueBindSparse = function(queue: VkQueue; bindInfoCount: uint32; pBindInfo: PVkBindSparseInfo; fence: VkFence): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKQueueSubmit = function(queue: VkQueue; submitCount: uint32; pSubmits: PVkSubmitInfo; fence: VkFence): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKQueueWaitIdle = function(queue: VkQueue): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdBeginRenderPass = procedure(commandBuffer: VkCommandBuffer; pRenderPassBegin: PVkRenderPassBeginInfo; contents: VkSubpassContents); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdBindIndexBuffer = procedure(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; indexType: VkIndexType); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdBindVertexBuffers = procedure(commandBuffer: VkCommandBuffer; firstBinding: uint32; bindingCount: uint32; pBuffers: PVkBuffer; pOffsets: PVkDeviceSize); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdBlitImage = procedure(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageBlit; filter: VkFilter); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdClearAttachments = procedure(commandBuffer: VkCommandBuffer; attachmentCount: uint32; pAttachments: PVkClearAttachment; rectCount: uint32; pRects: PVkClearRect); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdClearDepthStencilImage = procedure(commandBuffer: VkCommandBuffer; image: VkImage; imageLayout: VkImageLayout; pDepthStencil: PVkClearDepthStencilValue; rangeCount: uint32; pRanges: PVkImageSubresourceRange); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdDraw = procedure(commandBuffer: VkCommandBuffer; vertexCount: uint32; instanceCount: uint32; firstVertex: uint32; firstInstance: uint32); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdDrawIndexed = procedure(commandBuffer: VkCommandBuffer; indexCount: uint32; instanceCount: uint32; firstIndex: uint32; vertexOffset: int32; firstInstance: uint32); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdDrawIndexedIndirect = procedure(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; drawCount: uint32; stride: uint32); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdDrawIndirect = procedure(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; drawCount: uint32; stride: uint32); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdEndRenderPass = procedure(commandBuffer: VkCommandBuffer); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdNextSubpass = procedure(commandBuffer: VkCommandBuffer; contents: VkSubpassContents); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdPushConstants = procedure(commandBuffer: VkCommandBuffer; layout: VkPipelineLayout; stageFlags: VkShaderStageFlags; offset: uint32; size: uint32; pValues: Pointer); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdResolveImage = procedure(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageResolve); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdSetBlendConstants = procedure(commandBuffer: VkCommandBuffer; blendConstants: TBlendConstants); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdSetDepthBias = procedure(commandBuffer: VkCommandBuffer; depthBiasConstantFactor: single; depthBiasClamp: single; depthBiasSlopeFactor: single); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdSetDepthBounds = procedure(commandBuffer: VkCommandBuffer; minDepthBounds: single; maxDepthBounds: single); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdSetLineWidth = procedure(commandBuffer: VkCommandBuffer; lineWidth: single); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdSetScissor = procedure(commandBuffer: VkCommandBuffer; firstScissor: uint32; scissorCount: uint32; pScissors: PVkRect2D); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdSetStencilCompareMask = procedure(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; compareMask: uint32); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdSetStencilReference = procedure(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; reference: uint32); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdSetStencilWriteMask = procedure(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; writeMask: uint32); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKCmdSetViewport = procedure(commandBuffer: VkCommandBuffer; firstViewport: uint32; viewportCount: uint32; pViewports: PVkViewport); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKDestroyDevice = procedure(device: VkDevice; pAllocator: PVkAllocationCallbacks); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKDestroyFramebuffer = procedure(device: VkDevice; framebuffer: VkFramebuffer; pAllocator: PVkAllocationCallbacks); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKDestroyInstance = procedure(instance: VkInstance; pAllocator: PVkAllocationCallbacks); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKDestroyRenderPass = procedure(device: VkDevice; renderPass: VkRenderPass; pAllocator: PVkAllocationCallbacks); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKFreeMemory = procedure(device: VkDevice; memory: VkDeviceMemory; pAllocator: PVkAllocationCallbacks); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetBufferMemoryRequirements = procedure(device: VkDevice; buffer: VkBuffer; pMemoryRequirements: PVkMemoryRequirements); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetDeviceMemoryCommitment = procedure(device: VkDevice; memory: VkDeviceMemory; pCommittedMemoryInBytes: PVkDeviceSize); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetDeviceQueue = procedure(device: VkDevice; queueFamilyIndex: uint32; queueIndex: uint32; pQueue: PVkQueue); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetImageMemoryRequirements = procedure(device: VkDevice; image: VkImage; pMemoryRequirements: PVkMemoryRequirements); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetImageSparseMemoryRequirements = procedure(device: VkDevice; image: VkImage; pSparseMemoryRequirementCount: Puint32; pSparseMemoryRequirements: PVkSparseImageMemoryRequirements); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetPhysicalDeviceFeatures = procedure(physicalDevice: VkPhysicalDevice; pFeatures: PVkPhysicalDeviceFeatures); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetPhysicalDeviceFormatProperties = procedure(physicalDevice: VkPhysicalDevice; format: VkFormat; pFormatProperties: PVkFormatProperties); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetPhysicalDeviceMemoryProperties = procedure(physicalDevice: VkPhysicalDevice; pMemoryProperties: PVkPhysicalDeviceMemoryProperties); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetPhysicalDeviceProperties = procedure(physicalDevice: VkPhysicalDevice; pProperties: PVkPhysicalDeviceProperties); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetPhysicalDeviceQueueFamilyProperties = procedure(physicalDevice: VkPhysicalDevice; pQueueFamilyPropertyCount: Puint32; pQueueFamilyProperties: PVkQueueFamilyProperties); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetPhysicalDeviceSparseImageFormatProperties = procedure(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; samples: VkSampleCountFlagBits; usage: VkImageUsageFlags; tiling: VkImageTiling; pPropertyCount: Puint32; pProperties: PVkSparseImageFormatProperties); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKGetRenderAreaGranularity = procedure(device: VkDevice; renderPass: VkRenderPass; pGranularity: PVkExtent2D); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  TVKUnmapMemory = procedure(device: VkDevice; memory: VkDeviceMemory); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateInstance = function(var pCreateInfo: VkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyInstance = procedure(instance: VkInstance; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKEnumeratePhysicalDevices = function(instance: VkInstance; pPhysicalDeviceCount: Puint32; pPhysicalDevices: PVkPhysicalDevice): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetPhysicalDeviceFeatures = procedure(physicalDevice: VkPhysicalDevice; pFeatures: PVkPhysicalDeviceFeatures);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetPhysicalDeviceFormatProperties = procedure(physicalDevice: VkPhysicalDevice; format: VkFormat; pFormatProperties: PVkFormatProperties);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetPhysicalDeviceImageFormatProperties = function(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; tiling: VkImageTiling; usage: VkImageUsageFlags; flags: VkImageCreateFlags; pImageFormatProperties: PVkImageFormatProperties): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetPhysicalDeviceProperties = procedure(physicalDevice: VkPhysicalDevice; pProperties: PVkPhysicalDeviceProperties);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetPhysicalDeviceQueueFamilyProperties = procedure(physicalDevice: VkPhysicalDevice; pQueueFamilyPropertyCount: Puint32; pQueueFamilyProperties: PVkQueueFamilyProperties);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetPhysicalDeviceMemoryProperties = procedure(physicalDevice: VkPhysicalDevice; pMemoryProperties: PVkPhysicalDeviceMemoryProperties);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetInstanceProcAddr = function(instance: VkInstance; pName: pchar): TVKVoidFunction;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetDeviceProcAddr = function(device: VkDevice; pName: pchar): TVKVoidFunction;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateDevice = function(physicalDevice: VkPhysicalDevice; pCreateInfo: PVkDeviceCreateInfo; pAllocator: PVkAllocationCallbacks; out pDevice: VkDevice): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyDevice = procedure(device: VkDevice; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKEnumerateInstanceExtensionProperties = function(pLayerName: pchar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKEnumerateDeviceExtensionProperties = function(physicalDevice: VkPhysicalDevice; pLayerName: pchar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKEnumerateInstanceLayerProperties = function(pPropertyCount: Puint32; pProperties: PVkLayerProperties): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKEnumerateDeviceLayerProperties = function(physicalDevice: VkPhysicalDevice; pPropertyCount: Puint32; pProperties: PVkLayerProperties): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetDeviceQueue = procedure(device: VkDevice; queueFamilyIndex: uint32; queueIndex: uint32; pQueue: PVkQueue);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKQueueSubmit = function(queue: VkQueue; submitCount: uint32; pSubmits: PVkSubmitInfo; fence: VkFence): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKQueueWaitIdle = function(queue: VkQueue): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDeviceWaitIdle = function(device: VkDevice): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKAllocateMemory = function(device: VkDevice; pAllocateInfo: PVkMemoryAllocateInfo; pAllocator: PVkAllocationCallbacks; pMemory: PVkDeviceMemory): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKFreeMemory = procedure(device: VkDevice; memory: VkDeviceMemory; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKMapMemory = function(device: VkDevice; memory: VkDeviceMemory; offset: VkDeviceSize; size: VkDeviceSize; flags: VkMemoryMapFlags; ppData: PPointer): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKUnmapMemory = procedure(device: VkDevice; memory: VkDeviceMemory);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKFlushMappedMemoryRanges = function(device: VkDevice; memoryRangeCount: uint32; pMemoryRanges: PVkMappedMemoryRange): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKInvalidateMappedMemoryRanges = function(device: VkDevice; memoryRangeCount: uint32; pMemoryRanges: PVkMappedMemoryRange): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetDeviceMemoryCommitment = procedure(device: VkDevice; memory: VkDeviceMemory; pCommittedMemoryInBytes: PVkDeviceSize);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKBindBufferMemory = function(device: VkDevice; buffer: VkBuffer; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKBindImageMemory = function(device: VkDevice; image: VkImage; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetBufferMemoryRequirements = procedure(device: VkDevice; buffer: VkBuffer; pMemoryRequirements: PVkMemoryRequirements);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetImageMemoryRequirements = procedure(device: VkDevice; image: VkImage; pMemoryRequirements: PVkMemoryRequirements);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetImageSparseMemoryRequirements = procedure(device: VkDevice; image: VkImage; pSparseMemoryRequirementCount: Puint32; pSparseMemoryRequirements: PVkSparseImageMemoryRequirements);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetPhysicalDeviceSparseImageFormatProperties = procedure(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; samples: VkSampleCountFlagBits; usage: VkImageUsageFlags; tiling: VkImageTiling; pPropertyCount: Puint32; pProperties: PVkSparseImageFormatProperties);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKQueueBindSparse = function(queue: VkQueue; bindInfoCount: uint32; pBindInfo: PVkBindSparseInfo; fence: VkFence): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateFence = function(device: VkDevice; pCreateInfo: PVkFenceCreateInfo; pAllocator: PVkAllocationCallbacks; pFence: PVkFence): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyFence = procedure(device: VkDevice; fence: VkFence; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKResetFences = function(device: VkDevice; fenceCount: uint32; pFences: PVkFence): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetFenceStatus = function(device: VkDevice; fence: VkFence): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKWaitForFences = function(device: VkDevice; fenceCount: uint32; pFences: PVkFence; waitAll: VkBool32; timeout: uint64): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateSemaphore = function(device: VkDevice; pCreateInfo: PVkSemaphoreCreateInfo; pAllocator: PVkAllocationCallbacks; pSemaphore: PVkSemaphore): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroySemaphore = procedure(device: VkDevice; semaphore: VkSemaphore; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateQueryPool = function(device: VkDevice; pCreateInfo: PVkQueryPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pQueryPool: PVkQueryPool): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyQueryPool = procedure(device: VkDevice; queryPool: VkQueryPool; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetQueryPoolResults = function(device: VkDevice; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32; dataSize: size_t; pData: Pointer; stride: VkDeviceSize; flags: VkQueryResultFlags): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateBuffer = function(device: VkDevice; pCreateInfo: PVkBufferCreateInfo; pAllocator: PVkAllocationCallbacks; pBuffer: PVkBuffer): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyBuffer = procedure(device: VkDevice; buffer: VkBuffer; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateImage = function(device: VkDevice; pCreateInfo: PVkImageCreateInfo; pAllocator: PVkAllocationCallbacks; pImage: PVkImage): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyImage = procedure(device: VkDevice; image: VkImage; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetImageSubresourceLayout = procedure(device: VkDevice; image: VkImage; pSubresource: PVkImageSubresource; pLayout: PVkSubresourceLayout);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateImageView = function(device: VkDevice; pCreateInfo: PVkImageViewCreateInfo; pAllocator: PVkAllocationCallbacks; pView: PVkImageView): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyImageView = procedure(device: VkDevice; imageView: VkImageView; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateCommandPool = function(device: VkDevice; pCreateInfo: PVkCommandPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pCommandPool: PVkCommandPool): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyCommandPool = procedure(device: VkDevice; commandPool: VkCommandPool; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKResetCommandPool = function(device: VkDevice; commandPool: VkCommandPool; flags: VkCommandPoolResetFlags): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKAllocateCommandBuffers = function(device: VkDevice; pAllocateInfo: PVkCommandBufferAllocateInfo; pCommandBuffers: PVkCommandBuffer): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKFreeCommandBuffers = procedure(device: VkDevice; commandPool: VkCommandPool; commandBufferCount: uint32; pCommandBuffers: PVkCommandBuffer);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKBeginCommandBuffer = function(commandBuffer: VkCommandBuffer; pBeginInfo: PVkCommandBufferBeginInfo): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKEndCommandBuffer = function(commandBuffer: VkCommandBuffer): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKResetCommandBuffer = function(commandBuffer: VkCommandBuffer; flags: VkCommandBufferResetFlags): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdCopyBuffer = procedure(commandBuffer: VkCommandBuffer; srcBuffer: VkBuffer; dstBuffer: VkBuffer; regionCount: uint32; pRegions: PVkBufferCopy);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdCopyImage = procedure(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageCopy);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdCopyBufferToImage = procedure(commandBuffer: VkCommandBuffer; srcBuffer: VkBuffer; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkBufferImageCopy);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdCopyImageToBuffer = procedure(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstBuffer: VkBuffer; regionCount: uint32; pRegions: PVkBufferImageCopy);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdUpdateBuffer = procedure(commandBuffer: VkCommandBuffer; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; dataSize: VkDeviceSize; pData: Pointer);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdFillBuffer = procedure(commandBuffer: VkCommandBuffer; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; size: VkDeviceSize; Data: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdPipelineBarrier = procedure(commandBuffer: VkCommandBuffer; srcStageMask: VkPipelineStageFlags; dstStageMask: VkPipelineStageFlags; dependencyFlags: VkDependencyFlags; memoryBarrierCount: uint32; pMemoryBarriers: PVkMemoryBarrier; bufferMemoryBarrierCount: uint32; pBufferMemoryBarriers: PVkBufferMemoryBarrier; imageMemoryBarrierCount: uint32; pImageMemoryBarriers: PVkImageMemoryBarrier);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdBeginQuery = procedure(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; query: uint32; flags: VkQueryControlFlags);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdEndQuery = procedure(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; query: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdResetQueryPool = procedure(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdWriteTimestamp = procedure(commandBuffer: VkCommandBuffer; pipelineStage: VkPipelineStageFlagBits; queryPool: VkQueryPool; query: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdCopyQueryPoolResults = procedure(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; stride: VkDeviceSize; flags: VkQueryResultFlags);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdExecuteCommands = procedure(commandBuffer: VkCommandBuffer; commandBufferCount: uint32; pCommandBuffers: PVkCommandBuffer);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateEvent = function(device: VkDevice; pCreateInfo: PVkEventCreateInfo; pAllocator: PVkAllocationCallbacks; pEvent: PVkEvent): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyEvent = procedure(device: VkDevice; event: VkEvent; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetEventStatus = function(device: VkDevice; event: VkEvent): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKSetEvent = function(device: VkDevice; event: VkEvent): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKResetEvent = function(device: VkDevice; event: VkEvent): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateBufferView = function(device: VkDevice; pCreateInfo: PVkBufferViewCreateInfo; pAllocator: PVkAllocationCallbacks; pView: PVkBufferView): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyBufferView = procedure(device: VkDevice; bufferView: VkBufferView; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateShaderModule = function(device: VkDevice; pCreateInfo: PVkShaderModuleCreateInfo; pAllocator: PVkAllocationCallbacks; pShaderModule: PVkShaderModule): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyShaderModule = procedure(device: VkDevice; shaderModule: VkShaderModule; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreatePipelineCache = function(device: VkDevice; pCreateInfo: PVkPipelineCacheCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelineCache: PVkPipelineCache): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyPipelineCache = procedure(device: VkDevice; pipelineCache: VkPipelineCache; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetPipelineCacheData = function(device: VkDevice; pipelineCache: VkPipelineCache; pDataSize: PNativeUInt; pData: Pointer): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKMergePipelineCaches = function(device: VkDevice; dstCache: VkPipelineCache; srcCacheCount: uint32; pSrcCaches: PVkPipelineCache): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateComputePipelines = function(device: VkDevice; pipelineCache: VkPipelineCache; createInfoCount: uint32; pCreateInfos: PVkComputePipelineCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelines: PVkPipeline): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyPipeline = procedure(device: VkDevice; pipeline: VkPipeline; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreatePipelineLayout = function(device: VkDevice; pCreateInfo: PVkPipelineLayoutCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelineLayout: PVkPipelineLayout): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyPipelineLayout = procedure(device: VkDevice; pipelineLayout: VkPipelineLayout; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateSampler = function(device: VkDevice; pCreateInfo: PVkSamplerCreateInfo; pAllocator: PVkAllocationCallbacks; pSampler: PVkSampler): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroySampler = procedure(device: VkDevice; sampler: VkSampler; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateDescriptorSetLayout = function(device: VkDevice; pCreateInfo: PVkDescriptorSetLayoutCreateInfo; pAllocator: PVkAllocationCallbacks; pSetLayout: PVkDescriptorSetLayout): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyDescriptorSetLayout = procedure(device: VkDevice; descriptorSetLayout: VkDescriptorSetLayout; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateDescriptorPool = function(device: VkDevice; pCreateInfo: PVkDescriptorPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pDescriptorPool: PVkDescriptorPool): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyDescriptorPool = procedure(device: VkDevice; descriptorPool: VkDescriptorPool; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKResetDescriptorPool = function(device: VkDevice; descriptorPool: VkDescriptorPool; flags: VkDescriptorPoolResetFlags): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKAllocateDescriptorSets = function(device: VkDevice; pAllocateInfo: PVkDescriptorSetAllocateInfo; pDescriptorSets: PVkDescriptorSet): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKFreeDescriptorSets = function(device: VkDevice; descriptorPool: VkDescriptorPool; descriptorSetCount: uint32; pDescriptorSets: PVkDescriptorSet): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKUpdateDescriptorSets = procedure(device: VkDevice; descriptorWriteCount: uint32; pDescriptorWrites: PVkWriteDescriptorSet; descriptorCopyCount: uint32; pDescriptorCopies: PVkCopyDescriptorSet);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdBindPipeline = procedure(commandBuffer: VkCommandBuffer; pipelineBindPoint: VkPipelineBindPoint; pipeline: VkPipeline);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdBindDescriptorSets = procedure(commandBuffer: VkCommandBuffer; pipelineBindPoint: VkPipelineBindPoint; layout: VkPipelineLayout; firstSet: uint32; descriptorSetCount: uint32; pDescriptorSets: PVkDescriptorSet; dynamicOffsetCount: uint32; pDynamicOffsets: Puint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdClearColorImage = procedure(commandBuffer: VkCommandBuffer; image: VkImage; imageLayout: VkImageLayout; pColor: PVkClearColorValue; rangeCount: uint32; pRanges: PVkImageSubresourceRange);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdDispatch = procedure(commandBuffer: VkCommandBuffer; groupCountX: uint32; groupCountY: uint32; groupCountZ: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdDispatchIndirect = procedure(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdSetEvent = procedure(commandBuffer: VkCommandBuffer; event: VkEvent; stageMask: VkPipelineStageFlags);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdResetEvent = procedure(commandBuffer: VkCommandBuffer; event: VkEvent; stageMask: VkPipelineStageFlags);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdWaitEvents = procedure(commandBuffer: VkCommandBuffer; eventCount: uint32; pEvents: PVkEvent; srcStageMask: VkPipelineStageFlags; dstStageMask: VkPipelineStageFlags; memoryBarrierCount: uint32; pMemoryBarriers: PVkMemoryBarrier; bufferMemoryBarrierCount: uint32; pBufferMemoryBarriers: PVkBufferMemoryBarrier; imageMemoryBarrierCount: uint32; pImageMemoryBarriers: PVkImageMemoryBarrier);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdPushConstants = procedure(commandBuffer: VkCommandBuffer; layout: VkPipelineLayout; stageFlags: VkShaderStageFlags; offset: uint32; size: uint32; pValues: Pointer);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateGraphicsPipelines = function(device: VkDevice; pipelineCache: VkPipelineCache; createInfoCount: uint32; pCreateInfos: PVkGraphicsPipelineCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelines: PVkPipeline): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateFramebuffer = function(device: VkDevice; pCreateInfo: PVkFramebufferCreateInfo; pAllocator: PVkAllocationCallbacks; pFramebuffer: PVkFramebuffer): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyFramebuffer = procedure(device: VkDevice; framebuffer: VkFramebuffer; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCreateRenderPass = function(device: VkDevice; pCreateInfo: PVkRenderPassCreateInfo; pAllocator: PVkAllocationCallbacks; pRenderPass: PVkRenderPass): VkResult;{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKDestroyRenderPass = procedure(device: VkDevice; renderPass: VkRenderPass; pAllocator: PVkAllocationCallbacks);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKGetRenderAreaGranularity = procedure(device: VkDevice; renderPass: VkRenderPass; pGranularity: PVkExtent2D);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdSetViewport = procedure(commandBuffer: VkCommandBuffer; firstViewport: uint32; viewportCount: uint32; pViewports: PVkViewport);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdSetScissor = procedure(commandBuffer: VkCommandBuffer; firstScissor: uint32; scissorCount: uint32; pScissors: PVkRect2D);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdSetLineWidth = procedure(commandBuffer: VkCommandBuffer; lineWidth: single);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdSetDepthBias = procedure(commandBuffer: VkCommandBuffer; depthBiasConstantFactor: single; depthBiasClamp: single; depthBiasSlopeFactor: single);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdSetBlendConstants = procedure(commandBuffer: VkCommandBuffer; blendConstants: TBlendConstants);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdSetDepthBounds = procedure(commandBuffer: VkCommandBuffer; minDepthBounds: single; maxDepthBounds: single);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdSetStencilCompareMask = procedure(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; compareMask: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdSetStencilWriteMask = procedure(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; writeMask: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdSetStencilReference = procedure(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; reference: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdBindIndexBuffer = procedure(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; indexType: VkIndexType);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdBindVertexBuffers = procedure(commandBuffer: VkCommandBuffer; firstBinding: uint32; bindingCount: uint32; pBuffers: PVkBuffer; pOffsets: PVkDeviceSize);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdDraw = procedure(commandBuffer: VkCommandBuffer; vertexCount: uint32; instanceCount: uint32; firstVertex: uint32; firstInstance: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdDrawIndexed = procedure(commandBuffer: VkCommandBuffer; indexCount: uint32; instanceCount: uint32; firstIndex: uint32; vertexOffset: int32; firstInstance: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdDrawIndirect = procedure(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; drawCount: uint32; stride: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdDrawIndexedIndirect = procedure(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; drawCount: uint32; stride: uint32);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdBlitImage = procedure(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageBlit; filter: VkFilter);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdClearDepthStencilImage = procedure(commandBuffer: VkCommandBuffer; image: VkImage; imageLayout: VkImageLayout; pDepthStencil: PVkClearDepthStencilValue; rangeCount: uint32; pRanges: PVkImageSubresourceRange);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdClearAttachments = procedure(commandBuffer: VkCommandBuffer; attachmentCount: uint32; pAttachments: PVkClearAttachment; rectCount: uint32; pRects: PVkClearRect);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdResolveImage = procedure(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageResolve);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdBeginRenderPass = procedure(commandBuffer: VkCommandBuffer; pRenderPassBegin: PVkRenderPassBeginInfo; contents: VkSubpassContents);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdNextSubpass = procedure(commandBuffer: VkCommandBuffer; contents: VkSubpassContents);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  TVKCmdEndRenderPass = procedure(commandBuffer: VkCommandBuffer);{$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
   // Vulkan 1.1 Core function pointers
   TVKEnumerateInstanceVersion = function(pApiVersion: Puint32): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
   TVKBindBufferMemory2 = function(device: VkDevice; bindInfoCount: uint32; pBindInfos: PVkBindBufferMemoryInfo): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
@@ -9685,13 +9757,17 @@ type
   vkCmdBeginDebugUtilsLabelEXT = procedure(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
   vkCmdEndDebugUtilsLabelEXT = procedure(commandBuffer: VkCommandBuffer); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
   vkCmdInsertDebugUtilsLabelEXT = procedure(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
-  vkCreateDebugUtilsMessengerEXT = function(instance: VkInstance; pCreateInfo: PVkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
+  vkCreateDebugUtilsMessengerEXT = function(instance: VkInstance; var pCreateInfo: VkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult; {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
   vkDestroyDebugUtilsMessengerEXT = procedure(instance: VkInstance; messenger: VkDebugUtilsMessengerEXT; pAllocator: PVkAllocationCallbacks); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
   vkSubmitDebugUtilsMessageEXT = procedure(instance: VkInstance; messageSeverity: VkDebugUtilsMessageSeverityFlagBitsEXT; messageTypes: VkDebugUtilsMessageTypeFlagsEXT; pCallbackData: PVkDebugUtilsMessengerCallbackDataEXT); {$IFDEF WINDOWS} stdcall {$ELSE} cdecl {$ENDIF};
 
 type
 
-  IVulkanDebugUtilsExtension = interface
+  IVulkanExtension = interface
+    ['{EA79AEB5-D814-49F2-99FA-2980FE1E1366}']
+  end;
+
+  IVulkanDebugUtilsExtension = interface(IVulkanExtension)
     ['{65410DD0-80F9-4E62-B184-92706EC16E86}']
     function vkSetDebugUtilsObjectNameEXT(pNameInfo: PVkDebugUtilsObjectNameInfoEXT): VkResult;
     function vkSetDebugUtilsObjectTagEXT(pTagInfo: PVkDebugUtilsObjectTagInfoEXT): VkResult;
@@ -9701,72 +9777,175 @@ type
     procedure vkCmdBeginDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT);
     procedure vkCmdEndDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer);
     procedure vkCmdInsertDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT);
-    function vkCreateDebugUtilsMessengerEXT(pCreateInfo: PVkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult;
+    function vkCreateDebugUtilsMessengerEXT(var pCreateInfo: VkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult;
     procedure vkDestroyDebugUtilsMessengerEXT(messenger: VkDebugUtilsMessengerEXT; pAllocator: PVkAllocationCallbacks);
     procedure vkSubmitDebugUtilsMessageEXT(messageSeverity: VkDebugUtilsMessageSeverityFlagBitsEXT; messageTypes: VkDebugUtilsMessageTypeFlagsEXT; pCallbackData: PVkDebugUtilsMessengerCallbackDataEXT);
   end;
 
-  IVulkan10 = interface
-    ['{D30E7C05-D980-4641-8D0C-4CB6AAD3A68D}']
+  IVulkanKHRSurface = interface(IVulkanExtension)
+    ['{BA7C8501-FA60-4E02-B8E2-E5A8E2E3F496}']
+    procedure vkDestroySurfaceKHR(surface: VkSurfaceKHR; pAllocator: PVkAllocationCallbacks);
+    function vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice: VkPhysicalDevice; queueFamilyIndex: uint32; surface: VkSurfaceKHR; pSupported: PVkBool32): VkResult;
+    function vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pSurfaceCapabilities: PVkSurfaceCapabilitiesKHR): VkResult;
+    function vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pSurfaceFormatCount: Puint32; pSurfaceFormats: PVkSurfaceFormatKHR): VkResult;
+    function vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pPresentModeCount: Puint32; pPresentModes: PVkPresentModeKHR): VkResult;
+  end;
+
+  IVulkanSwapChainExtension = interface(IVulkanExtension)
+    ['{E714C014-39F1-4761-B092-9D2708387AD2}']
+    function vkCreateSwapchainKHR(pCreateInfo: PVkSwapchainCreateInfoKHR; pAllocator: PVkAllocationCallbacks; pSwapchain: PVkSwapchainKHR): VkResult;
+    procedure vkDestroySwapchainKHR(swapchain: VkSwapchainKHR; pAllocator: PVkAllocationCallbacks);
+    function vkGetSwapchainImagesKHR(swapchain: VkSwapchainKHR; pSwapchainImageCount: Puint32; pSwapchainImages: PVkImage): VkResult;
+    function vkAcquireNextImageKHR(swapchain: VkSwapchainKHR; timeout: uint64; semaphore: VkSemaphore; fence: VkFence; pImageIndex: Puint32): VkResult;
+    function vkQueuePresentKHR(queue: VkQueue; pPresentInfo: PVkPresentInfoKHR): VkResult;
+    function vkGetDeviceGroupPresentCapabilitiesKHR(pDeviceGroupPresentCapabilities: PVkDeviceGroupPresentCapabilitiesKHR): VkResult;
+    function vkGetDeviceGroupSurfacePresentModesKHR(surface: VkSurfaceKHR; pModes: PVkDeviceGroupPresentModeFlagsKHR): VkResult;
+    function vkGetPhysicalDevicePresentRectanglesKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pRectCount: Puint32; pRects: PVkRect2D): VkResult;
+    function vkAcquireNextImage2KHR(pAcquireInfo: PVkAcquireNextImageInfoKHR; pImageIndex: Puint32): VkResult;
+  end;
+
+  IVulkanBase = interface
+    ['{88ED415E-7767-4F6F-B033-53D463365C33}']
     function SupportsExtension(const Ext: string): boolean;
     function SupportsLayer(const Ext: string): boolean;
 
+    function getDebugUtilsExtension(instance: VkInstance; device: VkDevice = nil): IVulkanDebugUtilsExtension;
+    function getKHRSurfaceExtension(instance: VkInstance): IVulkanKHRSurface;
+    function getSwapChainExtension(aDevice: VkDevice): IVulkanSwapChainExtension;
+  end;
+
+  { IVulkan10 }
+
+  IVulkan10 = interface(IVulkanBase)
+    ['{D30E7C05-D980-4641-8D0C-4CB6AAD3A68D}']
+    function vkAllocateCommandBuffers(device: VkDevice; pAllocateInfo: PVkCommandBufferAllocateInfo; pCommandBuffers: PVkCommandBuffer): VkResult;
+    function vkAllocateDescriptorSets(device: VkDevice; pAllocateInfo: PVkDescriptorSetAllocateInfo; pDescriptorSets: PVkDescriptorSet): VkResult;
     function vkAllocateMemory(device: VkDevice; pAllocateInfo: PVkMemoryAllocateInfo; pAllocator: PVkAllocationCallbacks; pMemory: PVkDeviceMemory): VkResult;
+    function vkBeginCommandBuffer(commandBuffer: VkCommandBuffer; pBeginInfo: PVkCommandBufferBeginInfo): VkResult;
     function vkBindBufferMemory(device: VkDevice; buffer: VkBuffer; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult;
     function vkBindImageMemory(device: VkDevice; image: VkImage; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult;
+    function vkCreateBuffer(device: VkDevice; pCreateInfo: PVkBufferCreateInfo; pAllocator: PVkAllocationCallbacks; pBuffer: PVkBuffer): VkResult;
+    function vkCreateBufferView(device: VkDevice; pCreateInfo: PVkBufferViewCreateInfo; pAllocator: PVkAllocationCallbacks; pView: PVkBufferView): VkResult;
+    function vkCreateCommandPool(device: VkDevice; pCreateInfo: PVkCommandPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pCommandPool: PVkCommandPool): VkResult;
+    function vkCreateComputePipelines(device: VkDevice; pipelineCache: VkPipelineCache; createInfoCount: uint32; pCreateInfos: PVkComputePipelineCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelines: PVkPipeline): VkResult;
+    function vkCreateDescriptorPool(device: VkDevice; pCreateInfo: PVkDescriptorPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pDescriptorPool: PVkDescriptorPool): VkResult;
+    function vkCreateDescriptorSetLayout(device: VkDevice; pCreateInfo: PVkDescriptorSetLayoutCreateInfo; pAllocator: PVkAllocationCallbacks; pSetLayout: PVkDescriptorSetLayout): VkResult;
     function vkCreateDevice(physicalDevice: VkPhysicalDevice; pCreateInfo: PVkDeviceCreateInfo; pAllocator: PVkAllocationCallbacks; out pDevice: VkDevice): VkResult;
+    function vkCreateEvent(device: VkDevice; pCreateInfo: PVkEventCreateInfo; pAllocator: PVkAllocationCallbacks; pEvent: PVkEvent): VkResult;
+    function vkCreateFence(device: VkDevice; pCreateInfo: PVkFenceCreateInfo; pAllocator: PVkAllocationCallbacks; pFence: PVkFence): VkResult;
     function vkCreateFramebuffer(device: VkDevice; pCreateInfo: PVkFramebufferCreateInfo; pAllocator: PVkAllocationCallbacks; pFramebuffer: PVkFramebuffer): VkResult;
     function vkCreateGraphicsPipelines(device: VkDevice; pipelineCache: VkPipelineCache; createInfoCount: uint32; pCreateInfos: PVkGraphicsPipelineCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelines: PVkPipeline): VkResult;
-    function vkCreateInstance(const pCreateInfo: VkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
+    function vkCreateImage(device: VkDevice; pCreateInfo: PVkImageCreateInfo; pAllocator: PVkAllocationCallbacks; pImage: PVkImage): VkResult;
+    function vkCreateImageView(device: VkDevice; pCreateInfo: PVkImageViewCreateInfo; pAllocator: PVkAllocationCallbacks; pView: PVkImageView): VkResult;
+    function vkCreateInstance(var pCreateInfo: VkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
+    function vkCreatePipelineCache(device: VkDevice; pCreateInfo: PVkPipelineCacheCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelineCache: PVkPipelineCache): VkResult;
+    function vkCreatePipelineLayout(device: VkDevice; pCreateInfo: PVkPipelineLayoutCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelineLayout: PVkPipelineLayout): VkResult;
+    function vkCreateQueryPool(device: VkDevice; pCreateInfo: PVkQueryPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pQueryPool: PVkQueryPool): VkResult;
     function vkCreateRenderPass(device: VkDevice; pCreateInfo: PVkRenderPassCreateInfo; pAllocator: PVkAllocationCallbacks; pRenderPass: PVkRenderPass): VkResult;
+    function vkCreateSampler(device: VkDevice; pCreateInfo: PVkSamplerCreateInfo; pAllocator: PVkAllocationCallbacks; pSampler: PVkSampler): VkResult;
+    function vkCreateSemaphore(device: VkDevice; pCreateInfo: PVkSemaphoreCreateInfo; pAllocator: PVkAllocationCallbacks; pSemaphore: PVkSemaphore): VkResult;
+    function vkCreateShaderModule(device: VkDevice; pCreateInfo: PVkShaderModuleCreateInfo; pAllocator: PVkAllocationCallbacks; pShaderModule: PVkShaderModule): VkResult;
     function vkDeviceWaitIdle(device: VkDevice): VkResult;
-    function vkEnumerateDeviceExtensionProperties(physicalDevice: VkPhysicalDevice; pLayerName: pansichar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
+    function vkEndCommandBuffer(commandBuffer: VkCommandBuffer): VkResult;
+    function vkEnumerateDeviceExtensionProperties(physicalDevice: VkPhysicalDevice; pLayerName: pchar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
     function vkEnumerateDeviceLayerProperties(physicalDevice: VkPhysicalDevice; pPropertyCount: Puint32; pProperties: PVkLayerProperties): VkResult;
-    function vkEnumerateInstanceExtensionProperties(pLayerName: pansichar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
+    function vkEnumerateInstanceExtensionProperties(pLayerName: pchar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
     function vkEnumerateInstanceLayerProperties(pPropertyCount: Puint32; pProperties: PVkLayerProperties): VkResult;
     function vkEnumeratePhysicalDevices(instance: VkInstance; pPhysicalDeviceCount: Puint32; pPhysicalDevices: PVkPhysicalDevice): VkResult;
     function vkFlushMappedMemoryRanges(device: VkDevice; memoryRangeCount: uint32; pMemoryRanges: PVkMappedMemoryRange): VkResult;
-    function vkGetDeviceProcAddr(device: VkDevice; pName: pansichar): TVKVoidFunction;
-    function vkGetInstanceProcAddr(instance: VkInstance; pName: pansichar): TVKVoidFunction;
+    function vkFreeDescriptorSets(device: VkDevice; descriptorPool: VkDescriptorPool; descriptorSetCount: uint32; pDescriptorSets: PVkDescriptorSet): VkResult;
+    function vkGetDeviceProcAddr(device: VkDevice; pName: pchar): TVKVoidFunction;
+    function vkGetEventStatus(device: VkDevice; event: VkEvent): VkResult;
+    function vkGetFenceStatus(device: VkDevice; fence: VkFence): VkResult;
+    function vkGetInstanceProcAddr(instance: VkInstance; pName: pchar): TVKVoidFunction;
     function vkGetPhysicalDeviceImageFormatProperties(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; tiling: VkImageTiling; usage: VkImageUsageFlags; flags: VkImageCreateFlags; pImageFormatProperties: PVkImageFormatProperties): VkResult;
+    function vkGetPipelineCacheData(device: VkDevice; pipelineCache: VkPipelineCache; pDataSize: PNativeUInt; pData: Pointer): VkResult;
+    function vkGetQueryPoolResults(device: VkDevice; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32; dataSize: size_t; pData: Pointer; stride: VkDeviceSize; flags: VkQueryResultFlags): VkResult;
     function vkInvalidateMappedMemoryRanges(device: VkDevice; memoryRangeCount: uint32; pMemoryRanges: PVkMappedMemoryRange): VkResult;
     function vkMapMemory(device: VkDevice; memory: VkDeviceMemory; offset: VkDeviceSize; size: VkDeviceSize; flags: VkMemoryMapFlags; ppData: PPointer): VkResult;
+    function vkMergePipelineCaches(device: VkDevice; dstCache: VkPipelineCache; srcCacheCount: uint32; pSrcCaches: PVkPipelineCache): VkResult;
     function vkQueueBindSparse(queue: VkQueue; bindInfoCount: uint32; pBindInfo: PVkBindSparseInfo; fence: VkFence): VkResult;
     function vkQueueSubmit(queue: VkQueue; submitCount: uint32; pSubmits: PVkSubmitInfo; fence: VkFence): VkResult;
     function vkQueueWaitIdle(queue: VkQueue): VkResult;
+    function vkResetCommandBuffer(commandBuffer: VkCommandBuffer; flags: VkCommandBufferResetFlags): VkResult;
+    function vkResetCommandPool(device: VkDevice; commandPool: VkCommandPool; flags: VkCommandPoolResetFlags): VkResult;
+    function vkResetDescriptorPool(device: VkDevice; descriptorPool: VkDescriptorPool; flags: VkDescriptorPoolResetFlags): VkResult;
+    function vkResetEvent(device: VkDevice; event: VkEvent): VkResult;
+    function vkResetFences(device: VkDevice; fenceCount: uint32; pFences: PVkFence): VkResult;
+    function vkSetEvent(device: VkDevice; event: VkEvent): VkResult;
+    function vkWaitForFences(device: VkDevice; fenceCount: uint32; pFences: PVkFence; waitAll: VkBool32; timeout: uint64): VkResult;
+    procedure vkCmdBeginQuery(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; query: uint32; flags: VkQueryControlFlags);
     procedure vkCmdBeginRenderPass(commandBuffer: VkCommandBuffer; pRenderPassBegin: PVkRenderPassBeginInfo; contents: VkSubpassContents);
+    procedure vkCmdBindDescriptorSets(commandBuffer: VkCommandBuffer; pipelineBindPoint: VkPipelineBindPoint; layout: VkPipelineLayout; firstSet: uint32; descriptorSetCount: uint32; pDescriptorSets: PVkDescriptorSet; dynamicOffsetCount: uint32; pDynamicOffsets: Puint32);
     procedure vkCmdBindIndexBuffer(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; indexType: VkIndexType);
+    procedure vkCmdBindPipeline(commandBuffer: VkCommandBuffer; pipelineBindPoint: VkPipelineBindPoint; pipeline: VkPipeline);
     procedure vkCmdBindVertexBuffers(commandBuffer: VkCommandBuffer; firstBinding: uint32; bindingCount: uint32; pBuffers: PVkBuffer; pOffsets: PVkDeviceSize);
     procedure vkCmdBlitImage(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageBlit; filter: VkFilter);
     procedure vkCmdClearAttachments(commandBuffer: VkCommandBuffer; attachmentCount: uint32; pAttachments: PVkClearAttachment; rectCount: uint32; pRects: PVkClearRect);
+    procedure vkCmdClearColorImage(commandBuffer: VkCommandBuffer; image: VkImage; imageLayout: VkImageLayout; pColor: PVkClearColorValue; rangeCount: uint32; pRanges: PVkImageSubresourceRange);
     procedure vkCmdClearDepthStencilImage(commandBuffer: VkCommandBuffer; image: VkImage; imageLayout: VkImageLayout; pDepthStencil: PVkClearDepthStencilValue; rangeCount: uint32; pRanges: PVkImageSubresourceRange);
+    procedure vkCmdCopyBuffer(commandBuffer: VkCommandBuffer; srcBuffer: VkBuffer; dstBuffer: VkBuffer; regionCount: uint32; pRegions: PVkBufferCopy);
+    procedure vkCmdCopyBufferToImage(commandBuffer: VkCommandBuffer; srcBuffer: VkBuffer; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkBufferImageCopy);
+    procedure vkCmdCopyImage(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageCopy);
+    procedure vkCmdCopyImageToBuffer(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstBuffer: VkBuffer; regionCount: uint32; pRegions: PVkBufferImageCopy);
+    procedure vkCmdCopyQueryPoolResults(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; stride: VkDeviceSize; flags: VkQueryResultFlags);
+    procedure vkCmdDispatch(commandBuffer: VkCommandBuffer; groupCountX: uint32; groupCountY: uint32; groupCountZ: uint32);
+    procedure vkCmdDispatchIndirect(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize);
     procedure vkCmdDraw(commandBuffer: VkCommandBuffer; vertexCount: uint32; instanceCount: uint32; firstVertex: uint32; firstInstance: uint32);
     procedure vkCmdDrawIndexed(commandBuffer: VkCommandBuffer; indexCount: uint32; instanceCount: uint32; firstIndex: uint32; vertexOffset: int32; firstInstance: uint32);
     procedure vkCmdDrawIndexedIndirect(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; drawCount: uint32; stride: uint32);
     procedure vkCmdDrawIndirect(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; drawCount: uint32; stride: uint32);
+    procedure vkCmdEndQuery(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; query: uint32);
     procedure vkCmdEndRenderPass(commandBuffer: VkCommandBuffer);
+    procedure vkCmdExecuteCommands(commandBuffer: VkCommandBuffer; commandBufferCount: uint32; pCommandBuffers: PVkCommandBuffer);
+    procedure vkCmdFillBuffer(commandBuffer: VkCommandBuffer; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; size: VkDeviceSize; Data: uint32);
     procedure vkCmdNextSubpass(commandBuffer: VkCommandBuffer; contents: VkSubpassContents);
+    procedure vkCmdPipelineBarrier(commandBuffer: VkCommandBuffer; srcStageMask: VkPipelineStageFlags; dstStageMask: VkPipelineStageFlags; dependencyFlags: VkDependencyFlags; memoryBarrierCount: uint32; pMemoryBarriers: PVkMemoryBarrier; bufferMemoryBarrierCount: uint32; pBufferMemoryBarriers: PVkBufferMemoryBarrier; imageMemoryBarrierCount: uint32; pImageMemoryBarriers: PVkImageMemoryBarrier);
     procedure vkCmdPushConstants(commandBuffer: VkCommandBuffer; layout: VkPipelineLayout; stageFlags: VkShaderStageFlags; offset: uint32; size: uint32; pValues: Pointer);
+    procedure vkCmdResetEvent(commandBuffer: VkCommandBuffer; event: VkEvent; stageMask: VkPipelineStageFlags);
+    procedure vkCmdResetQueryPool(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32);
     procedure vkCmdResolveImage(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageResolve);
     procedure vkCmdSetBlendConstants(commandBuffer: VkCommandBuffer; blendConstants: TBlendConstants);
     procedure vkCmdSetDepthBias(commandBuffer: VkCommandBuffer; depthBiasConstantFactor: single; depthBiasClamp: single; depthBiasSlopeFactor: single);
     procedure vkCmdSetDepthBounds(commandBuffer: VkCommandBuffer; minDepthBounds: single; maxDepthBounds: single);
+    procedure vkCmdSetEvent(commandBuffer: VkCommandBuffer; event: VkEvent; stageMask: VkPipelineStageFlags);
     procedure vkCmdSetLineWidth(commandBuffer: VkCommandBuffer; lineWidth: single);
     procedure vkCmdSetScissor(commandBuffer: VkCommandBuffer; firstScissor: uint32; scissorCount: uint32; pScissors: PVkRect2D);
     procedure vkCmdSetStencilCompareMask(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; compareMask: uint32);
     procedure vkCmdSetStencilReference(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; reference: uint32);
     procedure vkCmdSetStencilWriteMask(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; writeMask: uint32);
     procedure vkCmdSetViewport(commandBuffer: VkCommandBuffer; firstViewport: uint32; viewportCount: uint32; pViewports: PVkViewport);
+    procedure vkCmdUpdateBuffer(commandBuffer: VkCommandBuffer; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; dataSize: VkDeviceSize; pData: Pointer);
+    procedure vkCmdWaitEvents(commandBuffer: VkCommandBuffer; eventCount: uint32; pEvents: PVkEvent; srcStageMask: VkPipelineStageFlags; dstStageMask: VkPipelineStageFlags; memoryBarrierCount: uint32; pMemoryBarriers: PVkMemoryBarrier; bufferMemoryBarrierCount: uint32; pBufferMemoryBarriers: PVkBufferMemoryBarrier; imageMemoryBarrierCount: uint32; pImageMemoryBarriers: PVkImageMemoryBarrier);
+    procedure vkCmdWriteTimestamp(commandBuffer: VkCommandBuffer; pipelineStage: VkPipelineStageFlagBits; queryPool: VkQueryPool; query: uint32);
+    procedure vkDestroyBuffer(device: VkDevice; buffer: VkBuffer; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyBufferView(device: VkDevice; bufferView: VkBufferView; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyCommandPool(device: VkDevice; commandPool: VkCommandPool; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyDescriptorPool(device: VkDevice; descriptorPool: VkDescriptorPool; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyDescriptorSetLayout(device: VkDevice; descriptorSetLayout: VkDescriptorSetLayout; pAllocator: PVkAllocationCallbacks);
     procedure vkDestroyDevice(device: VkDevice; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyEvent(device: VkDevice; event: VkEvent; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyFence(device: VkDevice; fence: VkFence; pAllocator: PVkAllocationCallbacks);
     procedure vkDestroyFramebuffer(device: VkDevice; framebuffer: VkFramebuffer; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyImage(device: VkDevice; image: VkImage; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyImageView(device: VkDevice; imageView: VkImageView; pAllocator: PVkAllocationCallbacks);
     procedure vkDestroyInstance(instance: VkInstance; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyPipeline(device: VkDevice; pipeline: VkPipeline; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyPipelineCache(device: VkDevice; pipelineCache: VkPipelineCache; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyPipelineLayout(device: VkDevice; pipelineLayout: VkPipelineLayout; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyQueryPool(device: VkDevice; queryPool: VkQueryPool; pAllocator: PVkAllocationCallbacks);
     procedure vkDestroyRenderPass(device: VkDevice; renderPass: VkRenderPass; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroySampler(device: VkDevice; sampler: VkSampler; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroySemaphore(device: VkDevice; semaphore: VkSemaphore; pAllocator: PVkAllocationCallbacks);
+    procedure vkDestroyShaderModule(device: VkDevice; shaderModule: VkShaderModule; pAllocator: PVkAllocationCallbacks);
+    procedure vkFreeCommandBuffers(device: VkDevice; commandPool: VkCommandPool; commandBufferCount: uint32; pCommandBuffers: PVkCommandBuffer);
     procedure vkFreeMemory(device: VkDevice; memory: VkDeviceMemory; pAllocator: PVkAllocationCallbacks);
     procedure vkGetBufferMemoryRequirements(device: VkDevice; buffer: VkBuffer; pMemoryRequirements: PVkMemoryRequirements);
     procedure vkGetDeviceMemoryCommitment(device: VkDevice; memory: VkDeviceMemory; pCommittedMemoryInBytes: PVkDeviceSize);
     procedure vkGetDeviceQueue(device: VkDevice; queueFamilyIndex: uint32; queueIndex: uint32; pQueue: PVkQueue);
     procedure vkGetImageMemoryRequirements(device: VkDevice; image: VkImage; pMemoryRequirements: PVkMemoryRequirements);
     procedure vkGetImageSparseMemoryRequirements(device: VkDevice; image: VkImage; pSparseMemoryRequirementCount: Puint32; pSparseMemoryRequirements: PVkSparseImageMemoryRequirements);
+    procedure vkGetImageSubresourceLayout(device: VkDevice; image: VkImage; pSubresource: PVkImageSubresource; pLayout: PVkSubresourceLayout);
     procedure vkGetPhysicalDeviceFeatures(physicalDevice: VkPhysicalDevice; pFeatures: PVkPhysicalDeviceFeatures);
     procedure vkGetPhysicalDeviceFormatProperties(physicalDevice: VkPhysicalDevice; format: VkFormat; pFormatProperties: PVkFormatProperties);
     procedure vkGetPhysicalDeviceMemoryProperties(physicalDevice: VkPhysicalDevice; pMemoryProperties: PVkPhysicalDeviceMemoryProperties);
@@ -9775,7 +9954,7 @@ type
     procedure vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; samples: VkSampleCountFlagBits; usage: VkImageUsageFlags; tiling: VkImageTiling; pPropertyCount: Puint32; pProperties: PVkSparseImageFormatProperties);
     procedure vkGetRenderAreaGranularity(device: VkDevice; renderPass: VkRenderPass; pGranularity: PVkExtent2D);
     procedure vkUnmapMemory(device: VkDevice; memory: VkDeviceMemory);
-    function getDebugUtilsExtension(instance: VkInstance; device: VkDevice = nil): IVulkanDebugUtilsExtension;
+    procedure vkUpdateDescriptorSets(device: VkDevice; descriptorWriteCount: uint32; pDescriptorWrites: PVkWriteDescriptorSet; descriptorCopyCount: uint32; pDescriptorCopies: PVkCopyDescriptorSet);
   end;
 
 
@@ -9900,21 +10079,189 @@ type
 
   end;
 
+
+  { EVulkanCallException }
+
+  EVulkanCallException = class(EVulkanException)
+  private
+    FCause: Exception;
+    FResult: vkResult;
+    procedure SetCause(AValue: Exception);
+  public
+    constructor Create(const msg: string; aResult: VkResult); overload;
+    constructor Create(const msg: string; aCause: Exception); overload;
+    property Result: vkResult read FResult;
+    property Cause: Exception read FCause write SetCause;
+  end;
+
   IVulkan = IVulkan14;
 
 
 function getVulkan: IVulkan; inline;
 function VK_MAKE_VERSION(major, minor, patch: longword): longword; inline;
 
-operator := (enum: VkQueueFlagBits): uint32;
-operator and(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
-operator or(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
-operator or(enum1, enum2: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
-operator or(flags: VkFlags; enum: VkDebugUtilsMessageTypeFlagBitsEXT): uint32;
-operator or(enum1, enum2: VkDebugUtilsMessageTypeFlagBitsEXT): uint32;
-operator and(flags: VkFlags; enum: VkQueueFlagBits): uint32;
+operator := (num: uint32): string;
+operator := (enum: VkAccessFlagBits): uint32; inline;
+operator := (enum: VkAttachmentLoadOp): uint32; inline;
+operator := (enum: VkAttachmentStoreOp): uint32; inline;
+operator := (enum: VkBlendFactor): uint32; inline;
+operator := (enum: VkBlendOp): uint32; inline;
+operator := (enum: VkBorderColor): uint32; inline;
+operator := (enum: VkBufferUsageFlagBits): uint32; inline;
+operator := (enum: VkColorComponentFlagBits): uint32; inline;
+operator := (enum: VkColorSpaceKHR): uint32; inline;
+operator := (enum: VkCommandBufferLevel): uint32; inline;
+operator := (enum: VkCommandBufferUsageFlagBits): uint32; inline;
+operator := (enum: VkCommandPoolCreateFlagBits): uint32; inline;
+operator := (enum: VkCompareOp): uint32; inline;
+operator := (enum: VkComponentSwizzle): uint32; inline;
+operator := (enum: VkCompositeAlphaFlagBitsKHR): uint32; inline;
+operator := (enum: VkCullModeFlagBits): uint32; inline;
+operator := (enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32; inline;
+operator := (enum: VkDebugUtilsMessageTypeFlagBitsEXT): uint32; inline;
+operator := (enum: VkDependencyFlagBits): uint32; inline;
+operator := (enum: VkDescriptorType): uint32; inline;
+operator := (enum: VkDynamicState): uint32; inline;
+operator := (enum: VkFenceCreateFlagBits): uint32; inline;
+operator := (enum: VkFilter): uint32; inline;
+operator := (enum: VkFormatFeatureFlagBits): uint32; inline;
+operator := (enum: VkFrontFace): uint32; inline;
+operator := (enum: VkImageAspectFlagBits): uint32; inline;
+operator := (enum: VkImageLayout): uint32; inline;
+operator := (enum: VkImageUsageFlagBits): uint32; inline;
+operator := (enum: VkIndexType): uint32; inline;
+operator := (enum: VkLogicOp): uint32; inline;
+operator := (enum: VkMemoryHeapFlagBits): uint32; inline;
+operator := (enum: VkMemoryPropertyFlagBits): uint32; inline;
+operator := (enum: VkObjectType): uint32; inline;
+operator := (enum: VkPipelineBindPoint): uint32; inline;
+operator := (enum: VkPipelineStageFlagBits): uint32; inline;
+operator := (enum: VkPolygonMode): uint32; inline;
+operator := (enum: VkPresentModeKHR): uint32; inline;
+operator := (enum: VkPrimitiveTopology): uint32; inline;
+operator := (enum: VkQueryPipelineStatisticFlagBits): uint32; inline;
+operator := (enum: VkQueryResultFlagBits): uint32; inline;
+operator := (enum: VkSampleCountFlagBits): uint32; inline;
+operator := (enum: VkSamplerAddressMode): uint32; inline;
+operator := (enum: VkSamplerMipmapMode): uint32; inline;
+operator := (enum: VkShaderStageFlagBits): uint32; inline;
+operator := (enum: VkStencilOp): uint32; inline;
+operator := (enum: VkStructureType): uint32; inline;
+operator := (enum: VkSubpassContents): uint32; inline;
+operator := (enum: VkSurfaceTransformFlagBitsKHR): uint32; inline;
+operator := (enum: VkQueueFlagBits): uint32; inline;
+
+operator and(flags: VkFlags; enum: VkQueueFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkImageAspectFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkImageUsageFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkSampleCountFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkAttachmentLoadOp): uint32; inline;
+operator and(flags: VkFlags; enum: VkAttachmentStoreOp): uint32; inline;
+operator and(flags: VkFlags; enum: VkImageLayout): uint32; inline;
+operator and(flags: VkFlags; enum: VkPipelineBindPoint): uint32; inline;
+operator and(flags: VkFlags; enum: VkDynamicState): uint32; inline;
+operator and(flags: VkFlags; enum: VkShaderStageFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkDescriptorType): uint32; inline;
+operator and(flags: VkFlags; enum: VkCullModeFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkFrontFace): uint32; inline;
+operator and(flags: VkFlags; enum: VkPolygonMode): uint32; inline;
+operator and(flags: VkFlags; enum: VkCompareOp): uint32; inline;
+operator and(flags: VkFlags; enum: VkStencilOp): uint32; inline;
+operator and(flags: VkFlags; enum: VkBlendFactor): uint32; inline;
+operator and(flags: VkFlags; enum: VkBlendOp): uint32; inline;
+operator and(flags: VkFlags; enum: VkLogicOp): uint32; inline;
+operator and(flags: VkFlags; enum: VkColorComponentFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkPipelineStageFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkAccessFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkDependencyFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkCommandBufferLevel): uint32; inline;
+operator and(flags: VkFlags; enum: VkCommandPoolCreateFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkCommandBufferUsageFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkFenceCreateFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkMemoryPropertyFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkMemoryHeapFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkFormatFeatureFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkQueryPipelineStatisticFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkQueryResultFlagBits): uint32; inline;
+operator and(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32; inline;
+operator and(flags: VkFlags; enum: VkDebugUtilsMessageTypeFlagBitsEXT): uint32; inline;
+operator and(flags: VkFlags; enum: VkCompositeAlphaFlagBitsKHR): uint32; inline;
+operator and(flags: VkFlags; enum: VkSurfaceTransformFlagBitsKHR): uint32; inline;
+operator and(flags: VkFlags; enum: VkPresentModeKHR): uint32; inline;
+operator and(flags: VkFlags; enum: VkColorSpaceKHR): uint32; inline;
+operator and(flags: VkFlags; enum: VkComponentSwizzle): uint32; inline;
+operator and(flags: VkFlags; enum: VkFilter): uint32; inline;
+operator and(flags: VkFlags; enum: VkSamplerMipmapMode): uint32; inline;
+operator and(flags: VkFlags; enum: VkSamplerAddressMode): uint32; inline;
+operator and(flags: VkFlags; enum: VkBorderColor): uint32; inline;
+operator and(flags: VkFlags; enum: VkPrimitiveTopology): uint32; inline;
+operator and(flags: VkFlags; enum: VkIndexType): uint32; inline;
+operator and(flags: VkFlags; enum: VkSubpassContents): uint32; inline;
+operator and(flags: VkFlags; enum: VkObjectType): uint32; inline;
+operator and(flags: VkFlags; enum: VkStructureType): uint32; inline;
+
+
+operator or(flags: VkFlags; enum: VkAccessFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkAttachmentLoadOp): uint32; inline;
+operator or(flags: VkFlags; enum: VkAttachmentStoreOp): uint32; inline;
+operator or(flags: VkFlags; enum: VkBlendFactor): uint32; inline;
+operator or(flags: VkFlags; enum: VkBlendOp): uint32; inline;
+operator or(flags: VkFlags; enum: VkBorderColor): uint32; inline;
+operator or(flags: VkFlags; enum: VkBufferUsageFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkColorComponentFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkColorSpaceKHR): uint32; inline;
+operator or(flags: VkFlags; enum: VkCommandBufferLevel): uint32; inline;
+operator or(flags: VkFlags; enum: VkCommandBufferUsageFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkCommandPoolCreateFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkCompareOp): uint32; inline;
+operator or(flags: VkFlags; enum: VkComponentSwizzle): uint32; inline;
+operator or(flags: VkFlags; enum: VkCompositeAlphaFlagBitsKHR): uint32; inline;
+operator or(flags: VkFlags; enum: VkCullModeFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32; inline;
+operator or(flags: VkFlags; enum: VkDebugUtilsMessageTypeFlagBitsEXT): uint32; inline;
+operator or(flags: VkFlags; enum: VkDependencyFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkDescriptorType): uint32; inline;
+operator or(flags: VkFlags; enum: VkDynamicState): uint32; inline;
+operator or(flags: VkFlags; enum: VkFenceCreateFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkFilter): uint32; inline;
+operator or(flags: VkFlags; enum: VkFormatFeatureFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkFrontFace): uint32; inline;
+operator or(flags: VkFlags; enum: VkImageAspectFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkImageLayout): uint32; inline;
+operator or(flags: VkFlags; enum: VkImageUsageFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkIndexType): uint32; inline;
+operator or(flags: VkFlags; enum: VkLogicOp): uint32; inline;
+operator or(flags: VkFlags; enum: VkMemoryHeapFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkMemoryPropertyFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkObjectType): uint32; inline;
+operator or(flags: VkFlags; enum: VkPipelineBindPoint): uint32; inline;
+operator or(flags: VkFlags; enum: VkPipelineStageFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkPolygonMode): uint32; inline;
+operator or(flags: VkFlags; enum: VkPresentModeKHR): uint32; inline;
+operator or(flags: VkFlags; enum: VkPrimitiveTopology): uint32; inline;
+operator or(flags: VkFlags; enum: VkQueryPipelineStatisticFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkQueryResultFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkQueueFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkSampleCountFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkSamplerAddressMode): uint32; inline;
+operator or(flags: VkFlags; enum: VkSamplerMipmapMode): uint32; inline;
+operator or(flags: VkFlags; enum: VkShaderStageFlagBits): uint32; inline;
+operator or(flags: VkFlags; enum: VkStencilOp): uint32; inline;
+operator or(flags: VkFlags; enum: VkStructureType): uint32; inline;
+operator or(flags: VkFlags; enum: VkSubpassContents): uint32; inline;
+operator or(flags: VkFlags; enum: VkSurfaceTransformFlagBitsKHR): uint32; inline;
+
+function VK_VERSION_MAJOR(version: uint32): uint32; inline;
+function VK_VERSION_MINOR(version: uint32): uint32; inline;
+function VK_VERSION_PATCH(version: uint32): uint32; inline;
+
+
+
 
 implementation
+
+uses
+  typinfo;
 
 var
   singleton: IVulkan;
@@ -9948,14 +10295,31 @@ type
   end;
 
 
-  { TVulkanDebugUtilsExtension }
+  { TVulkanExtension }
 
-  TVulkanDebugUtilsExtension = class(TInterfacedObject, IVulkanDebugUtilsExtension)
+  TVulkanExtension = class(TInterfacedObject, IVulkanExtension)
   private
     FDevice: VkDevice;
     FInstance: VkInstance;
+    FvkGetDeviceProcAddr: TVKGetDeviceProcAddr;
+    FvkGetInstanceProcAddr: TVKGetInstanceProcAddr;
     procedure SetDevice(AValue: VkDevice);
     procedure SetInstance(AValue: VkInstance);
+    procedure SetvkGetDeviceProcAddr(AValue: TVKGetDeviceProcAddr);
+    procedure SetvkGetInstanceProcAddr(AValue: TVKGetInstanceProcAddr);
+  protected
+    procedure BindEntity; virtual;
+  public
+    property Instance: VkInstance read FInstance write SetInstance;
+    property Device: VkDevice read FDevice write SetDevice;
+    property vkGetInstanceProcAddr: TVKGetInstanceProcAddr read FvkGetInstanceProcAddr write SetvkGetInstanceProcAddr;
+    property vkGetDeviceProcAddr: TVKGetDeviceProcAddr read FvkGetDeviceProcAddr write SetvkGetDeviceProcAddr;
+  end;
+
+  { TVulkanDebugUtilsExtension }
+
+  TVulkanDebugUtilsExtension = class(TVulkanExtension, IVulkanDebugUtilsExtension)
+  private
     procedure SetVkGetDeviceProcAddr(AValue: TVKGetDeviceProcAddr);
     procedure SetVkGetInstanceProcAddr(AValue: TVKGetInstanceProcAddr);
   protected
@@ -9970,10 +10334,8 @@ type
     FvkCreateDebugUtilsMessengerEXT: vkCreateDebugUtilsMessengerEXT;
     FvkDestroyDebugUtilsMessengerEXT: vkDestroyDebugUtilsMessengerEXT;
     FvkSubmitDebugUtilsMessageEXT: vkSubmitDebugUtilsMessageEXT;
-    FVkGetInstanceProcAddr: TVKGetInstanceProcAddr;
-    FvkGetDeviceProcAddr: TVKGetDeviceProcAddr;
   protected
-    procedure BindEntity;
+    procedure BindEntity; override;
   public
     function vkSetDebugUtilsObjectNameEXT(pNameInfo: PVkDebugUtilsObjectNameInfoEXT): VkResult;
     function vkSetDebugUtilsObjectTagEXT(pTagInfo: PVkDebugUtilsObjectTagInfoEXT): VkResult;
@@ -9983,157 +10345,348 @@ type
     procedure vkCmdBeginDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT);
     procedure vkCmdEndDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer);
     procedure vkCmdInsertDebugUtilsLabelEXT(commandBuffer: VkCommandBuffer; pLabelInfo: PVkDebugUtilsLabelEXT);
-    function vkCreateDebugUtilsMessengerEXT(pCreateInfo: PVkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult;
+    function vkCreateDebugUtilsMessengerEXT(var pCreateInfo: VkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult;
     procedure vkDestroyDebugUtilsMessengerEXT(messenger: VkDebugUtilsMessengerEXT; pAllocator: PVkAllocationCallbacks);
     procedure vkSubmitDebugUtilsMessageEXT(messageSeverity: VkDebugUtilsMessageSeverityFlagBitsEXT; messageTypes: VkDebugUtilsMessageTypeFlagsEXT; pCallbackData: PVkDebugUtilsMessengerCallbackDataEXT);
-    property Instance: VkInstance read FInstance write SetInstance;
-    property Device: VkDevice read FDevice write SetDevice;
-    property vkGetInstanceProcAddr: TVKGetInstanceProcAddr read FVkGetInstanceProcAddr write SetVkGetInstanceProcAddr;
-    property vkGetDeviceProcAddr: TVKGetDeviceProcAddr read FvkGetDeviceProcAddr write SetvkGetDeviceProcAddr;
+  end;
+
+  { TVulkanKHRSurface }
+
+  TVulkanKHRSurface = class(TVulkanExtension, IVulkanKHRSurface)
+  protected
+    FvkDestroySurfaceKHR: TvkDestroySurfaceKHR;
+    FvkGetPhysicalDeviceSurfaceSupportKHR: TvkGetPhysicalDeviceSurfaceSupportKHR;
+    FvkGetPhysicalDeviceSurfaceCapabilitiesKHR: TvkGetPhysicalDeviceSurfaceCapabilitiesKHR;
+    FvkGetPhysicalDeviceSurfaceFormatsKHR: TvkGetPhysicalDeviceSurfaceFormatsKHR;
+    FvkGetPhysicalDeviceSurfacePresentModesKHR: TvkGetPhysicalDeviceSurfacePresentModesKHR;
+  protected
+    procedure BindEntity; override;
+  public
+    procedure vkDestroySurfaceKHR(surface: VkSurfaceKHR; pAllocator: PVkAllocationCallbacks);
+    function vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice: VkPhysicalDevice; queueFamilyIndex: uint32; surface: VkSurfaceKHR; pSupported: PVkBool32): VkResult;
+    function vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pSurfaceCapabilities: PVkSurfaceCapabilitiesKHR): VkResult;
+    function vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pSurfaceFormatCount: Puint32; pSurfaceFormats: PVkSurfaceFormatKHR): VkResult;
+    function vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pPresentModeCount: Puint32; pPresentModes: PVkPresentModeKHR): VkResult;
+  end;
+
+  { TVulkanSwapChain }
+
+  TVulkanSwapChain = class(TVulkanExtension, IVulkanSwapChainExtension)
+  protected
+    FvkCreateSwapchainKHR: vkCreateSwapchainKHR;
+    FvkDestroySwapchainKHR: vkDestroySwapchainKHR;
+    FvkGetSwapchainImagesKHR: vkGetSwapchainImagesKHR;
+    FvkAcquireNextImageKHR: vkAcquireNextImageKHR;
+    FvkQueuePresentKHR: vkQueuePresentKHR;
+    FvkGetDeviceGroupPresentCapabilitiesKHR: vkGetDeviceGroupPresentCapabilitiesKHR;
+    FvkGetDeviceGroupSurfacePresentModesKHR: vkGetDeviceGroupSurfacePresentModesKHR;
+    FvkGetPhysicalDevicePresentRectanglesKHR: vkGetPhysicalDevicePresentRectanglesKHR;
+    FvkAcquireNextImage2KHR: vkAcquireNextImage2KHR;
+  protected
+    procedure BindEntity; override;
+  public
+    function vkCreateSwapchainKHR(pCreateInfo: PVkSwapchainCreateInfoKHR; pAllocator: PVkAllocationCallbacks; pSwapchain: PVkSwapchainKHR): VkResult;
+    procedure vkDestroySwapchainKHR(swapchain: VkSwapchainKHR; pAllocator: PVkAllocationCallbacks);
+    function vkGetSwapchainImagesKHR(swapchain: VkSwapchainKHR; pSwapchainImageCount: Puint32; pSwapchainImages: PVkImage): VkResult;
+    function vkAcquireNextImageKHR(swapchain: VkSwapchainKHR; timeout: uint64; semaphore: VkSemaphore; fence: VkFence; pImageIndex: Puint32): VkResult;
+    function vkQueuePresentKHR(queue: VkQueue; pPresentInfo: PVkPresentInfoKHR): VkResult;
+    function vkGetDeviceGroupPresentCapabilitiesKHR(pDeviceGroupPresentCapabilities: PVkDeviceGroupPresentCapabilitiesKHR): VkResult;
+    function vkGetDeviceGroupSurfacePresentModesKHR(surface: VkSurfaceKHR; pModes: PVkDeviceGroupPresentModeFlagsKHR): VkResult;
+    function vkGetPhysicalDevicePresentRectanglesKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pRectCount: Puint32; pRects: PVkRect2D): VkResult;
+    function vkAcquireNextImage2KHR(pAcquireInfo: PVkAcquireNextImageInfoKHR; pImageIndex: Puint32): VkResult;
   end;
 
   { TVulkan10 }
 
   TVulkan10 = class(TVulkanBase, IVulkan10)
   protected
-    FVKAllocateMemory: TVKAllocateMemory;
-    FVKBindBufferMemory: TVKBindBufferMemory;
-    FVKBindImageMemory: TVKBindImageMemory;
-    FVKCreateDevice: TVKCreateDevice;
-    FVKCreateFramebuffer: TVKCreateFramebuffer;
-    FVKCreateGraphicsPipelines: TVKCreateGraphicsPipelines;
     FVKCreateInstance: TVKCreateInstance;
-    FVKCreateRenderPass: TVKCreateRenderPass;
-    FVKDeviceWaitIdle: TVKDeviceWaitIdle;
-    FVKEnumerateDeviceExtensionProperties: TVKEnumerateDeviceExtensionProperties;
-    FVKEnumerateDeviceLayerProperties: TVKEnumerateDeviceLayerProperties;
-    FVKEnumerateInstanceExtensionProperties: TVKEnumerateInstanceExtensionProperties;
-    FVKEnumerateInstanceLayerProperties: TVKEnumerateInstanceLayerProperties;
-    FVKEnumeratePhysicalDevices: TVKEnumeratePhysicalDevices;
-    FVKFlushMappedMemoryRanges: TVKFlushMappedMemoryRanges;
-    FVKGetDeviceProcAddr: TVKGetDeviceProcAddr;
-    FVKGetInstanceProcAddr: TVKGetInstanceProcAddr;
-    FVKGetPhysicalDeviceImageFormatProperties: TVKGetPhysicalDeviceImageFormatProperties;
-    FVKInvalidateMappedMemoryRanges: TVKInvalidateMappedMemoryRanges;
-    FVKMapMemory: TVKMapMemory;
-    FVKQueueBindSparse: TVKQueueBindSparse;
-    FVKQueueSubmit: TVKQueueSubmit;
-    FVKQueueWaitIdle: TVKQueueWaitIdle;
-    FVKCmdBeginRenderPass: TVKCmdBeginRenderPass;
-    FVKCmdBindIndexBuffer: TVKCmdBindIndexBuffer;
-    FVKCmdBindVertexBuffers: TVKCmdBindVertexBuffers;
-    FVKCmdBlitImage: TVKCmdBlitImage;
-    FVKCmdClearAttachments: TVKCmdClearAttachments;
-    FVKCmdClearDepthStencilImage: TVKCmdClearDepthStencilImage;
-    FVKCmdDraw: TVKCmdDraw;
-    FVKCmdDrawIndexed: TVKCmdDrawIndexed;
-    FVKCmdDrawIndexedIndirect: TVKCmdDrawIndexedIndirect;
-    FVKCmdDrawIndirect: TVKCmdDrawIndirect;
-    FVKCmdEndRenderPass: TVKCmdEndRenderPass;
-    FVKCmdNextSubpass: TVKCmdNextSubpass;
-    FVKCmdPushConstants: TVKCmdPushConstants;
-    FVKCmdResolveImage: TVKCmdResolveImage;
-    FVKCmdSetBlendConstants: TVKCmdSetBlendConstants;
-    FVKCmdSetDepthBias: TVKCmdSetDepthBias;
-    FVKCmdSetDepthBounds: TVKCmdSetDepthBounds;
-    FVKCmdSetLineWidth: TVKCmdSetLineWidth;
-    FVKCmdSetScissor: TVKCmdSetScissor;
-    FVKCmdSetStencilCompareMask: TVKCmdSetStencilCompareMask;
-    FVKCmdSetStencilReference: TVKCmdSetStencilReference;
-    FVKCmdSetStencilWriteMask: TVKCmdSetStencilWriteMask;
-    FVKCmdSetViewport: TVKCmdSetViewport;
-    FVKDestroyDevice: TVKDestroyDevice;
-    FVKDestroyFramebuffer: TVKDestroyFramebuffer;
     FVKDestroyInstance: TVKDestroyInstance;
-    FVKDestroyRenderPass: TVKDestroyRenderPass;
-    FVKFreeMemory: TVKFreeMemory;
-    FVKGetBufferMemoryRequirements: TVKGetBufferMemoryRequirements;
-    FVKGetDeviceMemoryCommitment: TVKGetDeviceMemoryCommitment;
-    FVKGetDeviceQueue: TVKGetDeviceQueue;
-    FVKGetImageMemoryRequirements: TVKGetImageMemoryRequirements;
-    FVKGetImageSparseMemoryRequirements: TVKGetImageSparseMemoryRequirements;
+    FVKEnumeratePhysicalDevices: TVKEnumeratePhysicalDevices;
     FVKGetPhysicalDeviceFeatures: TVKGetPhysicalDeviceFeatures;
     FVKGetPhysicalDeviceFormatProperties: TVKGetPhysicalDeviceFormatProperties;
-    FVKGetPhysicalDeviceMemoryProperties: TVKGetPhysicalDeviceMemoryProperties;
+    FVKGetPhysicalDeviceImageFormatProperties: TVKGetPhysicalDeviceImageFormatProperties;
     FVKGetPhysicalDeviceProperties: TVKGetPhysicalDeviceProperties;
     FVKGetPhysicalDeviceQueueFamilyProperties: TVKGetPhysicalDeviceQueueFamilyProperties;
-    FVKGetPhysicalDeviceSparseImageFormatProperties: TVKGetPhysicalDeviceSparseImageFormatProperties;
-    FVKGetRenderAreaGranularity: TVKGetRenderAreaGranularity;
+    FVKGetPhysicalDeviceMemoryProperties: TVKGetPhysicalDeviceMemoryProperties;
+    FVKGetInstanceProcAddr: TVKGetInstanceProcAddr;
+    FVKGetDeviceProcAddr: TVKGetDeviceProcAddr;
+    FVKCreateDevice: TVKCreateDevice;
+    FVKDestroyDevice: TVKDestroyDevice;
+    FVKEnumerateInstanceExtensionProperties: TVKEnumerateInstanceExtensionProperties;
+    FVKEnumerateDeviceExtensionProperties: TVKEnumerateDeviceExtensionProperties;
+    FVKEnumerateInstanceLayerProperties: TVKEnumerateInstanceLayerProperties;
+    FVKEnumerateDeviceLayerProperties: TVKEnumerateDeviceLayerProperties;
+    FVKGetDeviceQueue: TVKGetDeviceQueue;
+    FVKQueueSubmit: TVKQueueSubmit;
+    FVKQueueWaitIdle: TVKQueueWaitIdle;
+    FVKDeviceWaitIdle: TVKDeviceWaitIdle;
+    FVKAllocateMemory: TVKAllocateMemory;
+    FVKFreeMemory: TVKFreeMemory;
+    FVKMapMemory: TVKMapMemory;
     FVKUnmapMemory: TVKUnmapMemory;
+    FVKFlushMappedMemoryRanges: TVKFlushMappedMemoryRanges;
+    FVKInvalidateMappedMemoryRanges: TVKInvalidateMappedMemoryRanges;
+    FVKGetDeviceMemoryCommitment: TVKGetDeviceMemoryCommitment;
+    FVKBindBufferMemory: TVKBindBufferMemory;
+    FVKBindImageMemory: TVKBindImageMemory;
+    FVKGetBufferMemoryRequirements: TVKGetBufferMemoryRequirements;
+    FVKGetImageMemoryRequirements: TVKGetImageMemoryRequirements;
+    FVKGetImageSparseMemoryRequirements: TVKGetImageSparseMemoryRequirements;
+    FVKGetPhysicalDeviceSparseImageFormatProperties: TVKGetPhysicalDeviceSparseImageFormatProperties;
+    FVKQueueBindSparse: TVKQueueBindSparse;
+    FVKCreateFence: TVKCreateFence;
+    FVKDestroyFence: TVKDestroyFence;
+    FVKResetFences: TVKResetFences;
+    FVKGetFenceStatus: TVKGetFenceStatus;
+    FVKWaitForFences: TVKWaitForFences;
+    FVKCreateSemaphore: TVKCreateSemaphore;
+    FVKDestroySemaphore: TVKDestroySemaphore;
+    FVKCreateQueryPool: TVKCreateQueryPool;
+    FVKDestroyQueryPool: TVKDestroyQueryPool;
+    FVKGetQueryPoolResults: TVKGetQueryPoolResults;
+    FVKCreateBuffer: TVKCreateBuffer;
+    FVKDestroyBuffer: TVKDestroyBuffer;
+    FVKCreateImage: TVKCreateImage;
+    FVKDestroyImage: TVKDestroyImage;
+    FVKGetImageSubresourceLayout: TVKGetImageSubresourceLayout;
+    FVKCreateImageView: TVKCreateImageView;
+    FVKDestroyImageView: TVKDestroyImageView;
+    FVKCreateCommandPool: TVKCreateCommandPool;
+    FVKDestroyCommandPool: TVKDestroyCommandPool;
+    FVKResetCommandPool: TVKResetCommandPool;
+    FVKAllocateCommandBuffers: TVKAllocateCommandBuffers;
+    FVKFreeCommandBuffers: TVKFreeCommandBuffers;
+    FVKBeginCommandBuffer: TVKBeginCommandBuffer;
+    FVKEndCommandBuffer: TVKEndCommandBuffer;
+    FVKResetCommandBuffer: TVKResetCommandBuffer;
+    FVKCmdCopyBuffer: TVKCmdCopyBuffer;
+    FVKCmdCopyImage: TVKCmdCopyImage;
+    FVKCmdCopyBufferToImage: TVKCmdCopyBufferToImage;
+    FVKCmdCopyImageToBuffer: TVKCmdCopyImageToBuffer;
+    FVKCmdUpdateBuffer: TVKCmdUpdateBuffer;
+    FVKCmdFillBuffer: TVKCmdFillBuffer;
+    FVKCmdPipelineBarrier: TVKCmdPipelineBarrier;
+    FVKCmdBeginQuery: TVKCmdBeginQuery;
+    FVKCmdEndQuery: TVKCmdEndQuery;
+    FVKCmdResetQueryPool: TVKCmdResetQueryPool;
+    FVKCmdWriteTimestamp: TVKCmdWriteTimestamp;
+    FVKCmdCopyQueryPoolResults: TVKCmdCopyQueryPoolResults;
+    FVKCmdExecuteCommands: TVKCmdExecuteCommands;
+    FVKCreateEvent: TVKCreateEvent;
+    FVKDestroyEvent: TVKDestroyEvent;
+    FVKGetEventStatus: TVKGetEventStatus;
+    FVKSetEvent: TVKSetEvent;
+    FVKResetEvent: TVKResetEvent;
+    FVKCreateBufferView: TVKCreateBufferView;
+    FVKDestroyBufferView: TVKDestroyBufferView;
+    FVKCreateShaderModule: TVKCreateShaderModule;
+    FVKDestroyShaderModule: TVKDestroyShaderModule;
+    FVKCreatePipelineCache: TVKCreatePipelineCache;
+    FVKDestroyPipelineCache: TVKDestroyPipelineCache;
+    FVKGetPipelineCacheData: TVKGetPipelineCacheData;
+    FVKMergePipelineCaches: TVKMergePipelineCaches;
+    FVKCreateComputePipelines: TVKCreateComputePipelines;
+    FVKDestroyPipeline: TVKDestroyPipeline;
+    FVKCreatePipelineLayout: TVKCreatePipelineLayout;
+    FVKDestroyPipelineLayout: TVKDestroyPipelineLayout;
+    FVKCreateSampler: TVKCreateSampler;
+    FVKDestroySampler: TVKDestroySampler;
+    FVKCreateDescriptorSetLayout: TVKCreateDescriptorSetLayout;
+    FVKDestroyDescriptorSetLayout: TVKDestroyDescriptorSetLayout;
+    FVKCreateDescriptorPool: TVKCreateDescriptorPool;
+    FVKDestroyDescriptorPool: TVKDestroyDescriptorPool;
+    FVKResetDescriptorPool: TVKResetDescriptorPool;
+    FVKAllocateDescriptorSets: TVKAllocateDescriptorSets;
+    FVKFreeDescriptorSets: TVKFreeDescriptorSets;
+    FVKUpdateDescriptorSets: TVKUpdateDescriptorSets;
+    FVKCmdBindPipeline: TVKCmdBindPipeline;
+    FVKCmdBindDescriptorSets: TVKCmdBindDescriptorSets;
+    FVKCmdClearColorImage: TVKCmdClearColorImage;
+    FVKCmdDispatch: TVKCmdDispatch;
+    FVKCmdDispatchIndirect: TVKCmdDispatchIndirect;
+    FVKCmdSetEvent: TVKCmdSetEvent;
+    FVKCmdResetEvent: TVKCmdResetEvent;
+    FVKCmdWaitEvents: TVKCmdWaitEvents;
+    FVKCmdPushConstants: TVKCmdPushConstants;
+    FVKCreateGraphicsPipelines: TVKCreateGraphicsPipelines;
+    FVKCreateFramebuffer: TVKCreateFramebuffer;
+    FVKDestroyFramebuffer: TVKDestroyFramebuffer;
+    FVKCreateRenderPass: TVKCreateRenderPass;
+    FVKDestroyRenderPass: TVKDestroyRenderPass;
+    FVKGetRenderAreaGranularity: TVKGetRenderAreaGranularity;
+    FVKCmdSetViewport: TVKCmdSetViewport;
+    FVKCmdSetScissor: TVKCmdSetScissor;
+    FVKCmdSetLineWidth: TVKCmdSetLineWidth;
+    FVKCmdSetDepthBias: TVKCmdSetDepthBias;
+    FVKCmdSetBlendConstants: TVKCmdSetBlendConstants;
+    FVKCmdSetDepthBounds: TVKCmdSetDepthBounds;
+    FVKCmdSetStencilCompareMask: TVKCmdSetStencilCompareMask;
+    FVKCmdSetStencilWriteMask: TVKCmdSetStencilWriteMask;
+    FVKCmdSetStencilReference: TVKCmdSetStencilReference;
+    FVKCmdBindIndexBuffer: TVKCmdBindIndexBuffer;
+    FVKCmdBindVertexBuffers: TVKCmdBindVertexBuffers;
+    FVKCmdDraw: TVKCmdDraw;
+    FVKCmdDrawIndexed: TVKCmdDrawIndexed;
+    FVKCmdDrawIndirect: TVKCmdDrawIndirect;
+    FVKCmdDrawIndexedIndirect: TVKCmdDrawIndexedIndirect;
+    FVKCmdBlitImage: TVKCmdBlitImage;
+    FVKCmdClearDepthStencilImage: TVKCmdClearDepthStencilImage;
+    FVKCmdClearAttachments: TVKCmdClearAttachments;
+    FVKCmdResolveImage: TVKCmdResolveImage;
+    FVKCmdBeginRenderPass: TVKCmdBeginRenderPass;
+    FVKCmdNextSubpass: TVKCmdNextSubpass;
+    FVKCmdEndRenderPass: TVKCmdEndRenderPass;
   protected
     procedure loadExtensionNames; override;
     procedure loadLayesName; override;
     procedure bindEntry; override;
-    procedure bindEntryInstance(instance: VkInstance); override;
-    procedure bindEntryDevice(device: VkDevice); override;
+    procedure bindEntryInstance(aInstance: VkInstance); override;
+    procedure bindEntryDevice(aDevice: VkDevice); override;
     procedure BindInstance(var FuncPtr: Pointer; const Name: ansistring; Instance: VkInstance; Mandatory: boolean = False); override;
     procedure BindDevice(var FuncPtr: Pointer; const Name: ansistring; Device: VkDevice; Mandatory: boolean = False); override;
   public
-    function vkAllocateMemory(device: VkDevice; pAllocateInfo: PVkMemoryAllocateInfo; pAllocator: PVkAllocationCallbacks; pMemory: PVkDeviceMemory): VkResult;
-    function vkBindBufferMemory(device: VkDevice; buffer: VkBuffer; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult;
-    function vkBindImageMemory(device: VkDevice; image: VkImage; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult;
-    function vkCreateDevice(physicalDevice: VkPhysicalDevice; pCreateInfo: PVkDeviceCreateInfo; pAllocator: PVkAllocationCallbacks; out pDevice: VkDevice): VkResult;
-    function vkCreateFramebuffer(device: VkDevice; pCreateInfo: PVkFramebufferCreateInfo; pAllocator: PVkAllocationCallbacks; pFramebuffer: PVkFramebuffer): VkResult;
-    function vkCreateGraphicsPipelines(device: VkDevice; pipelineCache: VkPipelineCache; createInfoCount: uint32; pCreateInfos: PVkGraphicsPipelineCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelines: PVkPipeline): VkResult;
-    function vkCreateInstance(const pCreateInfo: VkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
-    function vkCreateRenderPass(device: VkDevice; pCreateInfo: PVkRenderPassCreateInfo; pAllocator: PVkAllocationCallbacks; pRenderPass: PVkRenderPass): VkResult;
-    function vkDeviceWaitIdle(device: VkDevice): VkResult;
-    function vkEnumerateDeviceExtensionProperties(physicalDevice: VkPhysicalDevice; pLayerName: pansichar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
-    function vkEnumerateDeviceLayerProperties(physicalDevice: VkPhysicalDevice; pPropertyCount: Puint32; pProperties: PVkLayerProperties): VkResult;
-    function vkEnumerateInstanceExtensionProperties(pLayerName: pansichar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
-    function vkEnumerateInstanceLayerProperties(pPropertyCount: Puint32; pProperties: PVkLayerProperties): VkResult;
-    function vkEnumeratePhysicalDevices(instance: VkInstance; pPhysicalDeviceCount: Puint32; pPhysicalDevices: PVkPhysicalDevice): VkResult;
-    function vkFlushMappedMemoryRanges(device: VkDevice; memoryRangeCount: uint32; pMemoryRanges: PVkMappedMemoryRange): VkResult;
-    function vkGetDeviceProcAddr(device: VkDevice; pName: pansichar): TVKVoidFunction;
-    function vkGetInstanceProcAddr(instance: VkInstance; pName: pansichar): TVKVoidFunction;
-    function vkGetPhysicalDeviceImageFormatProperties(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; tiling: VkImageTiling; usage: VkImageUsageFlags; flags: VkImageCreateFlags; pImageFormatProperties: PVkImageFormatProperties): VkResult;
-    function vkInvalidateMappedMemoryRanges(device: VkDevice; memoryRangeCount: uint32; pMemoryRanges: PVkMappedMemoryRange): VkResult;
-    function vkMapMemory(device: VkDevice; memory: VkDeviceMemory; offset: VkDeviceSize; size: VkDeviceSize; flags: VkMemoryMapFlags; ppData: PPointer): VkResult;
-    function vkQueueBindSparse(queue: VkQueue; bindInfoCount: uint32; pBindInfo: PVkBindSparseInfo; fence: VkFence): VkResult;
-    function vkQueueSubmit(queue: VkQueue; submitCount: uint32; pSubmits: PVkSubmitInfo; fence: VkFence): VkResult;
-    function vkQueueWaitIdle(queue: VkQueue): VkResult;
-    procedure vkCmdBeginRenderPass(commandBuffer: VkCommandBuffer; pRenderPassBegin: PVkRenderPassBeginInfo; contents: VkSubpassContents);
-    procedure vkCmdBindIndexBuffer(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; indexType: VkIndexType);
-    procedure vkCmdBindVertexBuffers(commandBuffer: VkCommandBuffer; firstBinding: uint32; bindingCount: uint32; pBuffers: PVkBuffer; pOffsets: PVkDeviceSize);
-    procedure vkCmdBlitImage(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageBlit; filter: VkFilter);
-    procedure vkCmdClearAttachments(commandBuffer: VkCommandBuffer; attachmentCount: uint32; pAttachments: PVkClearAttachment; rectCount: uint32; pRects: PVkClearRect);
-    procedure vkCmdClearDepthStencilImage(commandBuffer: VkCommandBuffer; image: VkImage; imageLayout: VkImageLayout; pDepthStencil: PVkClearDepthStencilValue; rangeCount: uint32; pRanges: PVkImageSubresourceRange);
-    procedure vkCmdDraw(commandBuffer: VkCommandBuffer; vertexCount: uint32; instanceCount: uint32; firstVertex: uint32; firstInstance: uint32);
-    procedure vkCmdDrawIndexed(commandBuffer: VkCommandBuffer; indexCount: uint32; instanceCount: uint32; firstIndex: uint32; vertexOffset: int32; firstInstance: uint32);
-    procedure vkCmdDrawIndexedIndirect(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; drawCount: uint32; stride: uint32);
-    procedure vkCmdDrawIndirect(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; drawCount: uint32; stride: uint32);
-    procedure vkCmdEndRenderPass(commandBuffer: VkCommandBuffer);
-    procedure vkCmdNextSubpass(commandBuffer: VkCommandBuffer; contents: VkSubpassContents);
-    procedure vkCmdPushConstants(commandBuffer: VkCommandBuffer; layout: VkPipelineLayout; stageFlags: VkShaderStageFlags; offset: uint32; size: uint32; pValues: Pointer);
-    procedure vkCmdResolveImage(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageResolve);
-    procedure vkCmdSetBlendConstants(commandBuffer: VkCommandBuffer; blendConstants: TBlendConstants);
-    procedure vkCmdSetDepthBias(commandBuffer: VkCommandBuffer; depthBiasConstantFactor: single; depthBiasClamp: single; depthBiasSlopeFactor: single);
-    procedure vkCmdSetDepthBounds(commandBuffer: VkCommandBuffer; minDepthBounds: single; maxDepthBounds: single);
-    procedure vkCmdSetLineWidth(commandBuffer: VkCommandBuffer; lineWidth: single);
-    procedure vkCmdSetScissor(commandBuffer: VkCommandBuffer; firstScissor: uint32; scissorCount: uint32; pScissors: PVkRect2D);
-    procedure vkCmdSetStencilCompareMask(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; compareMask: uint32);
-    procedure vkCmdSetStencilReference(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; reference: uint32);
-    procedure vkCmdSetStencilWriteMask(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; writeMask: uint32);
-    procedure vkCmdSetViewport(commandBuffer: VkCommandBuffer; firstViewport: uint32; viewportCount: uint32; pViewports: PVkViewport);
-    procedure vkDestroyDevice(device: VkDevice; pAllocator: PVkAllocationCallbacks);
-    procedure vkDestroyFramebuffer(device: VkDevice; framebuffer: VkFramebuffer; pAllocator: PVkAllocationCallbacks);
+    function getDebugUtilsExtension(aInstance: VkInstance; aDevice: VkDevice = nil): IVulkanDebugUtilsExtension;
+    function getKHRSurfaceExtension(aInstance: VkInstance): IVulkanKHRSurface;
+    function getSwapChainExtension(aDevice: VkDevice): IVulkanSwapChainExtension;
+
+    function vkCreateInstance(var pCreateInfo: VkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
     procedure vkDestroyInstance(instance: VkInstance; pAllocator: PVkAllocationCallbacks);
-    procedure vkDestroyRenderPass(device: VkDevice; renderPass: VkRenderPass; pAllocator: PVkAllocationCallbacks);
-    procedure vkFreeMemory(device: VkDevice; memory: VkDeviceMemory; pAllocator: PVkAllocationCallbacks);
-    procedure vkGetBufferMemoryRequirements(device: VkDevice; buffer: VkBuffer; pMemoryRequirements: PVkMemoryRequirements);
-    procedure vkGetDeviceMemoryCommitment(device: VkDevice; memory: VkDeviceMemory; pCommittedMemoryInBytes: PVkDeviceSize);
-    procedure vkGetDeviceQueue(device: VkDevice; queueFamilyIndex: uint32; queueIndex: uint32; pQueue: PVkQueue);
-    procedure vkGetImageMemoryRequirements(device: VkDevice; image: VkImage; pMemoryRequirements: PVkMemoryRequirements);
-    procedure vkGetImageSparseMemoryRequirements(device: VkDevice; image: VkImage; pSparseMemoryRequirementCount: Puint32; pSparseMemoryRequirements: PVkSparseImageMemoryRequirements);
+    function vkEnumeratePhysicalDevices(instance: VkInstance; pPhysicalDeviceCount: Puint32; pPhysicalDevices: PVkPhysicalDevice): VkResult;
     procedure vkGetPhysicalDeviceFeatures(physicalDevice: VkPhysicalDevice; pFeatures: PVkPhysicalDeviceFeatures);
     procedure vkGetPhysicalDeviceFormatProperties(physicalDevice: VkPhysicalDevice; format: VkFormat; pFormatProperties: PVkFormatProperties);
-    procedure vkGetPhysicalDeviceMemoryProperties(physicalDevice: VkPhysicalDevice; pMemoryProperties: PVkPhysicalDeviceMemoryProperties);
+    function vkGetPhysicalDeviceImageFormatProperties(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; tiling: VkImageTiling; usage: VkImageUsageFlags; flags: VkImageCreateFlags; pImageFormatProperties: PVkImageFormatProperties): VkResult;
     procedure vkGetPhysicalDeviceProperties(physicalDevice: VkPhysicalDevice; pProperties: PVkPhysicalDeviceProperties);
     procedure vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice: VkPhysicalDevice; pQueueFamilyPropertyCount: Puint32; pQueueFamilyProperties: PVkQueueFamilyProperties);
-    procedure vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; samples: VkSampleCountFlagBits; usage: VkImageUsageFlags; tiling: VkImageTiling; pPropertyCount: Puint32; pProperties: PVkSparseImageFormatProperties);
-    procedure vkGetRenderAreaGranularity(device: VkDevice; renderPass: VkRenderPass; pGranularity: PVkExtent2D);
+    procedure vkGetPhysicalDeviceMemoryProperties(physicalDevice: VkPhysicalDevice; pMemoryProperties: PVkPhysicalDeviceMemoryProperties);
+    function vkGetInstanceProcAddr(instance: VkInstance; pName: pchar): TVKVoidFunction;
+    function vkGetDeviceProcAddr(device: VkDevice; pName: pchar): TVKVoidFunction;
+    function vkCreateDevice(physicalDevice: VkPhysicalDevice; pCreateInfo: PVkDeviceCreateInfo; pAllocator: PVkAllocationCallbacks; out pDevice: VkDevice): VkResult;
+    procedure vkDestroyDevice(device: VkDevice; pAllocator: PVkAllocationCallbacks);
+    function vkEnumerateInstanceExtensionProperties(pLayerName: pchar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
+    function vkEnumerateDeviceExtensionProperties(physicalDevice: VkPhysicalDevice; pLayerName: pchar; pPropertyCount: PUInt32; pProperties: PVkExtensionProperties): VkResult;
+    function vkEnumerateInstanceLayerProperties(pPropertyCount: Puint32; pProperties: PVkLayerProperties): VkResult;
+    function vkEnumerateDeviceLayerProperties(physicalDevice: VkPhysicalDevice; pPropertyCount: Puint32; pProperties: PVkLayerProperties): VkResult;
+    procedure vkGetDeviceQueue(device: VkDevice; queueFamilyIndex: uint32; queueIndex: uint32; pQueue: PVkQueue);
+    function vkQueueSubmit(queue: VkQueue; submitCount: uint32; pSubmits: PVkSubmitInfo; fence: VkFence): VkResult;
+    function vkQueueWaitIdle(queue: VkQueue): VkResult;
+    function vkDeviceWaitIdle(device: VkDevice): VkResult;
+    function vkAllocateMemory(device: VkDevice; pAllocateInfo: PVkMemoryAllocateInfo; pAllocator: PVkAllocationCallbacks; pMemory: PVkDeviceMemory): VkResult;
+    procedure vkFreeMemory(device: VkDevice; memory: VkDeviceMemory; pAllocator: PVkAllocationCallbacks);
+    function vkMapMemory(device: VkDevice; memory: VkDeviceMemory; offset: VkDeviceSize; size: VkDeviceSize; flags: VkMemoryMapFlags; ppData: PPointer): VkResult;
     procedure vkUnmapMemory(device: VkDevice; memory: VkDeviceMemory);
-    function getDebugUtilsExtension(aInstance: VkInstance; aDevice: VkDevice): IVulkanDebugUtilsExtension;
+    function vkFlushMappedMemoryRanges(device: VkDevice; memoryRangeCount: uint32; pMemoryRanges: PVkMappedMemoryRange): VkResult;
+    function vkInvalidateMappedMemoryRanges(device: VkDevice; memoryRangeCount: uint32; pMemoryRanges: PVkMappedMemoryRange): VkResult;
+    procedure vkGetDeviceMemoryCommitment(device: VkDevice; memory: VkDeviceMemory; pCommittedMemoryInBytes: PVkDeviceSize);
+    function vkBindBufferMemory(device: VkDevice; buffer: VkBuffer; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult;
+    function vkBindImageMemory(device: VkDevice; image: VkImage; memory: VkDeviceMemory; memoryOffset: VkDeviceSize): VkResult;
+    procedure vkGetBufferMemoryRequirements(device: VkDevice; buffer: VkBuffer; pMemoryRequirements: PVkMemoryRequirements);
+    procedure vkGetImageMemoryRequirements(device: VkDevice; image: VkImage; pMemoryRequirements: PVkMemoryRequirements);
+    procedure vkGetImageSparseMemoryRequirements(device: VkDevice; image: VkImage; pSparseMemoryRequirementCount: Puint32; pSparseMemoryRequirements: PVkSparseImageMemoryRequirements);
+    procedure vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice: VkPhysicalDevice; format: VkFormat; type_: VkImageType; samples: VkSampleCountFlagBits; usage: VkImageUsageFlags; tiling: VkImageTiling; pPropertyCount: Puint32; pProperties: PVkSparseImageFormatProperties);
+    function vkQueueBindSparse(queue: VkQueue; bindInfoCount: uint32; pBindInfo: PVkBindSparseInfo; fence: VkFence): VkResult;
+    function vkCreateFence(device: VkDevice; pCreateInfo: PVkFenceCreateInfo; pAllocator: PVkAllocationCallbacks; pFence: PVkFence): VkResult;
+    procedure vkDestroyFence(device: VkDevice; fence: VkFence; pAllocator: PVkAllocationCallbacks);
+    function vkResetFences(device: VkDevice; fenceCount: uint32; pFences: PVkFence): VkResult;
+    function vkGetFenceStatus(device: VkDevice; fence: VkFence): VkResult;
+    function vkWaitForFences(device: VkDevice; fenceCount: uint32; pFences: PVkFence; waitAll: VkBool32; timeout: uint64): VkResult;
+    function vkCreateSemaphore(device: VkDevice; pCreateInfo: PVkSemaphoreCreateInfo; pAllocator: PVkAllocationCallbacks; pSemaphore: PVkSemaphore): VkResult;
+    procedure vkDestroySemaphore(device: VkDevice; semaphore: VkSemaphore; pAllocator: PVkAllocationCallbacks);
+    function vkCreateQueryPool(device: VkDevice; pCreateInfo: PVkQueryPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pQueryPool: PVkQueryPool): VkResult;
+    procedure vkDestroyQueryPool(device: VkDevice; queryPool: VkQueryPool; pAllocator: PVkAllocationCallbacks);
+    function vkGetQueryPoolResults(device: VkDevice; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32; dataSize: size_t; pData: Pointer; stride: VkDeviceSize; flags: VkQueryResultFlags): VkResult;
+    function vkCreateBuffer(device: VkDevice; pCreateInfo: PVkBufferCreateInfo; pAllocator: PVkAllocationCallbacks; pBuffer: PVkBuffer): VkResult;
+    procedure vkDestroyBuffer(device: VkDevice; buffer: VkBuffer; pAllocator: PVkAllocationCallbacks);
+    function vkCreateImage(device: VkDevice; pCreateInfo: PVkImageCreateInfo; pAllocator: PVkAllocationCallbacks; pImage: PVkImage): VkResult;
+    procedure vkDestroyImage(device: VkDevice; image: VkImage; pAllocator: PVkAllocationCallbacks);
+    procedure vkGetImageSubresourceLayout(device: VkDevice; image: VkImage; pSubresource: PVkImageSubresource; pLayout: PVkSubresourceLayout);
+    function vkCreateImageView(device: VkDevice; pCreateInfo: PVkImageViewCreateInfo; pAllocator: PVkAllocationCallbacks; pView: PVkImageView): VkResult;
+    procedure vkDestroyImageView(device: VkDevice; imageView: VkImageView; pAllocator: PVkAllocationCallbacks);
+    function vkCreateCommandPool(device: VkDevice; pCreateInfo: PVkCommandPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pCommandPool: PVkCommandPool): VkResult;
+    procedure vkDestroyCommandPool(device: VkDevice; commandPool: VkCommandPool; pAllocator: PVkAllocationCallbacks);
+    function vkResetCommandPool(device: VkDevice; commandPool: VkCommandPool; flags: VkCommandPoolResetFlags): VkResult;
+    function vkAllocateCommandBuffers(device: VkDevice; pAllocateInfo: PVkCommandBufferAllocateInfo; pCommandBuffers: PVkCommandBuffer): VkResult;
+    procedure vkFreeCommandBuffers(device: VkDevice; commandPool: VkCommandPool; commandBufferCount: uint32; pCommandBuffers: PVkCommandBuffer);
+    function vkBeginCommandBuffer(commandBuffer: VkCommandBuffer; pBeginInfo: PVkCommandBufferBeginInfo): VkResult;
+    function vkEndCommandBuffer(commandBuffer: VkCommandBuffer): VkResult;
+    function vkResetCommandBuffer(commandBuffer: VkCommandBuffer; flags: VkCommandBufferResetFlags): VkResult;
+    procedure vkCmdCopyBuffer(commandBuffer: VkCommandBuffer; srcBuffer: VkBuffer; dstBuffer: VkBuffer; regionCount: uint32; pRegions: PVkBufferCopy);
+    procedure vkCmdCopyImage(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageCopy);
+    procedure vkCmdCopyBufferToImage(commandBuffer: VkCommandBuffer; srcBuffer: VkBuffer; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkBufferImageCopy);
+    procedure vkCmdCopyImageToBuffer(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstBuffer: VkBuffer; regionCount: uint32; pRegions: PVkBufferImageCopy);
+    procedure vkCmdUpdateBuffer(commandBuffer: VkCommandBuffer; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; dataSize: VkDeviceSize; pData: Pointer);
+    procedure vkCmdFillBuffer(commandBuffer: VkCommandBuffer; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; size: VkDeviceSize; Data: uint32);
+    procedure vkCmdPipelineBarrier(commandBuffer: VkCommandBuffer; srcStageMask: VkPipelineStageFlags; dstStageMask: VkPipelineStageFlags; dependencyFlags: VkDependencyFlags; memoryBarrierCount: uint32; pMemoryBarriers: PVkMemoryBarrier; bufferMemoryBarrierCount: uint32; pBufferMemoryBarriers: PVkBufferMemoryBarrier; imageMemoryBarrierCount: uint32; pImageMemoryBarriers: PVkImageMemoryBarrier);
+    procedure vkCmdBeginQuery(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; query: uint32; flags: VkQueryControlFlags);
+    procedure vkCmdEndQuery(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; query: uint32);
+    procedure vkCmdResetQueryPool(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32);
+    procedure vkCmdWriteTimestamp(commandBuffer: VkCommandBuffer; pipelineStage: VkPipelineStageFlagBits; queryPool: VkQueryPool; query: uint32);
+    procedure vkCmdCopyQueryPoolResults(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; stride: VkDeviceSize; flags: VkQueryResultFlags);
+    procedure vkCmdExecuteCommands(commandBuffer: VkCommandBuffer; commandBufferCount: uint32; pCommandBuffers: PVkCommandBuffer);
+    function vkCreateEvent(device: VkDevice; pCreateInfo: PVkEventCreateInfo; pAllocator: PVkAllocationCallbacks; pEvent: PVkEvent): VkResult;
+    procedure vkDestroyEvent(device: VkDevice; event: VkEvent; pAllocator: PVkAllocationCallbacks);
+    function vkGetEventStatus(device: VkDevice; event: VkEvent): VkResult;
+    function vkSetEvent(device: VkDevice; event: VkEvent): VkResult;
+    function vkResetEvent(device: VkDevice; event: VkEvent): VkResult;
+    function vkCreateBufferView(device: VkDevice; pCreateInfo: PVkBufferViewCreateInfo; pAllocator: PVkAllocationCallbacks; pView: PVkBufferView): VkResult;
+    procedure vkDestroyBufferView(device: VkDevice; bufferView: VkBufferView; pAllocator: PVkAllocationCallbacks);
+    function vkCreateShaderModule(device: VkDevice; pCreateInfo: PVkShaderModuleCreateInfo; pAllocator: PVkAllocationCallbacks; pShaderModule: PVkShaderModule): VkResult;
+    procedure vkDestroyShaderModule(device: VkDevice; shaderModule: VkShaderModule; pAllocator: PVkAllocationCallbacks);
+    function vkCreatePipelineCache(device: VkDevice; pCreateInfo: PVkPipelineCacheCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelineCache: PVkPipelineCache): VkResult;
+    procedure vkDestroyPipelineCache(device: VkDevice; pipelineCache: VkPipelineCache; pAllocator: PVkAllocationCallbacks);
+    function vkGetPipelineCacheData(device: VkDevice; pipelineCache: VkPipelineCache; pDataSize: PNativeUInt; pData: Pointer): VkResult;
+    function vkMergePipelineCaches(device: VkDevice; dstCache: VkPipelineCache; srcCacheCount: uint32; pSrcCaches: PVkPipelineCache): VkResult;
+    function vkCreateComputePipelines(device: VkDevice; pipelineCache: VkPipelineCache; createInfoCount: uint32; pCreateInfos: PVkComputePipelineCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelines: PVkPipeline): VkResult;
+    procedure vkDestroyPipeline(device: VkDevice; pipeline: VkPipeline; pAllocator: PVkAllocationCallbacks);
+    function vkCreatePipelineLayout(device: VkDevice; pCreateInfo: PVkPipelineLayoutCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelineLayout: PVkPipelineLayout): VkResult;
+    procedure vkDestroyPipelineLayout(device: VkDevice; pipelineLayout: VkPipelineLayout; pAllocator: PVkAllocationCallbacks);
+    function vkCreateSampler(device: VkDevice; pCreateInfo: PVkSamplerCreateInfo; pAllocator: PVkAllocationCallbacks; pSampler: PVkSampler): VkResult;
+    procedure vkDestroySampler(device: VkDevice; sampler: VkSampler; pAllocator: PVkAllocationCallbacks);
+    function vkCreateDescriptorSetLayout(device: VkDevice; pCreateInfo: PVkDescriptorSetLayoutCreateInfo; pAllocator: PVkAllocationCallbacks; pSetLayout: PVkDescriptorSetLayout): VkResult;
+    procedure vkDestroyDescriptorSetLayout(device: VkDevice; descriptorSetLayout: VkDescriptorSetLayout; pAllocator: PVkAllocationCallbacks);
+    function vkCreateDescriptorPool(device: VkDevice; pCreateInfo: PVkDescriptorPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pDescriptorPool: PVkDescriptorPool): VkResult;
+    procedure vkDestroyDescriptorPool(device: VkDevice; descriptorPool: VkDescriptorPool; pAllocator: PVkAllocationCallbacks);
+    function vkResetDescriptorPool(device: VkDevice; descriptorPool: VkDescriptorPool; flags: VkDescriptorPoolResetFlags): VkResult;
+    function vkAllocateDescriptorSets(device: VkDevice; pAllocateInfo: PVkDescriptorSetAllocateInfo; pDescriptorSets: PVkDescriptorSet): VkResult;
+    function vkFreeDescriptorSets(device: VkDevice; descriptorPool: VkDescriptorPool; descriptorSetCount: uint32; pDescriptorSets: PVkDescriptorSet): VkResult;
+    procedure vkUpdateDescriptorSets(device: VkDevice; descriptorWriteCount: uint32; pDescriptorWrites: PVkWriteDescriptorSet; descriptorCopyCount: uint32; pDescriptorCopies: PVkCopyDescriptorSet);
+    procedure vkCmdBindPipeline(commandBuffer: VkCommandBuffer; pipelineBindPoint: VkPipelineBindPoint; pipeline: VkPipeline);
+    procedure vkCmdBindDescriptorSets(commandBuffer: VkCommandBuffer; pipelineBindPoint: VkPipelineBindPoint; layout: VkPipelineLayout; firstSet: uint32; descriptorSetCount: uint32; pDescriptorSets: PVkDescriptorSet; dynamicOffsetCount: uint32; pDynamicOffsets: Puint32);
+    procedure vkCmdClearColorImage(commandBuffer: VkCommandBuffer; image: VkImage; imageLayout: VkImageLayout; pColor: PVkClearColorValue; rangeCount: uint32; pRanges: PVkImageSubresourceRange);
+    procedure vkCmdDispatch(commandBuffer: VkCommandBuffer; groupCountX: uint32; groupCountY: uint32; groupCountZ: uint32);
+    procedure vkCmdDispatchIndirect(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize);
+    procedure vkCmdSetEvent(commandBuffer: VkCommandBuffer; event: VkEvent; stageMask: VkPipelineStageFlags);
+    procedure vkCmdResetEvent(commandBuffer: VkCommandBuffer; event: VkEvent; stageMask: VkPipelineStageFlags);
+    procedure vkCmdWaitEvents(commandBuffer: VkCommandBuffer; eventCount: uint32; pEvents: PVkEvent; srcStageMask: VkPipelineStageFlags; dstStageMask: VkPipelineStageFlags; memoryBarrierCount: uint32; pMemoryBarriers: PVkMemoryBarrier; bufferMemoryBarrierCount: uint32; pBufferMemoryBarriers: PVkBufferMemoryBarrier; imageMemoryBarrierCount: uint32; pImageMemoryBarriers: PVkImageMemoryBarrier);
+    procedure vkCmdPushConstants(commandBuffer: VkCommandBuffer; layout: VkPipelineLayout; stageFlags: VkShaderStageFlags; offset: uint32; size: uint32; pValues: Pointer);
+    function vkCreateGraphicsPipelines(device: VkDevice; pipelineCache: VkPipelineCache; createInfoCount: uint32; pCreateInfos: PVkGraphicsPipelineCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelines: PVkPipeline): VkResult;
+    function vkCreateFramebuffer(device: VkDevice; pCreateInfo: PVkFramebufferCreateInfo; pAllocator: PVkAllocationCallbacks; pFramebuffer: PVkFramebuffer): VkResult;
+    procedure vkDestroyFramebuffer(device: VkDevice; framebuffer: VkFramebuffer; pAllocator: PVkAllocationCallbacks);
+    function vkCreateRenderPass(device: VkDevice; pCreateInfo: PVkRenderPassCreateInfo; pAllocator: PVkAllocationCallbacks; pRenderPass: PVkRenderPass): VkResult;
+    procedure vkDestroyRenderPass(device: VkDevice; renderPass: VkRenderPass; pAllocator: PVkAllocationCallbacks);
+    procedure vkGetRenderAreaGranularity(device: VkDevice; renderPass: VkRenderPass; pGranularity: PVkExtent2D);
+    procedure vkCmdSetViewport(commandBuffer: VkCommandBuffer; firstViewport: uint32; viewportCount: uint32; pViewports: PVkViewport);
+    procedure vkCmdSetScissor(commandBuffer: VkCommandBuffer; firstScissor: uint32; scissorCount: uint32; pScissors: PVkRect2D);
+    procedure vkCmdSetLineWidth(commandBuffer: VkCommandBuffer; lineWidth: single);
+    procedure vkCmdSetDepthBias(commandBuffer: VkCommandBuffer; depthBiasConstantFactor: single; depthBiasClamp: single; depthBiasSlopeFactor: single);
+    procedure vkCmdSetBlendConstants(commandBuffer: VkCommandBuffer; blendConstants: TBlendConstants);
+    procedure vkCmdSetDepthBounds(commandBuffer: VkCommandBuffer; minDepthBounds: single; maxDepthBounds: single);
+    procedure vkCmdSetStencilCompareMask(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; compareMask: uint32);
+    procedure vkCmdSetStencilWriteMask(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; writeMask: uint32);
+    procedure vkCmdSetStencilReference(commandBuffer: VkCommandBuffer; faceMask: VkStencilFaceFlags; reference: uint32);
+    procedure vkCmdBindIndexBuffer(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; indexType: VkIndexType);
+    procedure vkCmdBindVertexBuffers(commandBuffer: VkCommandBuffer; firstBinding: uint32; bindingCount: uint32; pBuffers: PVkBuffer; pOffsets: PVkDeviceSize);
+    procedure vkCmdDraw(commandBuffer: VkCommandBuffer; vertexCount: uint32; instanceCount: uint32; firstVertex: uint32; firstInstance: uint32);
+    procedure vkCmdDrawIndexed(commandBuffer: VkCommandBuffer; indexCount: uint32; instanceCount: uint32; firstIndex: uint32; vertexOffset: int32; firstInstance: uint32);
+    procedure vkCmdDrawIndirect(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; drawCount: uint32; stride: uint32);
+    procedure vkCmdDrawIndexedIndirect(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize; drawCount: uint32; stride: uint32);
+    procedure vkCmdBlitImage(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageBlit; filter: VkFilter);
+    procedure vkCmdClearDepthStencilImage(commandBuffer: VkCommandBuffer; image: VkImage; imageLayout: VkImageLayout; pDepthStencil: PVkClearDepthStencilValue; rangeCount: uint32; pRanges: PVkImageSubresourceRange);
+    procedure vkCmdClearAttachments(commandBuffer: VkCommandBuffer; attachmentCount: uint32; pAttachments: PVkClearAttachment; rectCount: uint32; pRects: PVkClearRect);
+    procedure vkCmdResolveImage(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageResolve);
+    procedure vkCmdBeginRenderPass(commandBuffer: VkCommandBuffer; pRenderPassBegin: PVkRenderPassBeginInfo; contents: VkSubpassContents);
+    procedure vkCmdNextSubpass(commandBuffer: VkCommandBuffer; contents: VkSubpassContents);
+    procedure vkCmdEndRenderPass(commandBuffer: VkCommandBuffer);
   end;
 
   { TVulkan11 }
@@ -10415,34 +10968,273 @@ begin
   Result := (major shl 22) or (minor shl 12) or patch;
 end;
 
+operator := (num: uint32): string;
+begin
+  Result := IntToStr(num);
+end;
+
 operator := (enum: VkQueueFlagBits): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkImageAspectFlagBits): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkImageUsageFlagBits): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkSampleCountFlagBits): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkAttachmentLoadOp): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkAttachmentStoreOp): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkImageLayout): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkPipelineBindPoint): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkDynamicState): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkShaderStageFlagBits): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkDescriptorType): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkCullModeFlagBits): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkFrontFace): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkPolygonMode): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkCompareOp): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkStencilOp): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkBlendFactor): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkBlendOp): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkLogicOp): uint32;
+begin
+  Result := Ord(enum);
+
+end;
+
+operator := (enum: VkBufferUsageFlagBits): uint32;
 begin
   Result := Ord(enum);
 end;
 
-operator and(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+operator := (enum: VkColorComponentFlagBits): uint32;
 begin
-  Result := flags and Ord(enum);
+  Result := Ord(enum);
 end;
 
-operator or(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+operator := (enum: VkPipelineStageFlagBits): uint32;
 begin
-  Result := flags or Ord(enum);
+  Result := Ord(enum);
 end;
 
-operator or(enum1, enum2: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+operator := (enum: VkAccessFlagBits): uint32;
 begin
-  Result := Ord(enum1) or Ord(enum2);
+  Result := Ord(enum);
 end;
 
-operator or(flags: VkFlags; enum: VkDebugUtilsMessageTypeFlagBitsEXT): uint32;
+operator := (enum: VkDependencyFlagBits): uint32;
 begin
-  Result := flags or Ord(enum);
+  Result := Ord(enum);
 end;
 
-operator or(enum1, enum2: VkDebugUtilsMessageTypeFlagBitsEXT): uint32;
+operator := (enum: VkCommandBufferLevel): uint32;
 begin
-  Result := Ord(enum1) or Ord(enum2);
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkCommandPoolCreateFlagBits): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkCommandBufferUsageFlagBits): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkFenceCreateFlagBits): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkMemoryPropertyFlagBits): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkMemoryHeapFlagBits): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkFormatFeatureFlagBits): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkQueryPipelineStatisticFlagBits): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkQueryResultFlagBits): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkDebugUtilsMessageTypeFlagBitsEXT): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkCompositeAlphaFlagBitsKHR): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkSurfaceTransformFlagBitsKHR): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkPresentModeKHR): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkColorSpaceKHR): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkComponentSwizzle): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkFilter): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkSamplerMipmapMode): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkSamplerAddressMode): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkBorderColor): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkPrimitiveTopology): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkIndexType): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkSubpassContents): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkObjectType): uint32;
+begin
+  Result := Ord(enum);
+end;
+
+operator := (enum: VkStructureType): uint32;
+begin
+  Result := Ord(enum);
 end;
 
 operator and(flags: VkFlags; enum: VkQueueFlagBits): uint32;
@@ -10450,12 +11242,432 @@ begin
   Result := flags and Ord(enum);
 end;
 
+operator and(flags: VkFlags; enum: VkImageAspectFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkImageUsageFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkSampleCountFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkAttachmentLoadOp): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkAttachmentStoreOp): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkImageLayout): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkPipelineBindPoint): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkDynamicState): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkShaderStageFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkDescriptorType): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkCullModeFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkFrontFace): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkPolygonMode): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkCompareOp): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkStencilOp): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkBlendFactor): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkBlendOp): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkLogicOp): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkColorComponentFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkPipelineStageFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkAccessFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkDependencyFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkCommandBufferLevel): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkCommandPoolCreateFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkCommandBufferUsageFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkFenceCreateFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkMemoryPropertyFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkMemoryHeapFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkFormatFeatureFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkQueryPipelineStatisticFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkQueryResultFlagBits): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkDebugUtilsMessageTypeFlagBitsEXT): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkCompositeAlphaFlagBitsKHR): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkSurfaceTransformFlagBitsKHR): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkPresentModeKHR): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkColorSpaceKHR): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkComponentSwizzle): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkFilter): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkSamplerMipmapMode): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkSamplerAddressMode): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkBorderColor): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkPrimitiveTopology): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkIndexType): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkSubpassContents): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkObjectType): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+operator and(flags: VkFlags; enum: VkStructureType): uint32;
+begin
+  Result := flags and Ord(enum);
+end;
+
+
 { TVulkanBase }
 procedure canCall(var FuncPtr: Pointer; Name: string);
 begin
   if not assigned(FuncPtr) then
     raise EVulkanNotBound.CreateFmt('routine %s not bound', [Name]);
 end;
+
+{ TVulkanSwapChain }
+
+procedure TVulkanSwapChain.BindEntity;
+
+  procedure Bind(var Target: Pointer; const Name: string; mandatory: boolean = True);
+  begin
+    Target := FvkGetDeviceProcAddr(FDevice, PChar(Name));
+    if not Assigned(Target) and mandatory then
+      raise EVulkanNotBound.CreateFmt('Impossibile caricare funzione Vulkan: %s (estensione VK_KHR_swapchain?)', [Name]);
+  end;
+
+begin
+  Bind(Pointer(FvkCreateSwapchainKHR), 'vkCreateSwapchainKHR');
+  Bind(Pointer(FvkDestroySwapchainKHR), 'vkDestroySwapchainKHR');
+  Bind(Pointer(FvkGetSwapchainImagesKHR), 'vkGetSwapchainImagesKHR');
+  Bind(Pointer(FvkAcquireNextImageKHR), 'vkAcquireNextImageKHR');
+  Bind(Pointer(FvkQueuePresentKHR), 'vkQueuePresentKHR');
+  Bind(Pointer(FvkGetDeviceGroupPresentCapabilitiesKHR), 'vkGetDeviceGroupPresentCapabilitiesKHR', False);
+  Bind(Pointer(FvkGetDeviceGroupSurfacePresentModesKHR), 'vkGetDeviceGroupSurfacePresentModesKHR', False);
+  Bind(Pointer(FvkGetPhysicalDevicePresentRectanglesKHR), 'vkGetPhysicalDevicePresentRectanglesKHR', False);
+  Bind(Pointer(FvkAcquireNextImage2KHR), 'vkAcquireNextImage2KHR', False);
+end;
+
+function TVulkanSwapChain.vkCreateSwapchainKHR(pCreateInfo: PVkSwapchainCreateInfoKHR; pAllocator: PVkAllocationCallbacks; pSwapchain: PVkSwapchainKHR): VkResult;
+begin
+  canCall(Pointer(FvkCreateSwapchainKHR), 'vkCreateSwapchainKHR');
+  Result := FvkCreateSwapchainKHR(FDevice, pCreateInfo, pAllocator, pSwapchain);
+  if Result <> VK_SUCCESS then
+    raise EVulkanCallException.Create('vkGetSwapchainImagesKHR (query count) fauld', Result);
+end;
+
+procedure TVulkanSwapChain.vkDestroySwapchainKHR(swapchain: VkSwapchainKHR; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroySwapchainKHR), 'vkDestroySwapchainKHR');
+  FvkDestroySwapchainKHR(FDevice, swapchain, pAllocator);
+end;
+
+function TVulkanSwapChain.vkGetSwapchainImagesKHR(swapchain: VkSwapchainKHR; pSwapchainImageCount: Puint32; pSwapchainImages: PVkImage): VkResult;
+begin
+  canCall(Pointer(FvkGetSwapchainImagesKHR), 'vkGetSwapchainImagesKHR');
+  Result := FvkGetSwapchainImagesKHR(FDevice, swapchain, pSwapchainImageCount, pSwapchainImages);
+end;
+
+function TVulkanSwapChain.vkAcquireNextImageKHR(swapchain: VkSwapchainKHR; timeout: uint64; semaphore: VkSemaphore; fence: VkFence; pImageIndex: Puint32): VkResult;
+begin
+  canCall(Pointer(FvkAcquireNextImageKHR), 'vkAcquireNextImageKHR');
+  Result := FvkAcquireNextImageKHR(FDevice, swapchain, timeout, semaphore, fence, pImageIndex);
+end;
+
+function TVulkanSwapChain.vkQueuePresentKHR(queue: VkQueue; pPresentInfo: PVkPresentInfoKHR): VkResult;
+begin
+  canCall(Pointer(FvkQueuePresentKHR), 'vkQueuePresentKHR');
+  Result := FvkQueuePresentKHR(queue, pPresentInfo);
+end;
+
+function TVulkanSwapChain.vkGetDeviceGroupPresentCapabilitiesKHR(pDeviceGroupPresentCapabilities: PVkDeviceGroupPresentCapabilitiesKHR): VkResult;
+begin
+  if Assigned(FvkGetDeviceGroupPresentCapabilitiesKHR) then
+    Result := FvkGetDeviceGroupPresentCapabilitiesKHR(FDevice, pDeviceGroupPresentCapabilities)
+  else
+    Result := VK_ERROR_EXTENSION_NOT_PRESENT;
+end;
+
+function TVulkanSwapChain.vkGetDeviceGroupSurfacePresentModesKHR(surface: VkSurfaceKHR; pModes: PVkDeviceGroupPresentModeFlagsKHR): VkResult;
+begin
+  if Assigned(FvkGetDeviceGroupSurfacePresentModesKHR) then
+    Result := FvkGetDeviceGroupSurfacePresentModesKHR(FDevice, surface, pModes)
+  else
+    Result := VK_ERROR_EXTENSION_NOT_PRESENT;
+end;
+
+function TVulkanSwapChain.vkGetPhysicalDevicePresentRectanglesKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pRectCount: Puint32; pRects: PVkRect2D): VkResult;
+begin
+  if Assigned(FvkGetPhysicalDevicePresentRectanglesKHR) then
+    Result := FvkGetPhysicalDevicePresentRectanglesKHR(physicalDevice, surface, pRectCount, pRects)
+  else
+    Result := VK_ERROR_EXTENSION_NOT_PRESENT;
+end;
+
+function TVulkanSwapChain.vkAcquireNextImage2KHR(pAcquireInfo: PVkAcquireNextImageInfoKHR; pImageIndex: Puint32): VkResult;
+begin
+  if Assigned(FvkAcquireNextImage2KHR) then
+    Result := FvkAcquireNextImage2KHR(FDevice, pAcquireInfo, pImageIndex)
+  else
+    Result := VK_ERROR_EXTENSION_NOT_PRESENT;
+end;
+
+{ TVulkanExtension }
+
+procedure TVulkanExtension.SetvkGetDeviceProcAddr(AValue: TVKGetDeviceProcAddr);
+begin
+  if FvkGetDeviceProcAddr = AValue then Exit;
+  FvkGetDeviceProcAddr := AValue;
+end;
+
+procedure TVulkanExtension.SetDevice(AValue: VkDevice);
+begin
+  if FDevice = AValue then Exit;
+  FDevice := AValue;
+end;
+
+procedure TVulkanExtension.SetInstance(AValue: VkInstance);
+begin
+  if FInstance = AValue then Exit;
+  FInstance := AValue;
+end;
+
+procedure TVulkanExtension.SetvkGetInstanceProcAddr(AValue: TVKGetInstanceProcAddr);
+begin
+  if FvkGetInstanceProcAddr = AValue then Exit;
+  FvkGetInstanceProcAddr := AValue;
+end;
+
+procedure TVulkanExtension.BindEntity;
+begin
+
+end;
+
+{ TVulkanKHRSurface }
+
+procedure TVulkanKHRSurface.BindEntity;
+begin
+  Pointer(FvkDestroySurfaceKHR) := FvkGetInstanceProcAddr(FInstance, 'vkDestroySurfaceKHR');
+  Pointer(FvkGetPhysicalDeviceSurfaceSupportKHR) := FvkGetInstanceProcAddr(FInstance, 'vkGetPhysicalDeviceSurfaceSupportKHR');
+  Pointer(FvkGetPhysicalDeviceSurfaceCapabilitiesKHR) := FvkGetInstanceProcAddr(FInstance, 'vkGetPhysicalDeviceSurfaceCapabilitiesKHR');
+  Pointer(FvkGetPhysicalDeviceSurfaceFormatsKHR) := FvkGetInstanceProcAddr(FInstance, 'vkGetPhysicalDeviceSurfaceFormatsKHR');
+  Pointer(FvkGetPhysicalDeviceSurfacePresentModesKHR) := FvkGetInstanceProcAddr(FInstance, 'vkGetPhysicalDeviceSurfacePresentModesKHR');
+end;
+
+procedure TVulkanKHRSurface.vkDestroySurfaceKHR(surface: VkSurfaceKHR; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroySurfaceKHR), 'vkDestroySurfaceKHR');
+  FvkDestroySurfaceKHR(FInstance, surface, pAllocator);
+end;
+
+
+function TVulkanKHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice: VkPhysicalDevice; queueFamilyIndex: uint32; surface: VkSurfaceKHR; pSupported: PVkBool32): VkResult;
+begin
+  canCall(Pointer(FvkGetPhysicalDeviceSurfaceSupportKHR), 'vkGetPhysicalDeviceSurfaceSupportKHR');
+  Result := FvkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, queueFamilyIndex, surface, pSupported);
+end;
+
+function TVulkanKHRSurface.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pSurfaceCapabilities: PVkSurfaceCapabilitiesKHR): VkResult;
+begin
+  canCall(Pointer(FvkGetPhysicalDeviceSurfaceCapabilitiesKHR), 'vkGetPhysicalDeviceSurfaceCapabilitiesKHR');
+  Result := FvkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, pSurfaceCapabilities);
+end;
+
+function TVulkanKHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pSurfaceFormatCount: Puint32; pSurfaceFormats: PVkSurfaceFormatKHR): VkResult;
+begin
+  canCall(Pointer(FvkGetPhysicalDeviceSurfaceFormatsKHR), 'vkGetPhysicalDeviceSurfaceFormatsKHR');
+  Result := FvkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, pSurfaceFormatCount, pSurfaceFormats);
+end;
+
+function TVulkanKHRSurface.vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice: VkPhysicalDevice; surface: VkSurfaceKHR; pPresentModeCount: Puint32; pPresentModes: PVkPresentModeKHR): VkResult;
+begin
+  canCall(Pointer(FvkGetPhysicalDeviceSurfacePresentModesKHR), 'vkGetPhysicalDeviceSurfacePresentModesKHR');
+  Result := FvkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, pPresentModeCount, pPresentModes);
+end;
+
+{ EVulkanCallException }
+
+procedure EVulkanCallException.SetCause(AValue: Exception);
+begin
+  if FCause = AValue then Exit;
+  FCause := AValue;
+end;
+
+constructor EVulkanCallException.Create(const msg: string; aResult: VkResult);
+begin
+  inherited Create(msg);
+  FResult := aResult;
+  FCause := nil;
+end;
+
+constructor EVulkanCallException.Create(const msg: string; aCause: Exception);
+begin
+  inherited Create(msg);
+  FResult := VK_RESULT_MAX_ENUM;
+  FCause := aCause;
+end;
+
+{ TVulkanBase }
 
 function TVulkanBase.LoadProc(Name: ansistring): {$ifdef cpui8086}FarPointer{$else}Pointer{$endif};
   {$IFDEF Debug}
@@ -10556,17 +11768,6 @@ end;
 
 { TVulkanDebugUtilsExtension }
 
-procedure TVulkanDebugUtilsExtension.SetDevice(AValue: VkDevice);
-begin
-  if FDevice = AValue then Exit;
-  FDevice := AValue;
-end;
-
-procedure TVulkanDebugUtilsExtension.SetInstance(AValue: VkInstance);
-begin
-  if FInstance = AValue then Exit;
-  FInstance := AValue;
-end;
 
 procedure TVulkanDebugUtilsExtension.SetvkGetDeviceProcAddr(AValue: TVKGetDeviceProcAddr);
 begin
@@ -10587,6 +11788,12 @@ begin
     Pointer(FvkCreateDebugUtilsMessengerEXT) := FvkGetInstanceProcAddr(FInstance, 'vkCreateDebugUtilsMessengerEXT');
     Pointer(FvkDestroyDebugUtilsMessengerEXT) := FvkGetInstanceProcAddr(FInstance, 'vkDestroyDebugUtilsMessengerEXT');
     Pointer(FvkSubmitDebugUtilsMessageEXT) := FvkGetInstanceProcAddr(FInstance, 'vkSubmitDebugUtilsMessageEXT');
+    if not Assigned(FvkCreateDebugUtilsMessengerEXT) then
+      Writeln('vkCreateDebugUtilsMessengerEXT non caricata');
+    if not Assigned(FvkDestroyDebugUtilsMessengerEXT) then
+      Writeln('vkDestroyDebugUtilsMessengerEXT non caricata');
+    if not Assigned(FvkSubmitDebugUtilsMessageEXT) then
+      Writeln('vkSubmitDebugUtilsMessageEXT non caricata');
   end;
 
   if FDevice <> nil then
@@ -10650,7 +11857,7 @@ begin
   FvkCmdInsertDebugUtilsLabelEXT(commandBuffer, pLabelInfo);
 end;
 
-function TVulkanDebugUtilsExtension.vkCreateDebugUtilsMessengerEXT(pCreateInfo: PVkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult;
+function TVulkanDebugUtilsExtension.vkCreateDebugUtilsMessengerEXT(var pCreateInfo: VkDebugUtilsMessengerCreateInfoEXT; pAllocator: PVkAllocationCallbacks; pMessenger: PVkDebugUtilsMessengerEXT): VkResult;
 begin
   canCall(Pointer(FvkCreateDebugUtilsMessengerEXT), 'vkCreateDebugUtilsMessengerEXT');
   Result := FvkCreateDebugUtilsMessengerEXT(FInstance, pCreateInfo, pAllocator, pMessenger);
@@ -10723,73 +11930,148 @@ begin
   Bind(Pointer(FVKGetInstanceProcAddr), 'vkGetInstanceProcAddr', True); // Mandatory
 end;
 
-procedure TVulkan10.bindEntryInstance(instance: VkInstance);
+procedure TVulkan10.bindEntryInstance(aInstance: VkInstance);
 begin
-  BindInstance(Pointer(FVKDestroyInstance), 'vkDestroyInstance', instance);
-  BindInstance(Pointer(FVKEnumeratePhysicalDevices), 'vkEnumeratePhysicalDevices', instance);
-  BindInstance(Pointer(FVKGetPhysicalDeviceFeatures), 'vkGetPhysicalDeviceFeatures', instance);
-  BindInstance(Pointer(FVKGetPhysicalDeviceFormatProperties), 'vkGetPhysicalDeviceFormatProperties', instance);
-  BindInstance(Pointer(FVKGetPhysicalDeviceImageFormatProperties), 'vkGetPhysicalDeviceImageFormatProperties', instance);
-  BindInstance(Pointer(FVKGetPhysicalDeviceProperties), 'vkGetPhysicalDeviceProperties', instance);
-  BindInstance(Pointer(FVKGetPhysicalDeviceQueueFamilyProperties), 'vkGetPhysicalDeviceQueueFamilyProperties', instance);
-  BindInstance(Pointer(FVKGetPhysicalDeviceMemoryProperties), 'vkGetPhysicalDeviceMemoryProperties', instance);
-  BindInstance(Pointer(FVKGetPhysicalDeviceSparseImageFormatProperties), 'vkGetPhysicalDeviceSparseImageFormatProperties', instance);
-  BindInstance(Pointer(FVKEnumerateDeviceExtensionProperties), 'vkEnumerateDeviceExtensionProperties', instance);
-  BindInstance(Pointer(FVKEnumerateDeviceLayerProperties), 'vkEnumerateDeviceLayerProperties', instance);
-  BindInstance(Pointer(FVKCreateDevice), 'vkCreateDevice', instance);
-  BindInstance(Pointer(FVKGetDeviceProcAddr), 'vkGetDeviceProcAddr', instance);
+  BindInstance(Pointer(FvkDestroyInstance), 'vkDestroyInstance', aInstance, True);
+  BindInstance(Pointer(FvkEnumeratePhysicalDevices), 'vkEnumeratePhysicalDevices', aInstance, True);
+  BindInstance(Pointer(FvkGetPhysicalDeviceFeatures), 'vkGetPhysicalDeviceFeatures', aInstance, True);
+  BindInstance(Pointer(FvkGetPhysicalDeviceFormatProperties), 'vkGetPhysicalDeviceFormatProperties', aInstance, True);
+  BindInstance(Pointer(FvkGetPhysicalDeviceImageFormatProperties), 'vkGetPhysicalDeviceImageFormatProperties', aInstance, True);
+  BindInstance(Pointer(FvkGetPhysicalDeviceProperties), 'vkGetPhysicalDeviceProperties', aInstance, True);
+  BindInstance(Pointer(FvkGetPhysicalDeviceQueueFamilyProperties), 'vkGetPhysicalDeviceQueueFamilyProperties', aInstance, True);
+  BindInstance(Pointer(FvkGetPhysicalDeviceMemoryProperties), 'vkGetPhysicalDeviceMemoryProperties', aInstance, True);
+  BindInstance(Pointer(FvkGetInstanceProcAddr), 'vkGetInstanceProcAddr', aInstance, True);
+  BindInstance(Pointer(FvkEnumerateInstanceExtensionProperties), 'vkEnumerateInstanceExtensionProperties', aInstance, True);
+  BindInstance(Pointer(FvkEnumerateDeviceExtensionProperties), 'vkEnumerateDeviceExtensionProperties', aInstance, True);
+  BindInstance(Pointer(FvkEnumerateInstanceLayerProperties), 'vkEnumerateInstanceLayerProperties', aInstance, True);
+  BindInstance(Pointer(FvkEnumerateDeviceLayerProperties), 'vkEnumerateDeviceLayerProperties', aInstance, True);
+  BindInstance(Pointer(FvkCreateDevice), 'vkCreateDevice', aInstance, True);
+  BindInstance(Pointer(FvkGetDeviceProcAddr), 'vkGetDeviceProcAddr', aInstance, True);
 end;
 
-procedure TVulkan10.bindEntryDevice(device: VkDevice);
+procedure TVulkan10.bindEntryDevice(aDevice: VkDevice);
 begin
-  inherited bindEntryDevice(device);
-  BindDevice(Pointer(FVKAllocateMemory), 'vkAllocateMemory', device);
-  BindDevice(Pointer(FVKBindBufferMemory), 'vkBindBufferMemory', device);
-  BindDevice(Pointer(FVKBindImageMemory), 'vkBindImageMemory', device);
-  BindDevice(Pointer(FVKCreateFramebuffer), 'vkCreateFramebuffer', device);
-  BindDevice(Pointer(FVKCreateGraphicsPipelines), 'vkCreateGraphicsPipelines', device);
-  BindDevice(Pointer(FVKCreateRenderPass), 'vkCreateRenderPass', device);
-  BindDevice(Pointer(FVKDeviceWaitIdle), 'vkDeviceWaitIdle', device);
-  BindDevice(Pointer(FVKFlushMappedMemoryRanges), 'vkFlushMappedMemoryRanges', device);
-  BindDevice(Pointer(FVKInvalidateMappedMemoryRanges), 'vkInvalidateMappedMemoryRanges', device);
-  BindDevice(Pointer(FVKMapMemory), 'vkMapMemory', device);
-  BindDevice(Pointer(FVKQueueBindSparse), 'vkQueueBindSparse', device);
-  BindDevice(Pointer(FVKQueueSubmit), 'vkQueueSubmit', device);
-  BindDevice(Pointer(FVKQueueWaitIdle), 'vkQueueWaitIdle', device);
-  BindDevice(Pointer(FVKCmdBeginRenderPass), 'vkCmdBeginRenderPass', device);
-  BindDevice(Pointer(FVKCmdBindIndexBuffer), 'vkCmdBindIndexBuffer', device);
-  BindDevice(Pointer(FVKCmdBindVertexBuffers), 'vkCmdBindVertexBuffers', device);
-  BindDevice(Pointer(FVKCmdBlitImage), 'vkCmdBlitImage', device);
-  BindDevice(Pointer(FVKCmdClearAttachments), 'vkCmdClearAttachments', device);
-  BindDevice(Pointer(FVKCmdClearDepthStencilImage), 'vkCmdClearDepthStencilImage', device);
-  BindDevice(Pointer(FVKCmdDraw), 'vkCmdDraw', device);
-  BindDevice(Pointer(FVKCmdDrawIndexed), 'vkCmdDrawIndexed', device);
-  BindDevice(Pointer(FVKCmdDrawIndexedIndirect), 'vkCmdDrawIndexedIndirect', device);
-  BindDevice(Pointer(FVKCmdDrawIndirect), 'vkCmdDrawIndirect', device);
-  BindDevice(Pointer(FVKCmdEndRenderPass), 'vkCmdEndRenderPass', device);
-  BindDevice(Pointer(FVKCmdNextSubpass), 'vkCmdNextSubpass', device);
-  BindDevice(Pointer(FVKCmdPushConstants), 'vkCmdPushConstants', device);
-  BindDevice(Pointer(FVKCmdResolveImage), 'vkCmdResolveImage', device);
-  BindDevice(Pointer(FVKCmdSetBlendConstants), 'vkCmdSetBlendConstants', device);
-  BindDevice(Pointer(FVKCmdSetDepthBias), 'vkCmdSetDepthBias', device);
-  BindDevice(Pointer(FVKCmdSetDepthBounds), 'vkCmdSetDepthBounds', device);
-  BindDevice(Pointer(FVKCmdSetLineWidth), 'vkCmdSetLineWidth', device);
-  BindDevice(Pointer(FVKCmdSetScissor), 'vkCmdSetScissor', device);
-  BindDevice(Pointer(FVKCmdSetStencilCompareMask), 'vkCmdSetStencilCompareMask', device);
-  BindDevice(Pointer(FVKCmdSetStencilReference), 'vkCmdSetStencilReference', device);
-  BindDevice(Pointer(FVKCmdSetStencilWriteMask), 'vkCmdSetStencilWriteMask', device);
-  BindDevice(Pointer(FVKCmdSetViewport), 'vkCmdSetViewport', device);
-  BindDevice(Pointer(FVKDestroyDevice), 'vkDestroyDevice', device);
-  BindDevice(Pointer(FVKDestroyFramebuffer), 'vkDestroyFramebuffer', device);
-  BindDevice(Pointer(FVKDestroyRenderPass), 'vkDestroyRenderPass', device);
-  BindDevice(Pointer(FVKFreeMemory), 'vkFreeMemory', device);
-  BindDevice(Pointer(FVKGetBufferMemoryRequirements), 'vkGetBufferMemoryRequirements', device);
-  BindDevice(Pointer(FVKGetDeviceMemoryCommitment), 'vkGetDeviceMemoryCommitment', device);
-  BindDevice(Pointer(FVKGetDeviceQueue), 'vkGetDeviceQueue', device);
-  BindDevice(Pointer(FVKGetImageMemoryRequirements), 'vkGetImageMemoryRequirements', device);
-  BindDevice(Pointer(FVKGetImageSparseMemoryRequirements), 'vkGetImageSparseMemoryRequirements', device);
-  BindDevice(Pointer(FVKGetRenderAreaGranularity), 'vkGetRenderAreaGranularity', device);
-  BindDevice(Pointer(FVKUnmapMemory), 'vkUnmapMemory', device);
+  inherited bindEntryDevice(aDevice);
+  BindDevice(Pointer(FvkDestroyDevice), 'vkDestroyDevice', aDevice, True);
+  BindDevice(Pointer(FvkGetDeviceQueue), 'vkGetDeviceQueue', aDevice, True);
+  BindDevice(Pointer(FvkQueueSubmit), 'vkQueueSubmit', aDevice, True);
+  BindDevice(Pointer(FvkQueueWaitIdle), 'vkQueueWaitIdle', aDevice, True);
+  BindDevice(Pointer(FvkDeviceWaitIdle), 'vkDeviceWaitIdle', aDevice, True);
+  BindDevice(Pointer(FvkAllocateMemory), 'vkAllocateMemory', aDevice, True);
+  BindDevice(Pointer(FvkFreeMemory), 'vkFreeMemory', aDevice, True);
+  BindDevice(Pointer(FvkMapMemory), 'vkMapMemory', aDevice, True);
+  BindDevice(Pointer(FvkUnmapMemory), 'vkUnmapMemory', aDevice, True);
+  BindDevice(Pointer(FvkFlushMappedMemoryRanges), 'vkFlushMappedMemoryRanges', aDevice, True);
+  BindDevice(Pointer(FvkInvalidateMappedMemoryRanges), 'vkInvalidateMappedMemoryRanges', aDevice, True);
+  BindDevice(Pointer(FvkGetDeviceMemoryCommitment), 'vkGetDeviceMemoryCommitment', aDevice, True);
+  BindDevice(Pointer(FvkBindBufferMemory), 'vkBindBufferMemory', aDevice, True);
+  BindDevice(Pointer(FvkBindImageMemory), 'vkBindImageMemory', aDevice, True);
+  BindDevice(Pointer(FvkGetBufferMemoryRequirements), 'vkGetBufferMemoryRequirements', aDevice, True);
+  BindDevice(Pointer(FvkGetImageMemoryRequirements), 'vkGetImageMemoryRequirements', aDevice, True);
+  BindDevice(Pointer(FvkGetImageSparseMemoryRequirements), 'vkGetImageSparseMemoryRequirements', aDevice, True);
+  BindDevice(Pointer(FvkQueueBindSparse), 'vkQueueBindSparse', aDevice, True);
+  BindDevice(Pointer(FvkCreateFence), 'vkCreateFence', aDevice, True);
+  BindDevice(Pointer(FvkDestroyFence), 'vkDestroyFence', aDevice, True);
+  BindDevice(Pointer(FvkResetFences), 'vkResetFences', aDevice, True);
+  BindDevice(Pointer(FvkGetFenceStatus), 'vkGetFenceStatus', aDevice, True);
+  BindDevice(Pointer(FvkWaitForFences), 'vkWaitForFences', aDevice, True);
+  BindDevice(Pointer(FvkCreateSemaphore), 'vkCreateSemaphore', aDevice, True);
+  BindDevice(Pointer(FvkDestroySemaphore), 'vkDestroySemaphore', aDevice, True);
+  BindDevice(Pointer(FvkCreateQueryPool), 'vkCreateQueryPool', aDevice, True);
+  BindDevice(Pointer(FvkDestroyQueryPool), 'vkDestroyQueryPool', aDevice, True);
+  BindDevice(Pointer(FvkGetQueryPoolResults), 'vkGetQueryPoolResults', aDevice, True);
+  BindDevice(Pointer(FvkCreateBuffer), 'vkCreateBuffer', aDevice, True);
+  BindDevice(Pointer(FvkDestroyBuffer), 'vkDestroyBuffer', aDevice, True);
+  BindDevice(Pointer(FvkCreateImage), 'vkCreateImage', aDevice, True);
+  BindDevice(Pointer(FvkDestroyImage), 'vkDestroyImage', aDevice, True);
+  BindDevice(Pointer(FvkGetImageSubresourceLayout), 'vkGetImageSubresourceLayout', aDevice, True);
+  BindDevice(Pointer(FvkCreateImageView), 'vkCreateImageView', aDevice, True);
+  BindDevice(Pointer(FvkDestroyImageView), 'vkDestroyImageView', aDevice, True);
+  BindDevice(Pointer(FvkCreateCommandPool), 'vkCreateCommandPool', aDevice, True);
+  BindDevice(Pointer(FvkDestroyCommandPool), 'vkDestroyCommandPool', aDevice, True);
+  BindDevice(Pointer(FvkResetCommandPool), 'vkResetCommandPool', aDevice, True);
+  BindDevice(Pointer(FvkAllocateCommandBuffers), 'vkAllocateCommandBuffers', aDevice, True);
+  BindDevice(Pointer(FvkFreeCommandBuffers), 'vkFreeCommandBuffers', aDevice, True);
+  BindDevice(Pointer(FvkBeginCommandBuffer), 'vkBeginCommandBuffer', aDevice, True);
+  BindDevice(Pointer(FvkEndCommandBuffer), 'vkEndCommandBuffer', aDevice, True);
+  BindDevice(Pointer(FvkResetCommandBuffer), 'vkResetCommandBuffer', aDevice, True);
+  BindDevice(Pointer(FvkCmdCopyBuffer), 'vkCmdCopyBuffer', aDevice, True);
+  BindDevice(Pointer(FvkCmdCopyImage), 'vkCmdCopyImage', aDevice, True);
+  BindDevice(Pointer(FvkCmdCopyBufferToImage), 'vkCmdCopyBufferToImage', aDevice, True);
+  BindDevice(Pointer(FvkCmdCopyImageToBuffer), 'vkCmdCopyImageToBuffer', aDevice, True);
+  BindDevice(Pointer(FvkCmdUpdateBuffer), 'vkCmdUpdateBuffer', aDevice, True);
+  BindDevice(Pointer(FvkCmdFillBuffer), 'vkCmdFillBuffer', aDevice, True);
+  BindDevice(Pointer(FvkCmdPipelineBarrier), 'vkCmdPipelineBarrier', aDevice, True);
+  BindDevice(Pointer(FvkCmdBeginQuery), 'vkCmdBeginQuery', aDevice, True);
+  BindDevice(Pointer(FvkCmdEndQuery), 'vkCmdEndQuery', aDevice, True);
+  BindDevice(Pointer(FvkCmdResetQueryPool), 'vkCmdResetQueryPool', aDevice, True);
+  BindDevice(Pointer(FvkCmdWriteTimestamp), 'vkCmdWriteTimestamp', aDevice, True);
+  BindDevice(Pointer(FvkCmdCopyQueryPoolResults), 'vkCmdCopyQueryPoolResults', aDevice, True);
+  BindDevice(Pointer(FvkCmdExecuteCommands), 'vkCmdExecuteCommands', aDevice, True);
+  BindDevice(Pointer(FvkCreateEvent), 'vkCreateEvent', aDevice, True);
+  BindDevice(Pointer(FvkDestroyEvent), 'vkDestroyEvent', aDevice, True);
+  BindDevice(Pointer(FvkGetEventStatus), 'vkGetEventStatus', aDevice, True);
+  BindDevice(Pointer(FvkSetEvent), 'vkSetEvent', aDevice, True);
+  BindDevice(Pointer(FvkResetEvent), 'vkResetEvent', aDevice, True);
+  BindDevice(Pointer(FvkCreateBufferView), 'vkCreateBufferView', aDevice, True);
+  BindDevice(Pointer(FvkDestroyBufferView), 'vkDestroyBufferView', aDevice, True);
+  BindDevice(Pointer(FvkCreateShaderModule), 'vkCreateShaderModule', aDevice, True);
+  BindDevice(Pointer(FvkDestroyShaderModule), 'vkDestroyShaderModule', aDevice, True);
+  BindDevice(Pointer(FvkCreatePipelineCache), 'vkCreatePipelineCache', aDevice, True);
+  BindDevice(Pointer(FvkDestroyPipelineCache), 'vkDestroyPipelineCache', aDevice, True);
+  BindDevice(Pointer(FvkGetPipelineCacheData), 'vkGetPipelineCacheData', aDevice, True);
+  BindDevice(Pointer(FvkMergePipelineCaches), 'vkMergePipelineCaches', aDevice, True);
+  BindDevice(Pointer(FvkCreateComputePipelines), 'vkCreateComputePipelines', aDevice, True);
+  BindDevice(Pointer(FvkDestroyPipeline), 'vkDestroyPipeline', aDevice, True);
+  BindDevice(Pointer(FvkCreatePipelineLayout), 'vkCreatePipelineLayout', aDevice, True);
+  BindDevice(Pointer(FvkDestroyPipelineLayout), 'vkDestroyPipelineLayout', aDevice, True);
+  BindDevice(Pointer(FvkCreateSampler), 'vkCreateSampler', aDevice, True);
+  BindDevice(Pointer(FvkDestroySampler), 'vkDestroySampler', aDevice, True);
+  BindDevice(Pointer(FvkCreateDescriptorSetLayout), 'vkCreateDescriptorSetLayout', aDevice, True);
+  BindDevice(Pointer(FvkDestroyDescriptorSetLayout), 'vkDestroyDescriptorSetLayout', aDevice, True);
+  BindDevice(Pointer(FvkCreateDescriptorPool), 'vkCreateDescriptorPool', aDevice, True);
+  BindDevice(Pointer(FvkDestroyDescriptorPool), 'vkDestroyDescriptorPool', aDevice, True);
+  BindDevice(Pointer(FvkResetDescriptorPool), 'vkResetDescriptorPool', aDevice, True);
+  BindDevice(Pointer(FvkAllocateDescriptorSets), 'vkAllocateDescriptorSets', aDevice, True);
+  BindDevice(Pointer(FvkFreeDescriptorSets), 'vkFreeDescriptorSets', aDevice, True);
+  BindDevice(Pointer(FvkUpdateDescriptorSets), 'vkUpdateDescriptorSets', aDevice, True);
+  BindDevice(Pointer(FvkCmdBindPipeline), 'vkCmdBindPipeline', aDevice, True);
+  BindDevice(Pointer(FvkCmdBindDescriptorSets), 'vkCmdBindDescriptorSets', aDevice, True);
+  BindDevice(Pointer(FvkCmdClearColorImage), 'vkCmdClearColorImage', aDevice, True);
+  BindDevice(Pointer(FvkCmdDispatch), 'vkCmdDispatch', aDevice, True);
+  BindDevice(Pointer(FvkCmdDispatchIndirect), 'vkCmdDispatchIndirect', aDevice, True);
+  BindDevice(Pointer(FvkCmdSetEvent), 'vkCmdSetEvent', aDevice, True);
+  BindDevice(Pointer(FvkCmdResetEvent), 'vkCmdResetEvent', aDevice, True);
+  BindDevice(Pointer(FvkCmdWaitEvents), 'vkCmdWaitEvents', aDevice, True);
+  BindDevice(Pointer(FvkCmdPushConstants), 'vkCmdPushConstants', aDevice, True);
+  BindDevice(Pointer(FvkCreateGraphicsPipelines), 'vkCreateGraphicsPipelines', aDevice, True);
+  BindDevice(Pointer(FvkCreateFramebuffer), 'vkCreateFramebuffer', aDevice, True);
+  BindDevice(Pointer(FvkDestroyFramebuffer), 'vkDestroyFramebuffer', aDevice, True);
+  BindDevice(Pointer(FvkCreateRenderPass), 'vkCreateRenderPass', aDevice, True);
+  BindDevice(Pointer(FvkDestroyRenderPass), 'vkDestroyRenderPass', aDevice, True);
+  BindDevice(Pointer(FvkGetRenderAreaGranularity), 'vkGetRenderAreaGranularity', aDevice, True);
+  BindDevice(Pointer(FvkCmdSetViewport), 'vkCmdSetViewport', aDevice, True);
+  BindDevice(Pointer(FvkCmdSetScissor), 'vkCmdSetScissor', aDevice, True);
+  BindDevice(Pointer(FvkCmdSetLineWidth), 'vkCmdSetLineWidth', aDevice, True);
+  BindDevice(Pointer(FvkCmdSetDepthBias), 'vkCmdSetDepthBias', aDevice, True);
+  BindDevice(Pointer(FvkCmdSetBlendConstants), 'vkCmdSetBlendConstants', aDevice, True);
+  BindDevice(Pointer(FvkCmdSetDepthBounds), 'vkCmdSetDepthBounds', aDevice, True);
+  BindDevice(Pointer(FvkCmdSetStencilCompareMask), 'vkCmdSetStencilCompareMask', aDevice, True);
+  BindDevice(Pointer(FvkCmdSetStencilWriteMask), 'vkCmdSetStencilWriteMask', aDevice, True);
+  BindDevice(Pointer(FvkCmdSetStencilReference), 'vkCmdSetStencilReference', aDevice, True);
+  BindDevice(Pointer(FvkCmdBindIndexBuffer), 'vkCmdBindIndexBuffer', aDevice, True);
+  BindDevice(Pointer(FvkCmdBindVertexBuffers), 'vkCmdBindVertexBuffers', aDevice, True);
+  BindDevice(Pointer(FvkCmdDraw), 'vkCmdDraw', aDevice, True);
+  BindDevice(Pointer(FvkCmdDrawIndexed), 'vkCmdDrawIndexed', aDevice, True);
+  BindDevice(Pointer(FvkCmdDrawIndirect), 'vkCmdDrawIndirect', aDevice, True);
+  BindDevice(Pointer(FvkCmdDrawIndexedIndirect), 'vkCmdDrawIndexedIndirect', aDevice, True);
+  BindDevice(Pointer(FvkCmdBlitImage), 'vkCmdBlitImage', aDevice, True);
+  BindDevice(Pointer(FvkCmdClearDepthStencilImage), 'vkCmdClearDepthStencilImage', aDevice, True);
+  BindDevice(Pointer(FvkCmdClearAttachments), 'vkCmdClearAttachments', aDevice, True);
+  BindDevice(Pointer(FvkCmdResolveImage), 'vkCmdResolveImage', aDevice, True);
+  BindDevice(Pointer(FvkCmdBeginRenderPass), 'vkCmdBeginRenderPass', aDevice, True);
+  BindDevice(Pointer(FvkCmdNextSubpass), 'vkCmdNextSubpass', aDevice, True);
+  BindDevice(Pointer(FvkCmdEndRenderPass), 'vkCmdEndRenderPass', aDevice, True);
 end;
 
 procedure TVulkan10.BindInstance(var FuncPtr: Pointer; const Name: ansistring; Instance: VkInstance; Mandatory: boolean = False);
@@ -10827,7 +12109,7 @@ end;
 function TVulkan10.vkCreateDevice(physicalDevice: VkPhysicalDevice; pCreateInfo: PVkDeviceCreateInfo; pAllocator: PVkAllocationCallbacks; out pDevice: VkDevice): VkResult;
 begin
   canCall(Pointer(FvkCreateDevice), 'vkCreateDevice');
-  Result := FvkCreateDevice(physicalDevice, pCreateInfo, pAllocator, @pDevice);
+  Result := FvkCreateDevice(physicalDevice, pCreateInfo, pAllocator, pDevice);
   if Result = VK_SUCCESS then
     bindEntryDevice(pDevice);
 end;
@@ -10844,12 +12126,14 @@ begin
   Result := FvkCreateGraphicsPipelines(device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
 end;
 
-function TVulkan10.vkCreateInstance(const pCreateInfo: VkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
+function TVulkan10.vkCreateInstance(var pCreateInfo: VkInstanceCreateInfo; pAllocator: PVkAllocationCallbacks; out pInstance: VkInstance): VkResult;
 begin
   canCall(Pointer(FvkCreateInstance), 'vkCreateInstance');
-  Result := FvkCreateInstance(@pCreateInfo, pAllocator, @pInstance);
+  Result := FvkCreateInstance(pCreateInfo, pAllocator, pInstance);
   if Result = VK_SUCCESS then
-    bindEntryInstance(pInstance);
+    bindEntryInstance(pInstance)
+  else
+    raise EVulkanCallException.Create('vkCreateInstance', Result);
 end;
 
 function TVulkan10.vkCreateRenderPass(device: VkDevice; pCreateInfo: PVkRenderPassCreateInfo; pAllocator: PVkAllocationCallbacks; pRenderPass: PVkRenderPass): VkResult;
@@ -10864,7 +12148,7 @@ begin
   Result := FvkDeviceWaitIdle(device);
 end;
 
-function TVulkan10.vkEnumerateDeviceExtensionProperties(physicalDevice: VkPhysicalDevice; pLayerName: pansichar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
+function TVulkan10.vkEnumerateDeviceExtensionProperties(physicalDevice: VkPhysicalDevice; pLayerName: pchar; pPropertyCount: PUInt32; pProperties: PVkExtensionProperties): VkResult;
 begin
   canCall(Pointer(FvkEnumerateDeviceExtensionProperties), 'vkEnumerateDeviceExtensionProperties');
   Result := FvkEnumerateDeviceExtensionProperties(physicalDevice, pLayerName, pPropertyCount, pProperties);
@@ -10876,7 +12160,7 @@ begin
   Result := FvkEnumerateDeviceLayerProperties(physicalDevice, pPropertyCount, pProperties);
 end;
 
-function TVulkan10.vkEnumerateInstanceExtensionProperties(pLayerName: pansichar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
+function TVulkan10.vkEnumerateInstanceExtensionProperties(pLayerName: pchar; pPropertyCount: Puint32; pProperties: PVkExtensionProperties): VkResult;
 begin
   canCall(Pointer(FvkEnumerateInstanceExtensionProperties), 'vkEnumerateInstanceExtensionProperties');
   Result := FvkEnumerateInstanceExtensionProperties(pLayerName, pPropertyCount, pProperties);
@@ -10900,13 +12184,13 @@ begin
   Result := FvkFlushMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges);
 end;
 
-function TVulkan10.vkGetDeviceProcAddr(device: VkDevice; pName: pansichar): TVKVoidFunction;
+function TVulkan10.vkGetDeviceProcAddr(device: VkDevice; pName: pchar): TVKVoidFunction;
 begin
   canCall(Pointer(FvkGetDeviceProcAddr), 'vkGetDeviceProcAddr');
   Result := FvkGetDeviceProcAddr(device, pName);
 end;
 
-function TVulkan10.vkGetInstanceProcAddr(instance: VkInstance; pName: pansichar): TVKVoidFunction;
+function TVulkan10.vkGetInstanceProcAddr(instance: VkInstance; pName: pchar): TVKVoidFunction;
 begin
   canCall(Pointer(FvkGetInstanceProcAddr), 'vkGetInstanceProcAddr');
   Result := FvkGetInstanceProcAddr(instance, pName);
@@ -11182,6 +12466,451 @@ begin
   FvkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice, format, type_, samples, usage, tiling, pPropertyCount, pProperties);
 end;
 
+function TVulkan10.vkCreateFence(device: VkDevice; pCreateInfo: PVkFenceCreateInfo; pAllocator: PVkAllocationCallbacks; pFence: PVkFence): VkResult;
+begin
+  canCall(Pointer(FvkCreateFence), 'vkCreateFence');
+  Result := FvkCreateFence(device, pCreateInfo, pAllocator, pFence);
+end;
+
+procedure TVulkan10.vkDestroyFence(device: VkDevice; fence: VkFence; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyFence), 'vkDestroyFence');
+  FvkDestroyFence(device, fence, pAllocator);
+end;
+
+function TVulkan10.vkResetFences(device: VkDevice; fenceCount: uint32; pFences: PVkFence): VkResult;
+begin
+  canCall(Pointer(FvkResetFences), 'vkResetFences');
+  Result := FvkResetFences(device, fenceCount, pFences);
+end;
+
+function TVulkan10.vkGetFenceStatus(device: VkDevice; fence: VkFence): VkResult;
+begin
+  canCall(Pointer(FvkGetFenceStatus), 'vkGetFenceStatus');
+  Result := FvkGetFenceStatus(device, fence);
+end;
+
+function TVulkan10.vkWaitForFences(device: VkDevice; fenceCount: uint32; pFences: PVkFence; waitAll: VkBool32; timeout: uint64): VkResult;
+begin
+  canCall(Pointer(FvkWaitForFences), 'vkWaitForFences');
+  Result := FvkWaitForFences(device, fenceCount, pFences, waitAll, timeout);
+end;
+
+function TVulkan10.vkCreateSemaphore(device: VkDevice; pCreateInfo: PVkSemaphoreCreateInfo; pAllocator: PVkAllocationCallbacks; pSemaphore: PVkSemaphore): VkResult;
+begin
+  canCall(Pointer(FvkCreateSemaphore), 'vkCreateSemaphore');
+  Result := FvkCreateSemaphore(device, pCreateInfo, pAllocator, pSemaphore);
+end;
+
+procedure TVulkan10.vkDestroySemaphore(device: VkDevice; semaphore: VkSemaphore; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroySemaphore), 'vkDestroySemaphore');
+  FvkDestroySemaphore(device, semaphore, pAllocator);
+end;
+
+function TVulkan10.vkCreateQueryPool(device: VkDevice; pCreateInfo: PVkQueryPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pQueryPool: PVkQueryPool): VkResult;
+begin
+  canCall(Pointer(FvkCreateQueryPool), 'vkCreateQueryPool');
+  Result := FvkCreateQueryPool(device, pCreateInfo, pAllocator, pQueryPool);
+end;
+
+procedure TVulkan10.vkDestroyQueryPool(device: VkDevice; queryPool: VkQueryPool; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyQueryPool), 'vkDestroyQueryPool');
+  FvkDestroyQueryPool(device, queryPool, pAllocator);
+end;
+
+function TVulkan10.vkGetQueryPoolResults(device: VkDevice; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32; dataSize: size_t; pData: Pointer; stride: VkDeviceSize; flags: VkQueryResultFlags): VkResult;
+begin
+  canCall(Pointer(FvkGetQueryPoolResults), 'vkGetQueryPoolResults');
+  Result := FvkGetQueryPoolResults(device, queryPool, firstQuery, queryCount, dataSize, pData, stride, flags);
+end;
+
+function TVulkan10.vkCreateBuffer(device: VkDevice; pCreateInfo: PVkBufferCreateInfo; pAllocator: PVkAllocationCallbacks; pBuffer: PVkBuffer): VkResult;
+begin
+  canCall(Pointer(FvkCreateBuffer), 'vkCreateBuffer');
+  Result := FvkCreateBuffer(device, pCreateInfo, pAllocator, pBuffer);
+end;
+
+procedure TVulkan10.vkDestroyBuffer(device: VkDevice; buffer: VkBuffer; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyBuffer), 'vkDestroyBuffer');
+  FvkDestroyBuffer(device, buffer, pAllocator);
+end;
+
+function TVulkan10.vkCreateImage(device: VkDevice; pCreateInfo: PVkImageCreateInfo; pAllocator: PVkAllocationCallbacks; pImage: PVkImage): VkResult;
+begin
+  canCall(Pointer(FvkCreateImage), 'vkCreateImage');
+  Result := FvkCreateImage(device, pCreateInfo, pAllocator, pImage);
+end;
+
+procedure TVulkan10.vkDestroyImage(device: VkDevice; image: VkImage; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyImage), 'vkDestroyImage');
+  FvkDestroyImage(device, image, pAllocator);
+end;
+
+procedure TVulkan10.vkGetImageSubresourceLayout(device: VkDevice; image: VkImage; pSubresource: PVkImageSubresource; pLayout: PVkSubresourceLayout);
+begin
+  canCall(Pointer(FvkGetImageSubresourceLayout), 'vkGetImageSubresourceLayout');
+  FvkGetImageSubresourceLayout(device, image, pSubresource, pLayout);
+end;
+
+function TVulkan10.vkCreateImageView(device: VkDevice; pCreateInfo: PVkImageViewCreateInfo; pAllocator: PVkAllocationCallbacks; pView: PVkImageView): VkResult;
+begin
+  canCall(Pointer(FvkCreateImageView), 'vkCreateImageView');
+  Result := FvkCreateImageView(device, pCreateInfo, pAllocator, pView);
+end;
+
+procedure TVulkan10.vkDestroyImageView(device: VkDevice; imageView: VkImageView; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyImageView), 'vkDestroyImageView');
+  FvkDestroyImageView(device, imageView, pAllocator);
+end;
+
+function TVulkan10.vkCreateCommandPool(device: VkDevice; pCreateInfo: PVkCommandPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pCommandPool: PVkCommandPool): VkResult;
+begin
+  canCall(Pointer(FvkCreateCommandPool), 'vkCreateCommandPool');
+  Result := FvkCreateCommandPool(device, pCreateInfo, pAllocator, pCommandPool);
+end;
+
+procedure TVulkan10.vkDestroyCommandPool(device: VkDevice; commandPool: VkCommandPool; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyCommandPool), 'vkDestroyCommandPool');
+  FvkDestroyCommandPool(device, commandPool, pAllocator);
+end;
+
+function TVulkan10.vkResetCommandPool(device: VkDevice; commandPool: VkCommandPool; flags: VkCommandPoolResetFlags): VkResult;
+begin
+  canCall(Pointer(FvkResetCommandPool), 'vkResetCommandPool');
+  Result := FvkResetCommandPool(device, commandPool, flags);
+end;
+
+function TVulkan10.vkAllocateCommandBuffers(device: VkDevice; pAllocateInfo: PVkCommandBufferAllocateInfo; pCommandBuffers: PVkCommandBuffer): VkResult;
+begin
+  canCall(Pointer(FvkAllocateCommandBuffers), 'vkAllocateCommandBuffers');
+  Result := FvkAllocateCommandBuffers(device, pAllocateInfo, pCommandBuffers);
+end;
+
+procedure TVulkan10.vkFreeCommandBuffers(device: VkDevice; commandPool: VkCommandPool; commandBufferCount: uint32; pCommandBuffers: PVkCommandBuffer);
+begin
+  canCall(Pointer(FvkFreeCommandBuffers), 'vkFreeCommandBuffers');
+  FvkFreeCommandBuffers(device, commandPool, commandBufferCount, pCommandBuffers);
+end;
+
+function TVulkan10.vkBeginCommandBuffer(commandBuffer: VkCommandBuffer; pBeginInfo: PVkCommandBufferBeginInfo): VkResult;
+begin
+  canCall(Pointer(FvkBeginCommandBuffer), 'vkBeginCommandBuffer');
+  Result := FvkBeginCommandBuffer(commandBuffer, pBeginInfo);
+end;
+
+function TVulkan10.vkEndCommandBuffer(commandBuffer: VkCommandBuffer): VkResult;
+begin
+  canCall(Pointer(FvkEndCommandBuffer), 'vkEndCommandBuffer');
+  Result := FvkEndCommandBuffer(commandBuffer);
+end;
+
+function TVulkan10.vkResetCommandBuffer(commandBuffer: VkCommandBuffer; flags: VkCommandBufferResetFlags): VkResult;
+begin
+  canCall(Pointer(FvkResetCommandBuffer), 'vkResetCommandBuffer');
+  Result := FvkResetCommandBuffer(commandBuffer, flags);
+end;
+
+procedure TVulkan10.vkCmdCopyBuffer(commandBuffer: VkCommandBuffer; srcBuffer: VkBuffer; dstBuffer: VkBuffer; regionCount: uint32; pRegions: PVkBufferCopy);
+begin
+  canCall(Pointer(FvkCmdCopyBuffer), 'vkCmdCopyBuffer');
+  FvkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, regionCount, pRegions);
+end;
+
+procedure TVulkan10.vkCmdCopyImage(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkImageCopy);
+begin
+  canCall(Pointer(FvkCmdCopyImage), 'vkCmdCopyImage');
+  FvkCmdCopyImage(commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
+end;
+
+procedure TVulkan10.vkCmdCopyBufferToImage(commandBuffer: VkCommandBuffer; srcBuffer: VkBuffer; dstImage: VkImage; dstImageLayout: VkImageLayout; regionCount: uint32; pRegions: PVkBufferImageCopy);
+begin
+  canCall(Pointer(FvkCmdCopyBufferToImage), 'vkCmdCopyBufferToImage');
+  FvkCmdCopyBufferToImage(commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions);
+end;
+
+procedure TVulkan10.vkCmdCopyImageToBuffer(commandBuffer: VkCommandBuffer; srcImage: VkImage; srcImageLayout: VkImageLayout; dstBuffer: VkBuffer; regionCount: uint32; pRegions: PVkBufferImageCopy);
+begin
+  canCall(Pointer(FvkCmdCopyImageToBuffer), 'vkCmdCopyImageToBuffer');
+  FvkCmdCopyImageToBuffer(commandBuffer, srcImage, srcImageLayout, dstBuffer, regionCount, pRegions);
+end;
+
+procedure TVulkan10.vkCmdUpdateBuffer(commandBuffer: VkCommandBuffer; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; dataSize: VkDeviceSize; pData: Pointer);
+begin
+  canCall(Pointer(FvkCmdUpdateBuffer), 'vkCmdUpdateBuffer');
+  FvkCmdUpdateBuffer(commandBuffer, dstBuffer, dstOffset, dataSize, pData);
+end;
+
+procedure TVulkan10.vkCmdFillBuffer(commandBuffer: VkCommandBuffer; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; size: VkDeviceSize; Data: uint32);
+begin
+  canCall(Pointer(FvkCmdFillBuffer), 'vkCmdFillBuffer');
+  FvkCmdFillBuffer(commandBuffer, dstBuffer, dstOffset, size, Data);
+end;
+
+procedure TVulkan10.vkCmdPipelineBarrier(commandBuffer: VkCommandBuffer; srcStageMask: VkPipelineStageFlags; dstStageMask: VkPipelineStageFlags; dependencyFlags: VkDependencyFlags; memoryBarrierCount: uint32; pMemoryBarriers: PVkMemoryBarrier; bufferMemoryBarrierCount: uint32; pBufferMemoryBarriers: PVkBufferMemoryBarrier; imageMemoryBarrierCount: uint32; pImageMemoryBarriers: PVkImageMemoryBarrier);
+begin
+  canCall(Pointer(FvkCmdPipelineBarrier), 'vkCmdPipelineBarrier');
+  FvkCmdPipelineBarrier(commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+end;
+
+procedure TVulkan10.vkCmdBeginQuery(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; query: uint32; flags: VkQueryControlFlags);
+begin
+  canCall(Pointer(FvkCmdBeginQuery), 'vkCmdBeginQuery');
+  FvkCmdBeginQuery(commandBuffer, queryPool, query, flags);
+end;
+
+procedure TVulkan10.vkCmdEndQuery(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; query: uint32);
+begin
+  canCall(Pointer(FvkCmdEndQuery), 'vkCmdEndQuery');
+  FvkCmdEndQuery(commandBuffer, queryPool, query);
+end;
+
+procedure TVulkan10.vkCmdResetQueryPool(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32);
+begin
+  canCall(Pointer(FvkCmdResetQueryPool), 'vkCmdResetQueryPool');
+  FvkCmdResetQueryPool(commandBuffer, queryPool, firstQuery, queryCount);
+end;
+
+procedure TVulkan10.vkCmdWriteTimestamp(commandBuffer: VkCommandBuffer; pipelineStage: VkPipelineStageFlagBits; queryPool: VkQueryPool; query: uint32);
+begin
+  canCall(Pointer(FvkCmdWriteTimestamp), 'vkCmdWriteTimestamp');
+  FvkCmdWriteTimestamp(commandBuffer, pipelineStage, queryPool, query);
+end;
+
+procedure TVulkan10.vkCmdCopyQueryPoolResults(commandBuffer: VkCommandBuffer; queryPool: VkQueryPool; firstQuery: uint32; queryCount: uint32; dstBuffer: VkBuffer; dstOffset: VkDeviceSize; stride: VkDeviceSize; flags: VkQueryResultFlags);
+begin
+  canCall(Pointer(FvkCmdCopyQueryPoolResults), 'vkCmdCopyQueryPoolResults');
+  FvkCmdCopyQueryPoolResults(commandBuffer, queryPool, firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
+end;
+
+procedure TVulkan10.vkCmdExecuteCommands(commandBuffer: VkCommandBuffer; commandBufferCount: uint32; pCommandBuffers: PVkCommandBuffer);
+begin
+  canCall(Pointer(FvkCmdExecuteCommands), 'vkCmdExecuteCommands');
+  FvkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers);
+end;
+
+function TVulkan10.vkCreateEvent(device: VkDevice; pCreateInfo: PVkEventCreateInfo; pAllocator: PVkAllocationCallbacks; pEvent: PVkEvent): VkResult;
+begin
+  canCall(Pointer(FvkCreateEvent), 'vkCreateEvent');
+  Result := FvkCreateEvent(device, pCreateInfo, pAllocator, pEvent);
+end;
+
+procedure TVulkan10.vkDestroyEvent(device: VkDevice; event: VkEvent; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyEvent), 'vkDestroyEvent');
+  FvkDestroyEvent(device, event, pAllocator);
+end;
+
+function TVulkan10.vkGetEventStatus(device: VkDevice; event: VkEvent): VkResult;
+begin
+  canCall(Pointer(FvkGetEventStatus), 'vkGetEventStatus');
+  Result := FvkGetEventStatus(device, event);
+end;
+
+function TVulkan10.vkSetEvent(device: VkDevice; event: VkEvent): VkResult;
+begin
+  canCall(Pointer(FvkSetEvent), 'vkSetEvent');
+  Result := FvkSetEvent(device, event);
+end;
+
+function TVulkan10.vkResetEvent(device: VkDevice; event: VkEvent): VkResult;
+begin
+  canCall(Pointer(FvkResetEvent), 'vkResetEvent');
+  Result := FvkResetEvent(device, event);
+end;
+
+function TVulkan10.vkCreateBufferView(device: VkDevice; pCreateInfo: PVkBufferViewCreateInfo; pAllocator: PVkAllocationCallbacks; pView: PVkBufferView): VkResult;
+begin
+  canCall(Pointer(FvkCreateBufferView), 'vkCreateBufferView');
+  Result := FvkCreateBufferView(device, pCreateInfo, pAllocator, pView);
+end;
+
+procedure TVulkan10.vkDestroyBufferView(device: VkDevice; bufferView: VkBufferView; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyBufferView), 'vkDestroyBufferView');
+  FvkDestroyBufferView(device, bufferView, pAllocator);
+end;
+
+function TVulkan10.vkCreateShaderModule(device: VkDevice; pCreateInfo: PVkShaderModuleCreateInfo; pAllocator: PVkAllocationCallbacks; pShaderModule: PVkShaderModule): VkResult;
+begin
+  canCall(Pointer(FvkCreateShaderModule), 'vkCreateShaderModule');
+  Result := FvkCreateShaderModule(device, pCreateInfo, pAllocator, pShaderModule);
+end;
+
+procedure TVulkan10.vkDestroyShaderModule(device: VkDevice; shaderModule: VkShaderModule; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyShaderModule), 'vkDestroyShaderModule');
+  FvkDestroyShaderModule(device, shaderModule, pAllocator);
+end;
+
+function TVulkan10.vkCreatePipelineCache(device: VkDevice; pCreateInfo: PVkPipelineCacheCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelineCache: PVkPipelineCache): VkResult;
+begin
+  canCall(Pointer(FvkCreatePipelineCache), 'vkCreatePipelineCache');
+  Result := FvkCreatePipelineCache(device, pCreateInfo, pAllocator, pPipelineCache);
+end;
+
+procedure TVulkan10.vkDestroyPipelineCache(device: VkDevice; pipelineCache: VkPipelineCache; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyPipelineCache), 'vkDestroyPipelineCache');
+  FvkDestroyPipelineCache(device, pipelineCache, pAllocator);
+end;
+
+function TVulkan10.vkGetPipelineCacheData(device: VkDevice; pipelineCache: VkPipelineCache; pDataSize: PNativeUInt; pData: Pointer): VkResult;
+begin
+  canCall(Pointer(FvkGetPipelineCacheData), 'vkGetPipelineCacheData');
+  Result := FvkGetPipelineCacheData(device, pipelineCache, pDataSize, pData);
+end;
+
+function TVulkan10.vkMergePipelineCaches(device: VkDevice; dstCache: VkPipelineCache; srcCacheCount: uint32; pSrcCaches: PVkPipelineCache): VkResult;
+begin
+  canCall(Pointer(FvkMergePipelineCaches), 'vkMergePipelineCaches');
+  Result := FvkMergePipelineCaches(device, dstCache, srcCacheCount, pSrcCaches);
+end;
+
+function TVulkan10.vkCreateComputePipelines(device: VkDevice; pipelineCache: VkPipelineCache; createInfoCount: uint32; pCreateInfos: PVkComputePipelineCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelines: PVkPipeline): VkResult;
+begin
+  canCall(Pointer(FvkCreateComputePipelines), 'vkCreateComputePipelines');
+  Result := FvkCreateComputePipelines(device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
+end;
+
+procedure TVulkan10.vkDestroyPipeline(device: VkDevice; pipeline: VkPipeline; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyPipeline), 'vkDestroyPipeline');
+  FvkDestroyPipeline(device, pipeline, pAllocator);
+end;
+
+function TVulkan10.vkCreatePipelineLayout(device: VkDevice; pCreateInfo: PVkPipelineLayoutCreateInfo; pAllocator: PVkAllocationCallbacks; pPipelineLayout: PVkPipelineLayout): VkResult;
+begin
+  canCall(Pointer(FvkCreatePipelineLayout), 'vkCreatePipelineLayout');
+  Result := FvkCreatePipelineLayout(device, pCreateInfo, pAllocator, pPipelineLayout);
+end;
+
+procedure TVulkan10.vkDestroyPipelineLayout(device: VkDevice; pipelineLayout: VkPipelineLayout; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyPipelineLayout), 'vkDestroyPipelineLayout');
+  FvkDestroyPipelineLayout(device, pipelineLayout, pAllocator);
+end;
+
+function TVulkan10.vkCreateSampler(device: VkDevice; pCreateInfo: PVkSamplerCreateInfo; pAllocator: PVkAllocationCallbacks; pSampler: PVkSampler): VkResult;
+begin
+  canCall(Pointer(FvkCreateSampler), 'vkCreateSampler');
+  Result := FvkCreateSampler(device, pCreateInfo, pAllocator, pSampler);
+end;
+
+procedure TVulkan10.vkDestroySampler(device: VkDevice; sampler: VkSampler; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroySampler), 'vkDestroySampler');
+  FvkDestroySampler(device, sampler, pAllocator);
+end;
+
+function TVulkan10.vkCreateDescriptorSetLayout(device: VkDevice; pCreateInfo: PVkDescriptorSetLayoutCreateInfo; pAllocator: PVkAllocationCallbacks; pSetLayout: PVkDescriptorSetLayout): VkResult;
+begin
+  canCall(Pointer(FvkCreateDescriptorSetLayout), 'vkCreateDescriptorSetLayout');
+  Result := FvkCreateDescriptorSetLayout(device, pCreateInfo, pAllocator, pSetLayout);
+end;
+
+procedure TVulkan10.vkDestroyDescriptorSetLayout(device: VkDevice; descriptorSetLayout: VkDescriptorSetLayout; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyDescriptorSetLayout), 'vkDestroyDescriptorSetLayout');
+  FvkDestroyDescriptorSetLayout(device, descriptorSetLayout, pAllocator);
+end;
+
+function TVulkan10.vkCreateDescriptorPool(device: VkDevice; pCreateInfo: PVkDescriptorPoolCreateInfo; pAllocator: PVkAllocationCallbacks; pDescriptorPool: PVkDescriptorPool): VkResult;
+begin
+  canCall(Pointer(FvkCreateDescriptorPool), 'vkCreateDescriptorPool');
+  Result := FvkCreateDescriptorPool(device, pCreateInfo, pAllocator, pDescriptorPool);
+end;
+
+procedure TVulkan10.vkDestroyDescriptorPool(device: VkDevice; descriptorPool: VkDescriptorPool; pAllocator: PVkAllocationCallbacks);
+begin
+  canCall(Pointer(FvkDestroyDescriptorPool), 'vkDestroyDescriptorPool');
+  FvkDestroyDescriptorPool(device, descriptorPool, pAllocator);
+end;
+
+function TVulkan10.vkResetDescriptorPool(device: VkDevice; descriptorPool: VkDescriptorPool; flags: VkDescriptorPoolResetFlags): VkResult;
+begin
+  canCall(Pointer(FvkResetDescriptorPool), 'vkResetDescriptorPool');
+  Result := FvkResetDescriptorPool(device, descriptorPool, flags);
+end;
+
+function TVulkan10.vkAllocateDescriptorSets(device: VkDevice; pAllocateInfo: PVkDescriptorSetAllocateInfo; pDescriptorSets: PVkDescriptorSet): VkResult;
+begin
+  canCall(Pointer(FvkAllocateDescriptorSets), 'vkAllocateDescriptorSets');
+  Result := FvkAllocateDescriptorSets(device, pAllocateInfo, pDescriptorSets);
+end;
+
+function TVulkan10.vkFreeDescriptorSets(device: VkDevice; descriptorPool: VkDescriptorPool; descriptorSetCount: uint32; pDescriptorSets: PVkDescriptorSet): VkResult;
+begin
+  canCall(Pointer(FvkFreeDescriptorSets), 'vkFreeDescriptorSets');
+  Result := FvkFreeDescriptorSets(device, descriptorPool, descriptorSetCount, pDescriptorSets);
+end;
+
+procedure TVulkan10.vkUpdateDescriptorSets(device: VkDevice; descriptorWriteCount: uint32; pDescriptorWrites: PVkWriteDescriptorSet; descriptorCopyCount: uint32; pDescriptorCopies: PVkCopyDescriptorSet);
+begin
+  canCall(Pointer(FvkUpdateDescriptorSets), 'vkUpdateDescriptorSets');
+  FvkUpdateDescriptorSets(device, descriptorWriteCount, pDescriptorWrites, descriptorCopyCount, pDescriptorCopies);
+end;
+
+procedure TVulkan10.vkCmdBindPipeline(commandBuffer: VkCommandBuffer; pipelineBindPoint: VkPipelineBindPoint; pipeline: VkPipeline);
+begin
+  canCall(Pointer(FvkCmdBindPipeline), 'vkCmdBindPipeline');
+  try
+    FvkCmdBindPipeline(commandBuffer, pipelineBindPoint, pipeline);
+  except
+    on E: Exception do
+    begin
+      raise EVulkanCallException.Create('vkCmdBindPipeline', e);
+    end;
+  end;
+end;
+
+procedure TVulkan10.vkCmdBindDescriptorSets(commandBuffer: VkCommandBuffer; pipelineBindPoint: VkPipelineBindPoint; layout: VkPipelineLayout; firstSet: uint32; descriptorSetCount: uint32; pDescriptorSets: PVkDescriptorSet; dynamicOffsetCount: uint32; pDynamicOffsets: Puint32);
+begin
+  canCall(Pointer(FvkCmdBindDescriptorSets), 'vkCmdBindDescriptorSets');
+  FvkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount, pDynamicOffsets);
+end;
+
+procedure TVulkan10.vkCmdClearColorImage(commandBuffer: VkCommandBuffer; image: VkImage; imageLayout: VkImageLayout; pColor: PVkClearColorValue; rangeCount: uint32; pRanges: PVkImageSubresourceRange);
+begin
+  canCall(Pointer(FvkCmdClearColorImage), 'vkCmdClearColorImage');
+  FvkCmdClearColorImage(commandBuffer, image, imageLayout, pColor, rangeCount, pRanges);
+end;
+
+procedure TVulkan10.vkCmdDispatch(commandBuffer: VkCommandBuffer; groupCountX: uint32; groupCountY: uint32; groupCountZ: uint32);
+begin
+  canCall(Pointer(FvkCmdDispatch), 'vkCmdDispatch');
+  FvkCmdDispatch(commandBuffer, groupCountX, groupCountY, groupCountZ);
+end;
+
+procedure TVulkan10.vkCmdDispatchIndirect(commandBuffer: VkCommandBuffer; buffer: VkBuffer; offset: VkDeviceSize);
+begin
+  canCall(Pointer(FvkCmdDispatchIndirect), 'vkCmdDispatchIndirect');
+  FvkCmdDispatchIndirect(commandBuffer, buffer, offset);
+end;
+
+procedure TVulkan10.vkCmdSetEvent(commandBuffer: VkCommandBuffer; event: VkEvent; stageMask: VkPipelineStageFlags);
+begin
+  canCall(Pointer(FvkCmdSetEvent), 'vkCmdSetEvent');
+  FvkCmdSetEvent(commandBuffer, event, stageMask);
+end;
+
+procedure TVulkan10.vkCmdResetEvent(commandBuffer: VkCommandBuffer; event: VkEvent; stageMask: VkPipelineStageFlags);
+begin
+  canCall(Pointer(FvkCmdResetEvent), 'vkCmdResetEvent');
+  FvkCmdResetEvent(commandBuffer, event, stageMask);
+end;
+
+procedure TVulkan10.vkCmdWaitEvents(commandBuffer: VkCommandBuffer; eventCount: uint32; pEvents: PVkEvent; srcStageMask: VkPipelineStageFlags; dstStageMask: VkPipelineStageFlags; memoryBarrierCount: uint32; pMemoryBarriers: PVkMemoryBarrier; bufferMemoryBarrierCount: uint32; pBufferMemoryBarriers: PVkBufferMemoryBarrier; imageMemoryBarrierCount: uint32; pImageMemoryBarriers: PVkImageMemoryBarrier);
+begin
+  canCall(Pointer(FvkCmdWaitEvents), 'vkCmdWaitEvents');
+  FvkCmdWaitEvents(commandBuffer, eventCount, pEvents, srcStageMask, dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+end;
+
 procedure TVulkan10.vkGetRenderAreaGranularity(device: VkDevice; renderPass: VkRenderPass; pGranularity: PVkExtent2D);
 begin
   canCall(Pointer(FvkGetRenderAreaGranularity), 'vkGetRenderAreaGranularity');
@@ -11210,7 +12939,39 @@ begin
   Result := concrete;
 end;
 
+function TVulkan10.getKHRSurfaceExtension(aInstance: VkInstance): IVulkanKHRSurface;
+var
+  concrete: TVulkanKHRSurface;
+begin
+  concrete := TVulkanKHRSurface.Create;
+  with concrete do
+  begin
+    concrete.Instance := aInstance;
+    concrete.vkGetInstanceProcAddr := self.FVKGetInstanceProcAddr;
+    concrete.vkGetDeviceProcAddr := self.FVKGetDeviceProcAddr;
+    concrete.BindEntity;
+  end;
+  Result := concrete;
+end;
 
+function TVulkan10.getSwapChainExtension(aDevice: VkDevice): IVulkanSwapChainExtension;
+var
+  concrete: TVulkanSwapChain;
+begin
+  if aDevice = VK_NULL_HANDLE then
+    raise EVulkanException.Create('aDevice is null: swap chain need a not null handle');
+  concrete := TVulkanSwapChain.Create;
+  with concrete do
+  begin
+    concrete.Device := aDevice;
+    concrete.vkGetInstanceProcAddr := self.FVKGetInstanceProcAddr;
+    concrete.vkGetDeviceProcAddr := self.FVKGetDeviceProcAddr;
+    concrete.BindEntity;
+    if not Assigned(concrete.FvkCreateSwapchainKHR) then
+      raise Exception.Create('VK_KHR_swapchain not load right ' + '(vkCreateSwapchainKHR è null)');
+  end;
+  Result := concrete;
+end;
 
 { TVulkan11 }
 
@@ -12013,6 +13774,267 @@ begin
   canCall(Pointer(FVKCmdSetRenderingInputAttachmentIndicesKHR), 'vkCmdSetRenderingInputAttachmentIndicesKHR');
   FVKCmdSetRenderingInputAttachmentIndicesKHR(commandBuffer, pInputAttachmentIndexInfo);
 end;
+
+operator or(flags: VkFlags; enum: VkQueueFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkImageAspectFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkImageUsageFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkSampleCountFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkAttachmentLoadOp): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkAttachmentStoreOp): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkImageLayout): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkPipelineBindPoint): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkDynamicState): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkShaderStageFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkDescriptorType): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkCullModeFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkFrontFace): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkPolygonMode): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkCompareOp): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkStencilOp): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkBlendFactor): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkBlendOp): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkLogicOp): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkBufferUsageFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkColorComponentFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkPipelineStageFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkAccessFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkDependencyFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkCommandBufferLevel): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkCommandPoolCreateFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkCommandBufferUsageFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkFenceCreateFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkMemoryPropertyFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkMemoryHeapFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkFormatFeatureFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkQueryPipelineStatisticFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkQueryResultFlagBits): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkDebugUtilsMessageSeverityFlagBitsEXT): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkDebugUtilsMessageTypeFlagBitsEXT): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkCompositeAlphaFlagBitsKHR): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkSurfaceTransformFlagBitsKHR): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkPresentModeKHR): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkColorSpaceKHR): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkComponentSwizzle): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkFilter): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkSamplerMipmapMode): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkSamplerAddressMode): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkBorderColor): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkPrimitiveTopology): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkIndexType): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkSubpassContents): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkObjectType): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+operator or(flags: VkFlags; enum: VkStructureType): uint32;
+begin
+  Result := flags or Ord(enum);
+end;
+
+function VK_VERSION_MAJOR(version: uint32): uint32; inline;
+begin
+  Result := version shr 22;
+end;
+
+function VK_VERSION_MINOR(version: uint32): uint32; inline;
+begin
+  Result := (version shr 12) and $3FF;
+end;
+
+function VK_VERSION_PATCH(version: uint32): uint32; inline;
+begin
+  Result := version and $FFF;
+end;
+
 
 initialization
   singleton := nil;

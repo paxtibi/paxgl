@@ -1,0 +1,4794 @@
+unit vulkan.tutorial;
+
+{$mode ObjFPC}{$H+}
+{$ModeSwitch typehelpers}
+interface
+
+uses
+  Classes, SysUtils, StrUtils, Generics.Collections, pax.vulkan;
+
+type
+  { IVulkanTutorial }
+
+  IVulkanTutorial = interface
+    ['{969CB0F8-0C9B-4B0F-B377-42F20F096716}']
+    procedure run;
+    function GetEnableValidationLayers: boolean;
+    procedure SetEnableValidationLayers(AValue: boolean);
+    property EnableValidationLayers: boolean read GetEnableValidationLayers write SetEnableValidationLayers;
+  end;
+
+  { TStringArrayTypeHelper }
+
+  TStringArrayTypeHelper = type helper for TStringArray
+    function toPPChar: PPChar;
+    function Text: string;
+    function formattedString(): string;
+  end;
+
+  { TPPCharHelper }
+
+  TPPCharHelper = type helper for PPChar
+    function toArray(): TStringArray;
+    function toArray(size: uint32): TStringArray;
+  end;
+
+type
+  TLogLevel = (llTrace, llDebug, llInfo, llWarning, llError);
+
+  { ILogLayout }
+  ILogLayout = interface
+    ['{A2B3C4D5-E6F7-4A8B-9C0D-E1F2A3B4C5D6}']
+    function FormatMessage(Level: TLogLevel; const Msg: string; const TimeStamp: TDateTime): string;
+  end;
+
+  { TSimpleLogLayout }
+  TSimpleLogLayout = class(TInterfacedObject, ILogLayout)
+  public
+    function FormatMessage(Level: TLogLevel; const Msg: string; const TimeStamp: TDateTime): string;
+  end;
+
+  { TTimestampLogLayout }
+  TTimestampLogLayout = class(TInterfacedObject, ILogLayout)
+  private
+    FDateTimeFormat: string;
+  public
+    constructor Create(const DateTimeFormat: string = 'yyyy-mm-dd hh:nn:ss');
+    function FormatMessage(Level: TLogLevel; const Msg: string; const TimeStamp: TDateTime): string;
+  end;
+
+  { TAppender }
+  TAppender = class
+  private
+    FLayout: ILogLayout;
+    procedure SetLayout(const Value: ILogLayout);
+  public
+    constructor Create; virtual;
+    procedure Log(Level: TLogLevel; const Msg: string); virtual; abstract;
+    property Layout: ILogLayout read FLayout write SetLayout;
+  end;
+
+  { TConsoleAppender }
+  TConsoleAppender = class(TAppender)
+  private
+    FLevel: TLogLevel;
+  public
+    constructor Create(Level: TLogLevel = llInfo);
+    procedure Log(Level: TLogLevel; const Msg: string); override;
+  end;
+
+  { TFileAppender }
+  TFileAppender = class(TAppender)
+  private
+    FFileNamePattern: string; // Pattern with %d placeholder, e.g., 'log-%d.log'
+    FDateFormat: string; // Date format for file name, e.g., 'yyyyMMdd'
+    FLevel: TLogLevel;
+    function GetCurrentFileName: string; // Resolve pattern with current date
+  public
+    constructor Create(const FileNamePattern: string; Level: TLogLevel = llDebug; const DateFormat: string = 'yyyyMMdd');
+    procedure Log(Level: TLogLevel; const Msg: string); override;
+  end;
+
+  { TRollingFileAppender }
+  TRollingFileAppender = class(TAppender)
+  private
+    FBaseFileName: string;
+    FExtension: string;
+    FMaxFileSize: int64;
+    FMaxBackupIndex: integer;
+    FLevel: TLogLevel;
+    function GetCurrentFileName: string;
+    function GetBackupFileName(Index: integer): string;
+    procedure RollOver;
+    function GetFileSize(const FileName: string): int64;
+  public
+    constructor Create(const BaseFileName: string; Level: TLogLevel = llTrace; MaxFileSize: int64 = 10485760; MaxBackupIndex: integer = 5);
+    destructor Destroy; override;
+    procedure Log(Level: TLogLevel; const Msg: string); override;
+  end;
+
+  { TAppenderList }
+  TAppenderList = specialize TList<TAppender>;
+
+  { TLogger }
+  TLogger = class
+  private
+    FLevel: integer;
+    FIndent: string;
+    FAppenders: TAppenderList;
+    procedure Log(Level: TLogLevel; const Msg: string; const Args: array of const);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure AddAppender(Appender: TAppender);
+    procedure Debug(const Msg: string); overload;
+    procedure Debug(const Msg: string; const Args: array of const); overload;
+    procedure Info(const Msg: string); overload;
+    procedure Info(const Msg: string; const Args: array of const); overload;
+    procedure Warning(const Msg: string); overload;
+    procedure Warning(const Msg: string; const Args: array of const); overload;
+    procedure Error(const Msg: string); overload;
+    procedure Error(const Msg: string; const Args: array of const); overload;
+    procedure Enter(const Msg: string); overload;
+    procedure Enter(const Msg: string; const Args: array of const); overload;
+    procedure Leave(const Msg: string); overload;
+    procedure Leave(const Msg: string; const Args: array of const); overload;
+  end;
+
+
+  { TVulkanTutorial }
+
+  TVulkanTutorial = class(TInterfacedObject, IVulkanTutorial)
+  protected
+    FEnableValidationLayers: boolean;
+    FLogger: TLogger;
+    FCaption: string;
+    FExtensions: TStringList;
+    FDeviceFeatures: TStringList;
+    procedure SetCaption(AValue: string);
+  protected
+    procedure InitWindow; virtual; abstract;
+    procedure InitVulkan; virtual; abstract;
+    procedure MainLoop; virtual; abstract;
+    procedure Cleanup; virtual; abstract;
+  public
+    constructor Create; virtual;
+    destructor Destroy; override;
+    procedure run; virtual;
+    function GetEnableValidationLayers: boolean;
+    procedure SetEnableValidationLayers(AValue: boolean);
+    property EnableValidationLayers: boolean read GetEnableValidationLayers write SetEnableValidationLayers;
+    property Caption: string read FCaption write SetCaption;
+  end;
+
+
+
+operator := (ptr: Pointer): QWord;
+operator := (num: QWord): Pointer;
+operator <>(num: QWord; ptr: Pointer): boolean;
+operator := (ai: VkApplicationInfo): string;
+operator := (ici: VkInstanceCreateInfo): string;
+operator := (sa: TStringArray): PPChar;
+operator := (sl: TStringList): PPChar;
+operator := (sa: TStringArray): string;
+operator := (aResult: VkResult): string;
+
+operator := (sType: VkStructureType): string; inline;
+operator := (ptr: Pointer): string; inline;
+
+function IfThen(val: boolean; const iftrue: string; const iffalse: string): string; inline; overload;
+
+function PtrToHex(p: Pointer): string;
+function PtrUIntToHex(p: Pointer): string;
+function PtrToHexClean(p: Pointer): string;
+function PtrToHexShort(p: Pointer): string;
+function PtrToHexEx(p: Pointer; Digits: integer = 16): string;
+
+type
+
+  { TVkApplicationInfoHelper }
+
+  TVkApplicationInfoHelper = type helper for VkApplicationInfo
+  public
+    procedure zero;
+    function ToString: string;
+    function ToFormattedString(const Indent: string = '  '): string;
+  end;
+
+  { TVkInstanceCreateInfoHelper }
+
+  TVkInstanceCreateInfoHelper = type helper for VkInstanceCreateInfo
+  public
+    procedure zero;
+    function ToString: string;
+    function ToFormattedString(const Indent: string = '  '): string;
+  end;
+
+  { TVkDebugUtilsMessengerCreateInfoEXTHelper }
+
+  TVkDebugUtilsMessengerCreateInfoEXTHelper = type helper for VkDebugUtilsMessengerCreateInfoEXT
+  public
+    procedure zero;
+    function ToString: string;
+    function ToFormattedString(const Indent: string = '  '): string;
+  end;
+
+  TVkDeviceQueueCreateInfoHelper = type helper for VkDeviceQueueCreateInfo
+  private
+    function GetPrioritiesAsString: string;
+  public
+    procedure Zero;
+    function ToString: string;
+    function ToFormattedString(const Indent: string = '  '): string;
+  end;
+
+  TVkPhysicalDeviceFeaturesHelper = type helper for VkPhysicalDeviceFeatures
+  private
+    function BoolToStr(b: VkBool32): string; inline;
+    function GetEnabledFeaturesCount: integer;
+  public
+    procedure Zero;
+    function ToString: string;
+    function ToFormattedString(const Indent: string = '  '): string;
+  end;
+
+  TVkDeviceCreateInfoHelper = type helper for VkDeviceCreateInfo
+  private
+    function PtrStatus(const p: pointer): string; inline;
+  public
+    procedure Zero;
+    function ToString: string;
+    function ToFormattedString(const Indent: string = '  '): string;
+  end;
+
+  TVkSwapchainCreateInfoKHRHelper = type helper for VkSwapchainCreateInfoKHR
+  private
+    function PtrStatus(const p: pointer): string; inline;
+    function BoolStr(b: VkBool32): string; inline;
+    function FormatStr(f: VkFormat): string;
+    function ColorSpaceStr(cs: VkColorSpaceKHR): string;
+    function PresentModeStr(pm: VkPresentModeKHR): string;
+    function CompositeAlphaStr(ca: VkCompositeAlphaFlagBitsKHR): string;
+    function ImageUsageStr(usage: VkImageUsageFlags): string;
+    function SharingModeStr(sm: VkSharingMode): string;
+    function TransformStr(t: VkSurfaceTransformFlagBitsKHR): string;
+  public
+    procedure Zero;
+    function ToString: string;
+    function ToFormattedString(const Indent: string = '  '): string;
+  end;
+
+implementation
+
+operator := (ptr: Pointer): string;
+begin
+  if ptr = nil then
+    Result := 'NIL'
+  else
+    Result := Format('0x%.16x', [PtrInt(ptr)]);
+end;
+
+operator := (aResult: VkResult): string;
+begin
+  case aResult of
+    VK_SUCCESS: Exit('VK_SUCCESS');
+    VK_NOT_READY: Exit('VK_NOT_READY');
+    VK_TIMEOUT: Exit('VK_TIMEOUT');
+    VK_EVENT_SET: Exit('VK_EVENT_SET');
+    VK_EVENT_RESET: Exit('VK_EVENT_RESET');
+    VK_INCOMPLETE: Exit('VK_INCOMPLETE');
+    VK_ERROR_OUT_OF_HOST_MEMORY: Exit('VK_ERROR_OUT_OF_HOST_MEMORY');
+    VK_ERROR_OUT_OF_DEVICE_MEMORY: Exit('VK_ERROR_OUT_OF_DEVICE_MEMORY');
+    VK_ERROR_INITIALIZATION_FAILED: Exit('VK_ERROR_INITIALIZATION_FAILED');
+    VK_ERROR_DEVICE_LOST: Exit('VK_ERROR_DEVICE_LOST');
+    VK_ERROR_MEMORY_MAP_FAILED: Exit('VK_ERROR_MEMORY_MAP_FAILED');
+    VK_ERROR_LAYER_NOT_PRESENT: Exit('VK_ERROR_LAYER_NOT_PRESENT');
+    VK_ERROR_EXTENSION_NOT_PRESENT: Exit('VK_ERROR_EXTENSION_NOT_PRESENT');
+    VK_ERROR_FEATURE_NOT_PRESENT: Exit('VK_ERROR_FEATURE_NOT_PRESENT');
+    VK_ERROR_INCOMPATIBLE_DRIVER: Exit('VK_ERROR_INCOMPATIBLE_DRIVER');
+    VK_ERROR_TOO_MANY_OBJECTS: Exit('VK_ERROR_TOO_MANY_OBJECTS');
+    VK_ERROR_FORMAT_NOT_SUPPORTED: Exit('VK_ERROR_FORMAT_NOT_SUPPORTED');
+    VK_ERROR_FRAGMENTED_POOL: Exit('VK_ERROR_FRAGMENTED_POOL');
+    VK_ERROR_UNKNOWN: Exit('VK_ERROR_UNKNOWN');
+    VK_ERROR_VALIDATION_FAILED: Exit('VK_ERROR_VALIDATION_FAILED');
+    VK_ERROR_OUT_OF_POOL_MEMORY: Exit('VK_ERROR_OUT_OF_POOL_MEMORY');
+    VK_ERROR_INVALID_EXTERNAL_HANDLE: Exit('VK_ERROR_INVALID_EXTERNAL_HANDLE');
+    VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS: Exit('VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS');
+    VK_ERROR_FRAGMENTATION: Exit('VK_ERROR_FRAGMENTATION');
+    VK_PIPELINE_COMPILE_REQUIRED: Exit('VK_PIPELINE_COMPILE_REQUIRED');
+    VK_ERROR_NOT_PERMITTED: Exit('VK_ERROR_NOT_PERMITTED');
+    VK_ERROR_SURFACE_LOST_KHR: Exit('VK_ERROR_SURFACE_LOST_KHR');
+    VK_ERROR_NATIVE_WINDOW_IN_USE_KHR: Exit('VK_ERROR_NATIVE_WINDOW_IN_USE_KHR');
+    VK_SUBOPTIMAL_KHR: Exit('VK_SUBOPTIMAL_KHR');
+    VK_ERROR_OUT_OF_DATE_KHR: Exit('VK_ERROR_OUT_OF_DATE_KHR');
+    VK_ERROR_INCOMPATIBLE_DISPLAY_KHR: Exit('VK_ERROR_INCOMPATIBLE_DISPLAY_KHR');
+    VK_ERROR_INVALID_SHADER_NV: Exit('VK_ERROR_INVALID_SHADER_NV');
+    VK_ERROR_IMAGE_USAGE_NOT_SUPPORTED_KHR: Exit('VK_ERROR_IMAGE_USAGE_NOT_SUPPORTED_KHR');
+    VK_ERROR_VIDEO_PICTURE_LAYOUT_NOT_SUPPORTED_KHR: Exit('VK_ERROR_VIDEO_PICTURE_LAYOUT_NOT_SUPPORTED_KHR');
+    VK_ERROR_VIDEO_PROFILE_OPERATION_NOT_SUPPORTED_KHR: Exit('VK_ERROR_VIDEO_PROFILE_OPERATION_NOT_SUPPORTED_KHR');
+    VK_ERROR_VIDEO_PROFILE_FORMAT_NOT_SUPPORTED_KHR: Exit('VK_ERROR_VIDEO_PROFILE_FORMAT_NOT_SUPPORTED_KHR');
+    VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR: Exit('VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR');
+    VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR: Exit('VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR');
+    VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT: Exit('VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT');
+    VK_ERROR_PRESENT_TIMING_QUEUE_FULL_EXT: Exit('VK_ERROR_PRESENT_TIMING_QUEUE_FULL_EXT');
+    VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT: Exit('VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT');
+    VK_THREAD_IDLE_KHR: Exit('VK_THREAD_IDLE_KHR');
+    VK_THREAD_DONE_KHR: Exit('VK_THREAD_DONE_KHR');
+    VK_OPERATION_DEFERRED_KHR: Exit('VK_OPERATION_DEFERRED_KHR');
+    VK_OPERATION_NOT_DEFERRED_KHR: Exit('VK_OPERATION_NOT_DEFERRED_KHR');
+    VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR: Exit('VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR');
+    VK_ERROR_COMPRESSION_EXHAUSTED_EXT: Exit('VK_ERROR_COMPRESSION_EXHAUSTED_EXT');
+    VK_INCOMPATIBLE_SHADER_BINARY_EXT: Exit('VK_INCOMPATIBLE_SHADER_BINARY_EXT');
+    VK_PIPELINE_BINARY_MISSING_KHR: Exit('VK_PIPELINE_BINARY_MISSING_KHR');
+    VK_ERROR_NOT_ENOUGH_SPACE_KHR: Exit('VK_ERROR_NOT_ENOUGH_SPACE_KHR');
+    VK_RESULT_MAX_ENUM: Exit('VK_RESULT_MAX_ENUM');
+  end;
+end;
+
+operator := (sType: VkStructureType): string;
+begin
+  case sType of
+    VK_STRUCTURE_TYPE_APPLICATION_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_APPLICATION_INFO';
+    end;
+    VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SUBMIT_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SUBMIT_INFO';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE: begin
+      Result := 'VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE';
+    end;
+    VK_STRUCTURE_TYPE_BIND_SPARSE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_SPARSE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_FENCE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_FENCE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_EVENT_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_EVENT_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET: begin
+      Result := 'VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET';
+    end;
+    VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET';
+    end;
+    VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_BARRIER: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_BARRIER';
+    end;
+    VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_INFO';
+    end;
+    VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_GROUP_COMMAND_BUFFER_BEGIN_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_GROUP_COMMAND_BUFFER_BEGIN_INFO';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_GROUP_SUBMIT_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_GROUP_SUBMIT_INFO';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_GROUP_BIND_SPARSE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_GROUP_BIND_SPARSE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_DEVICE_GROUP_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_DEVICE_GROUP_INFO';
+    end;
+    VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_DEVICE_GROUP_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_DEVICE_GROUP_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GROUP_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GROUP_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_GROUP_DEVICE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_GROUP_DEVICE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_SPARSE_MEMORY_REQUIREMENTS_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_SPARSE_MEMORY_REQUIREMENTS_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2';
+    end;
+    VK_STRUCTURE_TYPE_SPARSE_IMAGE_MEMORY_REQUIREMENTS_2: begin
+      Result := 'VK_STRUCTURE_TYPE_SPARSE_IMAGE_MEMORY_REQUIREMENTS_2';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2';
+    end;
+    VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2: begin
+      Result := 'VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2: begin
+      Result := 'VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2';
+    end;
+    VK_STRUCTURE_TYPE_SPARSE_IMAGE_FORMAT_PROPERTIES_2: begin
+      Result := 'VK_STRUCTURE_TYPE_SPARSE_IMAGE_FORMAT_PROPERTIES_2';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SPARSE_IMAGE_FORMAT_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SPARSE_IMAGE_FORMAT_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PROTECTED_SUBMIT_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PROTECTED_SUBMIT_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_IMAGE_FORMAT_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_IMAGE_FORMAT_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_BUFFER_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_BUFFER_INFO';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_BUFFER_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_BUFFER_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FENCE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FENCE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_FENCE_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_FENCE_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_FENCE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_FENCE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SEMAPHORE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SEMAPHORE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_SEMAPHORE_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_SEMAPHORE_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_3_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_3_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_SUPPORT: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_SUPPORT';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO';
+    end;
+    VK_STRUCTURE_TYPE_BIND_IMAGE_PLANE_MEMORY_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_IMAGE_PLANE_MEMORY_INFO';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_PLANE_MEMORY_REQUIREMENTS_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_PLANE_MEMORY_REQUIREMENTS_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_IMAGE_FORMAT_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_IMAGE_FORMAT_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_GROUP_RENDER_PASS_BEGIN_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_GROUP_RENDER_PASS_BEGIN_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_POINT_CLIPPING_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_POINT_CLIPPING_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_INPUT_ATTACHMENT_ASPECT_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_INPUT_ATTACHMENT_ASPECT_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_DOMAIN_ORIGIN_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_DOMAIN_ORIGIN_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_MEMORY_MODEL_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_MEMORY_MODEL_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SEMAPHORE_SIGNAL_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SEMAPHORE_SIGNAL_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_OPAQUE_CAPTURE_ADDRESS_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_OPAQUE_CAPTURE_ADDRESS_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_OPAQUE_CAPTURE_ADDRESS_ALLOCATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_OPAQUE_CAPTURE_ADDRESS_ALLOCATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_MEMORY_OPAQUE_CAPTURE_ADDRESS_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_MEMORY_OPAQUE_CAPTURE_ADDRESS_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_INT64_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_INT64_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_LAYOUT_SUPPORT: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_LAYOUT_SUPPORT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_FILTER_MINMAX_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_FILTER_MINMAX_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFORM_BUFFER_STANDARD_LAYOUT_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFORM_BUFFER_STANDARD_LAYOUT_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_EXTENDED_TYPES_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2: begin
+      Result := 'VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2';
+    end;
+    VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2: begin
+      Result := 'VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2';
+    end;
+    VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2: begin
+      Result := 'VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2';
+    end;
+    VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2: begin
+      Result := 'VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_SUBPASS_BEGIN_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SUBPASS_BEGIN_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SUBPASS_END_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SUBPASS_END_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_STENCIL_RESOLVE_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_STENCIL_RESOLVE_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE: begin
+      Result := 'VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGELESS_FRAMEBUFFER_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENTS_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENTS_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENT_IMAGE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_FRAMEBUFFER_ATTACHMENT_IMAGE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_ATTACHMENT_BEGIN_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_STENCIL_LAYOUT: begin
+      Result := 'VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_STENCIL_LAYOUT';
+    end;
+    VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_STENCIL_LAYOUT: begin
+      Result := 'VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_STENCIL_LAYOUT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TOOL_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TOOL_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_PRIVATE_DATA_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_PRIVATE_DATA_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PRIVATE_DATA_SLOT_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PRIVATE_DATA_SLOT_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_BARRIER_2: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_BARRIER_2';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2';
+    end;
+    VK_STRUCTURE_TYPE_DEPENDENCY_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEPENDENCY_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SUBMIT_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_SUBMIT_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO';
+    end;
+    VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_COPY_IMAGE_TO_BUFFER_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_IMAGE_TO_BUFFER_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_COPY_2: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_COPY_2';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_COPY_2: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_COPY_2';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3: begin
+      Result := 'VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TERMINATE_INVOCATION_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TERMINATE_INVOCATION_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DEMOTE_TO_HELPER_INVOCATION_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DEMOTE_TO_HELPER_INVOCATION_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_WORKGROUP_MEMORY_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_WORKGROUP_MEMORY_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INLINE_UNIFORM_BLOCK_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK: begin
+      Result := 'VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_INLINE_UNIFORM_BLOCK';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_INLINE_UNIFORM_BLOCK_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_INLINE_UNIFORM_BLOCK_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_RESOLVE_IMAGE_INFO_2: begin
+      Result := 'VK_STRUCTURE_TYPE_RESOLVE_IMAGE_INFO_2';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_BLIT_2: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_BLIT_2';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2';
+    end;
+    VK_STRUCTURE_TYPE_RENDERING_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDERING_INFO';
+    end;
+    VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDERING_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_MAP_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_MAP_INFO';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_UNMAP_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_UNMAP_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_IMAGE_SUBRESOURCE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_IMAGE_SUBRESOURCE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SUBRESOURCE_LAYOUT_2: begin
+      Result := 'VK_STRUCTURE_TYPE_SUBRESOURCE_LAYOUT_2';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_SUBRESOURCE_2: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_SUBRESOURCE_2';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_6_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_6_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_6_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_6_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_BIND_MEMORY_STATUS: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_MEMORY_STATUS';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_TO_IMAGE_COPY: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_TO_IMAGE_COPY';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_TO_MEMORY_COPY: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_TO_MEMORY_COPY';
+    end;
+    VK_STRUCTURE_TYPE_COPY_IMAGE_TO_MEMORY_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_IMAGE_TO_MEMORY_INFO';
+    end;
+    VK_STRUCTURE_TYPE_COPY_MEMORY_TO_IMAGE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_MEMORY_TO_IMAGE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_HOST_IMAGE_LAYOUT_TRANSITION_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_HOST_IMAGE_LAYOUT_TRANSITION_INFO';
+    end;
+    VK_STRUCTURE_TYPE_COPY_IMAGE_TO_IMAGE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_IMAGE_TO_IMAGE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SUBRESOURCE_HOST_MEMCPY_SIZE: begin
+      Result := 'VK_STRUCTURE_TYPE_SUBRESOURCE_HOST_MEMCPY_SIZE';
+    end;
+    VK_STRUCTURE_TYPE_HOST_IMAGE_COPY_DEVICE_PERFORMANCE_QUERY: begin
+      Result := 'VK_STRUCTURE_TYPE_HOST_IMAGE_COPY_DEVICE_PERFORMANCE_QUERY';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_ROTATE_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_ROTATE_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT_CONTROLS_2_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT_CONTROLS_2_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_EXPECT_ASSUME_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_EXPECT_ASSUME_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PUSH_DESCRIPTOR_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PUSH_DESCRIPTOR_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_BIND_DESCRIPTOR_SETS_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_DESCRIPTOR_SETS_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PUSH_CONSTANTS_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PUSH_CONSTANTS_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PUSH_DESCRIPTOR_SET_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PUSH_DESCRIPTOR_SET_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PUSH_DESCRIPTOR_SET_WITH_TEMPLATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PUSH_DESCRIPTOR_SET_WITH_TEMPLATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROTECTED_ACCESS_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROTECTED_ACCESS_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_ROBUSTNESS_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_ROBUSTNESS_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_ROBUSTNESS_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_RENDERING_AREA_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDERING_AREA_INFO';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_LOCAL_READ_FEATURES';
+    end;
+    VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_LOCATION_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_LOCATION_INFO';
+    end;
+    VK_STRUCTURE_TYPE_RENDERING_INPUT_ATTACHMENT_INDEX_INFO: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDERING_INPUT_ATTACHMENT_INDEX_INFO';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PRESENT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PRESENT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_MODE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_MODE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_SURFACE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_SURFACE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_PRESENT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_PRESENT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_RASTERIZATION_ORDER_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_RASTERIZATION_ORDER_AMD';
+    end;
+    VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_TAG_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_TAG_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_PROFILE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_PROFILE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_PICTURE_RESOURCE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_PICTURE_RESOURCE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_SESSION_MEMORY_REQUIREMENTS_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_SESSION_MEMORY_REQUIREMENTS_KHR';
+    end;
+    VK_STRUCTURE_TYPE_BIND_VIDEO_SESSION_MEMORY_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_VIDEO_SESSION_MEMORY_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_SESSION_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_SESSION_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_SESSION_PARAMETERS_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_SESSION_PARAMETERS_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_SESSION_PARAMETERS_UPDATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_SESSION_PARAMETERS_UPDATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_BEGIN_CODING_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_BEGIN_CODING_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_END_CODING_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_END_CODING_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_CODING_CONTROL_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_CODING_CONTROL_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_REFERENCE_SLOT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_REFERENCE_SLOT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_QUEUE_FAMILY_VIDEO_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_QUEUE_FAMILY_VIDEO_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_QUEUE_FAMILY_QUERY_RESULT_STATUS_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_QUEUE_FAMILY_QUERY_RESULT_STATUS_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_USAGE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_USAGE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_IMAGE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_IMAGE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_BUFFER_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_BUFFER_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_MEMORY_ALLOCATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_MEMORY_ALLOCATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_CU_MODULE_CREATE_INFO_NVX: begin
+      Result := 'VK_STRUCTURE_TYPE_CU_MODULE_CREATE_INFO_NVX';
+    end;
+    VK_STRUCTURE_TYPE_CU_FUNCTION_CREATE_INFO_NVX: begin
+      Result := 'VK_STRUCTURE_TYPE_CU_FUNCTION_CREATE_INFO_NVX';
+    end;
+    VK_STRUCTURE_TYPE_CU_LAUNCH_INFO_NVX: begin
+      Result := 'VK_STRUCTURE_TYPE_CU_LAUNCH_INFO_NVX';
+    end;
+    VK_STRUCTURE_TYPE_CU_MODULE_TEXTURING_MODE_CREATE_INFO_NVX: begin
+      Result := 'VK_STRUCTURE_TYPE_CU_MODULE_TEXTURING_MODE_CREATE_INFO_NVX';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_HANDLE_INFO_NVX: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_VIEW_HANDLE_INFO_NVX';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_ADDRESS_PROPERTIES_NVX: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_VIEW_ADDRESS_PROPERTIES_NVX';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_ADD_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_ADD_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PICTURE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PICTURE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_DPB_SLOT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_DPB_SLOT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_NALU_SLICE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_NALU_SLICE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_GOP_REMAINING_FRAME_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_GOP_REMAINING_FRAME_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PROFILE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PROFILE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_RATE_CONTROL_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_RATE_CONTROL_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_RATE_CONTROL_LAYER_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_RATE_CONTROL_LAYER_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_QUALITY_LEVEL_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_QUALITY_LEVEL_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_GET_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_GET_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_FEEDBACK_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_SESSION_PARAMETERS_FEEDBACK_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_ADD_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_ADD_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PICTURE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PICTURE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_DPB_SLOT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_DPB_SLOT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_NALU_SLICE_SEGMENT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_NALU_SLICE_SEGMENT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_GOP_REMAINING_FRAME_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_GOP_REMAINING_FRAME_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PROFILE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PROFILE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_RATE_CONTROL_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_RATE_CONTROL_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_RATE_CONTROL_LAYER_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_RATE_CONTROL_LAYER_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_QUALITY_LEVEL_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_QUALITY_LEVEL_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_GET_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_GET_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_FEEDBACK_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_FEEDBACK_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PICTURE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PICTURE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PROFILE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PROFILE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_ADD_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_ADD_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_DPB_SLOT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_DPB_SLOT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_TEXTURE_LOD_GATHER_FORMAT_PROPERTIES_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_TEXTURE_LOD_GATHER_FORMAT_PROPERTIES_AMD';
+    end;
+    VK_STRUCTURE_TYPE_STREAM_DESCRIPTOR_SURFACE_CREATE_INFO_GGP: begin
+      Result := 'VK_STRUCTURE_TYPE_STREAM_DESCRIPTOR_SURFACE_CREATE_INFO_GGP';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CORNER_SAMPLED_IMAGE_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CORNER_SAMPLED_IMAGE_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_MEMORY_WIN32_HANDLE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_MEMORY_WIN32_HANDLE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_WIN32_KEYED_MUTEX_ACQUIRE_RELEASE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_WIN32_KEYED_MUTEX_ACQUIRE_RELEASE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_VALIDATION_FLAGS_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_VALIDATION_FLAGS_EXT';
+    end;
+    VK_STRUCTURE_TYPE_VI_SURFACE_CREATE_INFO_NN: begin
+      Result := 'VK_STRUCTURE_TYPE_VI_SURFACE_CREATE_INFO_NN';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ASTC_DECODE_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ASTC_DECODE_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_MEMORY_WIN32_HANDLE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_MEMORY_WIN32_HANDLE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_WIN32_HANDLE_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_WIN32_HANDLE_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_FD_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_FD_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_WIN32_KEYED_MUTEX_ACQUIRE_RELEASE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_WIN32_KEYED_MUTEX_ACQUIRE_RELEASE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_D3D12_FENCE_SUBMIT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_D3D12_FENCE_SUBMIT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SEMAPHORE_GET_WIN32_HANDLE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SEMAPHORE_GET_WIN32_HANDLE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_FD_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_FD_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SEMAPHORE_GET_FD_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SEMAPHORE_GET_FD_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_CONDITIONAL_RENDERING_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_CONDITIONAL_RENDERING_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_CONDITIONAL_RENDERING_BEGIN_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_CONDITIONAL_RENDERING_BEGIN_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PRESENT_REGIONS_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PRESENT_REGIONS_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_W_SCALING_STATE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_W_SCALING_STATE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_POWER_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_POWER_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_EVENT_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_EVENT_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_EVENT_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_EVENT_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_COUNTER_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_COUNTER_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PRESENT_TIMES_INFO_GOOGLE: begin
+      Result := 'VK_STRUCTURE_TYPE_PRESENT_TIMES_INFO_GOOGLE';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_ATTRIBUTES_PROPERTIES_NVX: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_ATTRIBUTES_PROPERTIES_NVX';
+    end;
+    VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_ATTRIBUTES_INFO_NVX: begin
+      Result := 'VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_ATTRIBUTES_INFO_NVX';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SWIZZLE_STATE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SWIZZLE_STATE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DISCARD_RECTANGLE_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DISCARD_RECTANGLE_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_DISCARD_RECTANGLE_STATE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_DISCARD_RECTANGLE_STATE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONSERVATIVE_RASTERIZATION_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONSERVATIVE_RASTERIZATION_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_HDR_METADATA_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_HDR_METADATA_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RELAXED_LINE_RASTERIZATION_FEATURES_IMG: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RELAXED_LINE_RASTERIZATION_FEATURES_IMG';
+    end;
+    VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_FENCE_WIN32_HANDLE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_FENCE_WIN32_HANDLE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_FENCE_WIN32_HANDLE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_FENCE_WIN32_HANDLE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_FENCE_GET_WIN32_HANDLE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_FENCE_GET_WIN32_HANDLE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_FENCE_FD_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_FENCE_FD_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_FENCE_GET_FD_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_FENCE_GET_FD_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PERFORMANCE_QUERY_SUBMIT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PERFORMANCE_QUERY_SUBMIT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ACQUIRE_PROFILING_LOCK_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ACQUIRE_PROFILING_LOCK_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_DESCRIPTION_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_DESCRIPTION_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_FORMAT_2_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_FORMAT_2_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_PROPERTIES_2_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_PROPERTIES_2_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_PLANE_PROPERTIES_2_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_PLANE_PROPERTIES_2_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_MODE_PROPERTIES_2_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_MODE_PROPERTIES_2_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_PLANE_INFO_2_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_PLANE_INFO_2_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_PLANE_CAPABILITIES_2_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_PLANE_CAPABILITIES_2_KHR';
+    end;
+    VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK: begin
+      Result := 'VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK';
+    end;
+    VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK: begin
+      Result := 'VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK';
+    end;
+    VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_TAG_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_TAG_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_USAGE_ANDROID: begin
+      Result := 'VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_USAGE_ANDROID';
+    end;
+    VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID: begin
+      Result := 'VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID';
+    end;
+    VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID: begin
+      Result := 'VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_ANDROID_HARDWARE_BUFFER_INFO_ANDROID';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_GET_ANDROID_HARDWARE_BUFFER_INFO_ANDROID: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_GET_ANDROID_HARDWARE_BUFFER_INFO_ANDROID';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID';
+    end;
+    VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_2_ANDROID: begin
+      Result := 'VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_2_ANDROID';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ENQUEUE_FEATURES_AMDX: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ENQUEUE_FEATURES_AMDX';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ENQUEUE_PROPERTIES_AMDX: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ENQUEUE_PROPERTIES_AMDX';
+    end;
+    VK_STRUCTURE_TYPE_EXECUTION_GRAPH_PIPELINE_SCRATCH_SIZE_AMDX: begin
+      Result := 'VK_STRUCTURE_TYPE_EXECUTION_GRAPH_PIPELINE_SCRATCH_SIZE_AMDX';
+    end;
+    VK_STRUCTURE_TYPE_EXECUTION_GRAPH_PIPELINE_CREATE_INFO_AMDX: begin
+      Result := 'VK_STRUCTURE_TYPE_EXECUTION_GRAPH_PIPELINE_CREATE_INFO_AMDX';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_NODE_CREATE_INFO_AMDX: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_NODE_CREATE_INFO_AMDX';
+    end;
+    VK_STRUCTURE_TYPE_ATTACHMENT_SAMPLE_COUNT_INFO_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_ATTACHMENT_SAMPLE_COUNT_INFO_AMD';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_BFLOAT16_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_BFLOAT16_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_SAMPLE_LOCATIONS_BEGIN_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_SAMPLE_LOCATIONS_BEGIN_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_SAMPLE_LOCATIONS_STATE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_SAMPLE_LOCATIONS_STATE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MULTISAMPLE_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MULTISAMPLE_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ADVANCED_STATE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ADVANCED_STATE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_COVERAGE_TO_COLOR_STATE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_COVERAGE_TO_COLOR_STATE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_AABBS_DATA_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_AABBS_DATA_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_VERSION_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_VERSION_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_TO_MEMORY_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_TO_MEMORY_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_COPY_MEMORY_TO_ACCELERATION_STRUCTURE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_MEMORY_TO_ACCELERATION_STRUCTURE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_INTERFACE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_INTERFACE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_COVERAGE_MODULATION_STATE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_COVERAGE_MODULATION_STATE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_LIST_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_EXPLICIT_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_2_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DRM_FORMAT_MODIFIER_PROPERTIES_LIST_2_EXT';
+    end;
+    VK_STRUCTURE_TYPE_VALIDATION_CACHE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_VALIDATION_CACHE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SHADER_MODULE_VALIDATION_CACHE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SHADER_MODULE_VALIDATION_CACHE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SHADING_RATE_IMAGE_STATE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SHADING_RATE_IMAGE_STATE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_COARSE_SAMPLE_ORDER_STATE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_COARSE_SAMPLE_ORDER_STATE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_GEOMETRY_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_GEOMETRY_NV';
+    end;
+    VK_STRUCTURE_TYPE_GEOMETRY_TRIANGLES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_GEOMETRY_TRIANGLES_NV';
+    end;
+    VK_STRUCTURE_TYPE_GEOMETRY_AABB_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_GEOMETRY_AABB_NV';
+    end;
+    VK_STRUCTURE_TYPE_BIND_ACCELERATION_STRUCTURE_MEMORY_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_ACCELERATION_STRUCTURE_MEMORY_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_NV';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_REPRESENTATIVE_FRAGMENT_TEST_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_REPRESENTATIVE_FRAGMENT_TEST_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_REPRESENTATIVE_FRAGMENT_TEST_STATE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_REPRESENTATIVE_FRAGMENT_TEST_STATE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_IMAGE_FORMAT_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_IMAGE_FORMAT_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_FILTER_CUBIC_IMAGE_VIEW_IMAGE_FORMAT_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_FILTER_CUBIC_IMAGE_VIEW_IMAGE_FORMAT_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_MEMORY_HOST_POINTER_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_COMPILER_CONTROL_CREATE_INFO_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_COMPILER_CONTROL_CREATE_INFO_AMD';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_AMD';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_SESSION_PARAMETERS_ADD_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_SESSION_PARAMETERS_ADD_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_PROFILE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_PROFILE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_PICTURE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_PICTURE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_DPB_SLOT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_DPB_SLOT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_MEMORY_OVERALLOCATION_CREATE_INFO_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_MEMORY_OVERALLOCATION_CREATE_INFO_AMD';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PRESENT_FRAME_TOKEN_GGP: begin
+      Result := 'VK_STRUCTURE_TYPE_PRESENT_FRAME_TOKEN_GGP';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_FOOTPRINT_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_FOOTPRINT_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_EXCLUSIVE_SCISSOR_STATE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_EXCLUSIVE_SCISSOR_STATE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXCLUSIVE_SCISSOR_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXCLUSIVE_SCISSOR_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_CHECKPOINT_DATA_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_CHECKPOINT_DATA_NV';
+    end;
+    VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV';
+    end;
+    VK_STRUCTURE_TYPE_CHECKPOINT_DATA_2_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_CHECKPOINT_DATA_2_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_TIMING_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_TIMING_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_TIMING_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_TIMING_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_TIME_DOMAIN_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_TIME_DOMAIN_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PRESENT_TIMINGS_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PRESENT_TIMINGS_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PRESENT_TIMING_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PRESENT_TIMING_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PAST_PRESENTATION_TIMING_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PAST_PRESENTATION_TIMING_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PAST_PRESENTATION_TIMING_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PAST_PRESENTATION_TIMING_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PAST_PRESENTATION_TIMING_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PAST_PRESENTATION_TIMING_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PRESENT_TIMING_SURFACE_CAPABILITIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PRESENT_TIMING_SURFACE_CAPABILITIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_CALIBRATED_TIMESTAMP_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_CALIBRATED_TIMESTAMP_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_FUNCTIONS_2_FEATURES_INTEL: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_FUNCTIONS_2_FEATURES_INTEL';
+    end;
+    VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_QUERY_CREATE_INFO_INTEL: begin
+      Result := 'VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_QUERY_CREATE_INFO_INTEL';
+    end;
+    VK_STRUCTURE_TYPE_INITIALIZE_PERFORMANCE_API_INFO_INTEL: begin
+      Result := 'VK_STRUCTURE_TYPE_INITIALIZE_PERFORMANCE_API_INFO_INTEL';
+    end;
+    VK_STRUCTURE_TYPE_PERFORMANCE_MARKER_INFO_INTEL: begin
+      Result := 'VK_STRUCTURE_TYPE_PERFORMANCE_MARKER_INFO_INTEL';
+    end;
+    VK_STRUCTURE_TYPE_PERFORMANCE_STREAM_MARKER_INFO_INTEL: begin
+      Result := 'VK_STRUCTURE_TYPE_PERFORMANCE_STREAM_MARKER_INFO_INTEL';
+    end;
+    VK_STRUCTURE_TYPE_PERFORMANCE_OVERRIDE_INFO_INTEL: begin
+      Result := 'VK_STRUCTURE_TYPE_PERFORMANCE_OVERRIDE_INFO_INTEL';
+    end;
+    VK_STRUCTURE_TYPE_PERFORMANCE_CONFIGURATION_ACQUIRE_INFO_INTEL: begin
+      Result := 'VK_STRUCTURE_TYPE_PERFORMANCE_CONFIGURATION_ACQUIRE_INFO_INTEL';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PCI_BUS_INFO_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PCI_BUS_INFO_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_NATIVE_HDR_SURFACE_CAPABILITIES_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_NATIVE_HDR_SURFACE_CAPABILITIES_AMD';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_DISPLAY_NATIVE_HDR_CREATE_INFO_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_DISPLAY_NATIVE_HDR_CREATE_INFO_AMD';
+    end;
+    VK_STRUCTURE_TYPE_IMAGEPIPE_SURFACE_CREATE_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGEPIPE_SURFACE_CREATE_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_DENSITY_MAP_ATTACHMENT_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_DENSITY_MAP_ATTACHMENT_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_STATE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_STATE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_KHR';
+    end;
+    VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_2_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_2_AMD';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COHERENT_MEMORY_FEATURES_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COHERENT_MEMORY_FEATURES_AMD';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_QUAD_CONTROL_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PRIORITY_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PRIORITY_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_PRIORITY_ALLOCATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_PRIORITY_ALLOCATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_PROTECTED_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_PROTECTED_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEDICATED_ALLOCATION_IMAGE_ALIASING_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEDICATED_ALLOCATION_IMAGE_ALIASING_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_WAIT_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_WAIT_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COVERAGE_REDUCTION_MODE_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COVERAGE_REDUCTION_MODE_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_COVERAGE_REDUCTION_STATE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_COVERAGE_REDUCTION_STATE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_FRAMEBUFFER_MIXED_SAMPLES_COMBINATION_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_FRAMEBUFFER_MIXED_SAMPLES_COMBINATION_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_INTERLOCK_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_INTERLOCK_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROVOKING_VERTEX_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_HEADLESS_SURFACE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_HEADLESS_SURFACE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_EXECUTABLE_PROPERTIES_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_EXECUTABLE_PROPERTIES_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_STATISTIC_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_STATISTIC_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INTERNAL_REPRESENTATION_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INTERNAL_REPRESENTATION_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAP_MEMORY_PLACED_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAP_MEMORY_PLACED_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAP_MEMORY_PLACED_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAP_MEMORY_PLACED_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_MAP_PLACED_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_MAP_PLACED_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_GRAPHICS_SHADER_GROUP_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_GRAPHICS_SHADER_GROUP_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_SHADER_GROUPS_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_SHADER_GROUPS_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_INDIRECT_COMMANDS_LAYOUT_TOKEN_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_INDIRECT_COMMANDS_LAYOUT_TOKEN_NV';
+    end;
+    VK_STRUCTURE_TYPE_INDIRECT_COMMANDS_LAYOUT_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_INDIRECT_COMMANDS_LAYOUT_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_GENERATED_COMMANDS_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_GENERATED_COMMANDS_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_GENERATED_COMMANDS_MEMORY_REQUIREMENTS_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_GENERATED_COMMANDS_MEMORY_REQUIREMENTS_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INHERITED_VIEWPORT_SCISSOR_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INHERITED_VIEWPORT_SCISSOR_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_VIEWPORT_SCISSOR_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_VIEWPORT_SCISSOR_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDER_PASS_TRANSFORM_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDER_PASS_TRANSFORM_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_TRANSFORM_BEGIN_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_TRANSFORM_BEGIN_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_BIAS_CONTROL_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_BIAS_CONTROL_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEPTH_BIAS_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEPTH_BIAS_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_MEMORY_REPORT_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_MEMORY_REPORT_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_MEMORY_REPORT_CALLBACK_DATA_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_MEMORY_REPORT_CALLBACK_DATA_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_3D_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_3D_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_BARRIER_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_BARRIER_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_PRESENT_BARRIER_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_PRESENT_BARRIER_NV';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_BARRIER_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_BARRIER_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PRESENT_ID_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PRESENT_ID_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_ID_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_ID_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_USAGE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_USAGE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_QUERY_POOL_VIDEO_ENCODE_FEEDBACK_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_QUERY_POOL_VIDEO_ENCODE_FEEDBACK_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_QUALITY_LEVEL_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_QUALITY_LEVEL_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUALITY_LEVEL_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUALITY_LEVEL_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUALITY_LEVEL_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUALITY_LEVEL_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_SESSION_PARAMETERS_GET_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_SESSION_PARAMETERS_GET_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_SESSION_PARAMETERS_FEEDBACK_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_SESSION_PARAMETERS_FEEDBACK_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_CUDA_MODULE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_CUDA_MODULE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_CUDA_FUNCTION_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_CUDA_FUNCTION_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_CUDA_LAUNCH_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_CUDA_LAUNCH_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_SHADING_FEATURES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_SHADING_FEATURES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_SHADING_PROPERTIES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_SHADING_PROPERTIES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_TILE_SHADING_CREATE_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_TILE_SHADING_CREATE_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PER_TILE_BEGIN_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PER_TILE_BEGIN_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PER_TILE_END_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PER_TILE_END_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_DISPATCH_TILE_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPATCH_TILE_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_QUERY_LOW_LATENCY_SUPPORT_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_QUERY_LOW_LATENCY_SUPPORT_NV';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECT_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECT_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECTS_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECTS_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_METAL_DEVICE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_METAL_DEVICE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_METAL_COMMAND_QUEUE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_METAL_COMMAND_QUEUE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_METAL_BUFFER_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_METAL_BUFFER_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_METAL_BUFFER_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_METAL_BUFFER_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_METAL_TEXTURE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_METAL_TEXTURE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_METAL_TEXTURE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_METAL_TEXTURE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_METAL_IO_SURFACE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_METAL_IO_SURFACE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_METAL_IO_SURFACE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_METAL_IO_SURFACE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_EXPORT_METAL_SHARED_EVENT_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_EXPORT_METAL_SHARED_EVENT_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_METAL_SHARED_EVENT_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_METAL_SHARED_EVENT_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_DENSITY_MAP_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_DENSITY_MAP_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_CAPTURE_DESCRIPTOR_DATA_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_CAPTURE_DESCRIPTOR_DATA_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_CAPTURE_DESCRIPTOR_DATA_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_CAPTURE_DESCRIPTOR_DATA_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_CAPTURE_DESCRIPTOR_DATA_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_VIEW_CAPTURE_DESCRIPTOR_DATA_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLER_CAPTURE_DESCRIPTOR_DATA_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLER_CAPTURE_DESCRIPTOR_DATA_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_OPAQUE_CAPTURE_DESCRIPTOR_DATA_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_OPAQUE_CAPTURE_DESCRIPTOR_DATA_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_PUSH_DESCRIPTOR_BUFFER_HANDLE_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_PUSH_DESCRIPTOR_BUFFER_HANDLE_EXT';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CAPTURE_DESCRIPTOR_DATA_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CAPTURE_DESCRIPTOR_DATA_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_EARLY_AND_LATE_FRAGMENT_TESTS_FEATURES_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_EARLY_AND_LATE_FRAGMENT_TESTS_FEATURES_AMD';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_ENUM_STATE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_ENUM_STATE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_MOTION_TRIANGLES_DATA_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_MOTION_TRIANGLES_DATA_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MOTION_BLUR_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MOTION_BLUR_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MOTION_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MOTION_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_2_PLANE_444_FORMATS_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_2_PLANE_444_FORMATS_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_COPY_COMMAND_TRANSFORM_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_COMMAND_TRANSFORM_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_COMPRESSION_CONTROL_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_COMPRESSION_CONTROL_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_COMPRESSION_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_COMPRESSION_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FAULT_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FAULT_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_FAULT_COUNTS_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_FAULT_COUNTS_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_FAULT_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_FAULT_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RGBA10X6_FORMATS_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RGBA10X6_FORMATS_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DIRECTFB_SURFACE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DIRECTFB_SURFACE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT';
+    end;
+    VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ADDRESS_BINDING_REPORT_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ADDRESS_BINDING_REPORT_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_ADDRESS_BINDING_CALLBACK_DATA_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_ADDRESS_BINDING_CALLBACK_DATA_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_CONTROL_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_CONTROL_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_DEPTH_CLIP_CONTROL_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_DEPTH_CLIP_CONTROL_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVE_TOPOLOGY_LIST_RESTART_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVE_TOPOLOGY_LIST_RESTART_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_ZIRCON_HANDLE_PROPERTIES_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_ZIRCON_HANDLE_PROPERTIES_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_GET_ZIRCON_HANDLE_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_GET_ZIRCON_HANDLE_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_ZIRCON_HANDLE_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_ZIRCON_HANDLE_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_SEMAPHORE_GET_ZIRCON_HANDLE_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_SEMAPHORE_GET_ZIRCON_HANDLE_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_CREATE_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_COLLECTION_CREATE_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_PROPERTIES_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_COLLECTION_PROPERTIES_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_CONSTRAINTS_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_CONSTRAINTS_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_BUFFER_CREATE_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_COLLECTION_BUFFER_CREATE_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_FORMAT_CONSTRAINTS_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_FORMAT_CONSTRAINTS_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_SYSMEM_COLOR_SPACE_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_SYSMEM_COLOR_SPACE_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_CONSTRAINTS_INFO_FUCHSIA: begin
+      Result := 'VK_STRUCTURE_TYPE_BUFFER_COLLECTION_CONSTRAINTS_INFO_FUCHSIA';
+    end;
+    VK_STRUCTURE_TYPE_SUBPASS_SHADING_PIPELINE_CREATE_INFO_HUAWEI: begin
+      Result := 'VK_STRUCTURE_TYPE_SUBPASS_SHADING_PIPELINE_CREATE_INFO_HUAWEI';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_FEATURES_HUAWEI: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_FEATURES_HUAWEI';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_PROPERTIES_HUAWEI: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_PROPERTIES_HUAWEI';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INVOCATION_MASK_FEATURES_HUAWEI: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INVOCATION_MASK_FEATURES_HUAWEI';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_GET_REMOTE_ADDRESS_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_GET_REMOTE_ADDRESS_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_RDMA_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_RDMA_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_PROPERTIES_IDENTIFIER_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_PROPERTIES_IDENTIFIER_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROPERTIES_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROPERTIES_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAME_BOUNDARY_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAME_BOUNDARY_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_FRAME_BOUNDARY_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_FRAME_BOUNDARY_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SUBPASS_RESOLVE_PERFORMANCE_QUERY_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SUBPASS_RESOLVE_PERFORMANCE_QUERY_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SCREEN_SURFACE_CREATE_INFO_QNX: begin
+      Result := 'VK_STRUCTURE_TYPE_SCREEN_SURFACE_CREATE_INFO_QNX';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVES_GENERATED_QUERY_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVES_GENERATED_QUERY_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_UNTYPED_POINTERS_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_UNTYPED_POINTERS_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_RGB_CONVERSION_FEATURES_VALVE: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_RGB_CONVERSION_FEATURES_VALVE';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_RGB_CONVERSION_CAPABILITIES_VALVE: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_RGB_CONVERSION_CAPABILITIES_VALVE';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_PROFILE_RGB_CONVERSION_INFO_VALVE: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_PROFILE_RGB_CONVERSION_INFO_VALVE';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_SESSION_RGB_CONVERSION_CREATE_INFO_VALVE: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_SESSION_RGB_CONVERSION_CREATE_INFO_VALVE';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_MIN_LOD_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_VIEW_MIN_LOD_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_MIN_LOD_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_VIEW_MIN_LOD_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_2D_VIEW_OF_3D_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_2D_VIEW_OF_3D_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TILE_IMAGE_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TILE_IMAGE_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TILE_IMAGE_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TILE_IMAGE_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MICROMAP_BUILD_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MICROMAP_BUILD_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MICROMAP_VERSION_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MICROMAP_VERSION_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_COPY_MICROMAP_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_MICROMAP_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_COPY_MICROMAP_TO_MEMORY_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_MICROMAP_TO_MEMORY_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_COPY_MEMORY_TO_MICROMAP_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_MEMORY_TO_MICROMAP_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPACITY_MICROMAP_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPACITY_MICROMAP_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPACITY_MICROMAP_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPACITY_MICROMAP_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MICROMAP_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MICROMAP_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MICROMAP_BUILD_SIZES_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MICROMAP_BUILD_SIZES_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_TRIANGLES_OPACITY_MICROMAP_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_TRIANGLES_OPACITY_MICROMAP_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DISPLACEMENT_MICROMAP_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DISPLACEMENT_MICROMAP_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DISPLACEMENT_MICROMAP_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DISPLACEMENT_MICROMAP_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_TRIANGLES_DISPLACEMENT_MICROMAP_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_TRIANGLES_DISPLACEMENT_MICROMAP_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_FEATURES_HUAWEI: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_FEATURES_HUAWEI';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_PROPERTIES_HUAWEI: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_PROPERTIES_HUAWEI';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_VRS_FEATURES_HUAWEI: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_VRS_FEATURES_HUAWEI';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLER_BORDER_COLOR_COMPONENT_MAPPING_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLER_BORDER_COLOR_COMPONENT_MAPPING_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PAGEABLE_DEVICE_LOCAL_MEMORY_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PAGEABLE_DEVICE_LOCAL_MEMORY_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_QUEUE_SHADER_CORE_CONTROL_CREATE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_QUEUE_SHADER_CORE_CONTROL_CREATE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_FEATURES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_FEATURES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_PROPERTIES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_PROPERTIES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_SLICED_VIEW_OF_3D_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_SLICED_VIEW_OF_3D_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_SLICED_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_VIEW_SLICED_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_SET_HOST_MAPPING_FEATURES_VALVE: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_SET_HOST_MAPPING_FEATURES_VALVE';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_BINDING_REFERENCE_VALVE: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_SET_BINDING_REFERENCE_VALVE';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_HOST_MAPPING_INFO_VALVE: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_HOST_MAPPING_INFO_VALVE';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_NON_SEAMLESS_CUBE_MAP_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_NON_SEAMLESS_CUBE_MAP_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RENDER_PASS_STRIPED_FEATURES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RENDER_PASS_STRIPED_FEATURES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RENDER_PASS_STRIPED_PROPERTIES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RENDER_PASS_STRIPED_PROPERTIES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_STRIPE_BEGIN_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_STRIPE_BEGIN_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_STRIPE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_STRIPE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_STRIPE_SUBMIT_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_STRIPE_SUBMIT_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_COMPUTE_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_COMPUTE_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_INDIRECT_BUFFER_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_INDIRECT_BUFFER_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_INDIRECT_DEVICE_ADDRESS_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_INDIRECT_DEVICE_ADDRESS_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_LINEAR_SWEPT_SPHERES_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_LINEAR_SWEPT_SPHERES_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_LINEAR_SWEPT_SPHERES_DATA_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_LINEAR_SWEPT_SPHERES_DATA_NV';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_SPHERES_DATA_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_SPHERES_DATA_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINEAR_COLOR_ATTACHMENT_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINEAR_COLOR_ATTACHMENT_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MAXIMAL_RECONVERGENCE_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_FEATURES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_FEATURES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_PROPERTIES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_PROPERTIES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_SAMPLE_WEIGHT_CREATE_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_VIEW_SAMPLE_WEIGHT_CREATE_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_NESTED_COMMAND_BUFFER_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_NESTED_COMMAND_BUFFER_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_NESTED_COMMAND_BUFFER_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_NESTED_COMMAND_BUFFER_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_NATIVE_BUFFER_USAGE_OHOS: begin
+      Result := 'VK_STRUCTURE_TYPE_NATIVE_BUFFER_USAGE_OHOS';
+    end;
+    VK_STRUCTURE_TYPE_NATIVE_BUFFER_PROPERTIES_OHOS: begin
+      Result := 'VK_STRUCTURE_TYPE_NATIVE_BUFFER_PROPERTIES_OHOS';
+    end;
+    VK_STRUCTURE_TYPE_NATIVE_BUFFER_FORMAT_PROPERTIES_OHOS: begin
+      Result := 'VK_STRUCTURE_TYPE_NATIVE_BUFFER_FORMAT_PROPERTIES_OHOS';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_NATIVE_BUFFER_INFO_OHOS: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_NATIVE_BUFFER_INFO_OHOS';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_GET_NATIVE_BUFFER_INFO_OHOS: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_GET_NATIVE_BUFFER_INFO_OHOS';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_OHOS: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_OHOS';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_MERGE_FEEDBACK_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_MERGE_FEEDBACK_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_CREATION_CONTROL_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_CREATION_CONTROL_EXT';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_CREATION_FEEDBACK_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_CREATION_FEEDBACK_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_SUBPASS_FEEDBACK_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_SUBPASS_FEEDBACK_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DIRECT_DRIVER_LOADING_INFO_LUNARG: begin
+      Result := 'VK_STRUCTURE_TYPE_DIRECT_DRIVER_LOADING_INFO_LUNARG';
+    end;
+    VK_STRUCTURE_TYPE_DIRECT_DRIVER_LOADING_LIST_LUNARG: begin
+      Result := 'VK_STRUCTURE_TYPE_DIRECT_DRIVER_LOADING_LIST_LUNARG';
+    end;
+    VK_STRUCTURE_TYPE_TENSOR_CREATE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_TENSOR_CREATE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_TENSOR_VIEW_CREATE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_TENSOR_VIEW_CREATE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_BIND_TENSOR_MEMORY_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_TENSOR_MEMORY_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_TENSOR_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_TENSOR_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TENSOR_PROPERTIES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TENSOR_PROPERTIES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_TENSOR_FORMAT_PROPERTIES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_TENSOR_FORMAT_PROPERTIES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_TENSOR_DESCRIPTION_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_TENSOR_DESCRIPTION_ARM';
+    end;
+    VK_STRUCTURE_TYPE_TENSOR_MEMORY_REQUIREMENTS_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_TENSOR_MEMORY_REQUIREMENTS_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_TENSOR_MEMORY_BARRIER_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_TENSOR_MEMORY_BARRIER_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TENSOR_FEATURES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TENSOR_FEATURES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_TENSOR_MEMORY_REQUIREMENTS_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_TENSOR_MEMORY_REQUIREMENTS_ARM';
+    end;
+    VK_STRUCTURE_TYPE_COPY_TENSOR_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_TENSOR_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_TENSOR_COPY_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_TENSOR_COPY_ARM';
+    end;
+    VK_STRUCTURE_TYPE_TENSOR_DEPENDENCY_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_TENSOR_DEPENDENCY_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO_TENSOR_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO_TENSOR_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_TENSOR_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_TENSOR_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_TENSOR_PROPERTIES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_TENSOR_PROPERTIES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_TENSOR_CREATE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_TENSOR_CREATE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_TENSOR_FEATURES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_TENSOR_FEATURES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_TENSOR_PROPERTIES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_TENSOR_PROPERTIES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DESCRIPTOR_GET_TENSOR_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DESCRIPTOR_GET_TENSOR_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_TENSOR_CAPTURE_DESCRIPTOR_DATA_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_TENSOR_CAPTURE_DESCRIPTOR_DATA_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_TENSOR_VIEW_CAPTURE_DESCRIPTOR_DATA_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_TENSOR_VIEW_CAPTURE_DESCRIPTOR_DATA_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_FRAME_BOUNDARY_TENSORS_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_FRAME_BOUNDARY_TENSORS_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MODULE_IDENTIFIER_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MODULE_IDENTIFIER_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MODULE_IDENTIFIER_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MODULE_IDENTIFIER_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_MODULE_IDENTIFIER_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_MODULE_IDENTIFIER_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SHADER_MODULE_IDENTIFIER_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SHADER_MODULE_IDENTIFIER_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPTICAL_FLOW_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPTICAL_FLOW_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPTICAL_FLOW_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_OPTICAL_FLOW_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_OPTICAL_FLOW_IMAGE_FORMAT_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_OPTICAL_FLOW_IMAGE_FORMAT_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_OPTICAL_FLOW_IMAGE_FORMAT_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_OPTICAL_FLOW_IMAGE_FORMAT_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_OPTICAL_FLOW_SESSION_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_OPTICAL_FLOW_SESSION_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_OPTICAL_FLOW_EXECUTE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_OPTICAL_FLOW_EXECUTE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_OPTICAL_FLOW_SESSION_CREATE_PRIVATE_DATA_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_OPTICAL_FLOW_SESSION_CREATE_PRIVATE_DATA_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_DITHERING_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_DITHERING_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FORMAT_RESOLVE_FEATURES_ANDROID: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FORMAT_RESOLVE_FEATURES_ANDROID';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FORMAT_RESOLVE_PROPERTIES_ANDROID: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FORMAT_RESOLVE_PROPERTIES_ANDROID';
+    end;
+    VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_RESOLVE_PROPERTIES_ANDROID: begin
+      Result := 'VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_RESOLVE_PROPERTIES_ANDROID';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ANTI_LAG_FEATURES_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ANTI_LAG_FEATURES_AMD';
+    end;
+    VK_STRUCTURE_TYPE_ANTI_LAG_DATA_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_ANTI_LAG_DATA_AMD';
+    end;
+    VK_STRUCTURE_TYPE_ANTI_LAG_PRESENTATION_INFO_AMD: begin
+      Result := 'VK_STRUCTURE_TYPE_ANTI_LAG_PRESENTATION_INFO_AMD';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DENSE_GEOMETRY_FORMAT_FEATURES_AMDX: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DENSE_GEOMETRY_FORMAT_FEATURES_AMDX';
+    end;
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DENSE_GEOMETRY_FORMAT_TRIANGLES_DATA_AMDX: begin
+      Result := 'VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DENSE_GEOMETRY_FORMAT_TRIANGLES_DATA_AMDX';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_PRESENT_ID_2_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_PRESENT_ID_2_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PRESENT_ID_2_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PRESENT_ID_2_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_ID_2_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_ID_2_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_PRESENT_WAIT_2_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_PRESENT_WAIT_2_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_WAIT_2_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_WAIT_2_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PRESENT_WAIT_2_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PRESENT_WAIT_2_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_POSITION_FETCH_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_POSITION_FETCH_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_BINARY_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_BINARY_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_BINARY_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_BINARY_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_BINARY_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_BINARY_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_BINARY_KEY_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_BINARY_KEY_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_BINARY_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_BINARY_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_RELEASE_CAPTURED_PIPELINE_DATA_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_RELEASE_CAPTURED_PIPELINE_DATA_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_BINARY_DATA_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_BINARY_DATA_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DEVICE_PIPELINE_BINARY_INTERNAL_CACHE_CONTROL_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_DEVICE_PIPELINE_BINARY_INTERNAL_CACHE_CONTROL_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_BINARY_HANDLES_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_BINARY_HANDLES_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_PROPERTIES_FEATURES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_PROPERTIES_FEATURES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_TILE_PROPERTIES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_TILE_PROPERTIES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_AMIGO_PROFILING_FEATURES_SEC: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_AMIGO_PROFILING_FEATURES_SEC';
+    end;
+    VK_STRUCTURE_TYPE_AMIGO_PROFILING_SUBMIT_INFO_SEC: begin
+      Result := 'VK_STRUCTURE_TYPE_AMIGO_PROFILING_SUBMIT_INFO_SEC';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_PRESENT_SCALING_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_PRESENT_SCALING_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_COMPATIBILITY_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_COMPATIBILITY_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_FENCE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_FENCE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODES_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODES_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_SCALING_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_SCALING_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_RELEASE_SWAPCHAIN_IMAGES_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_RELEASE_SWAPCHAIN_IMAGES_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_VIEWPORTS_FEATURES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_VIEWPORTS_FEATURES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_VECTOR_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_VECTOR_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_VECTOR_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_VECTOR_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_COOPERATIVE_VECTOR_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_COOPERATIVE_VECTOR_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_CONVERT_COOPERATIVE_VECTOR_MATRIX_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_CONVERT_COOPERATIVE_VECTOR_MATRIX_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_SPARSE_ADDRESS_SPACE_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_SPARSE_ADDRESS_SPACE_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_SPARSE_ADDRESS_SPACE_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_SPARSE_ADDRESS_SPACE_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_VERTEX_ATTRIBUTES_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_FEATURES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_FEATURES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_PROPERTIES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_PROPERTIES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_LATENCY_SLEEP_MODE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_LATENCY_SLEEP_MODE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_LATENCY_SLEEP_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_LATENCY_SLEEP_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_SET_LATENCY_MARKER_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_GET_LATENCY_MARKER_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_GET_LATENCY_MARKER_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_LATENCY_TIMINGS_FRAME_REPORT_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_LATENCY_TIMINGS_FRAME_REPORT_NV';
+    end;
+    VK_STRUCTURE_TYPE_LATENCY_SUBMISSION_PRESENT_ID_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_LATENCY_SUBMISSION_PRESENT_ID_NV';
+    end;
+    VK_STRUCTURE_TYPE_OUT_OF_BAND_QUEUE_TYPE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_OUT_OF_BAND_QUEUE_TYPE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_SWAPCHAIN_LATENCY_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_SWAPCHAIN_LATENCY_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_LATENCY_SURFACE_CAPABILITIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_LATENCY_SURFACE_CAPABILITIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_CREATE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_CREATE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_SESSION_CREATE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_SESSION_CREATE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_RESOURCE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_RESOURCE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_CONSTANT_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_CONSTANT_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_SESSION_MEMORY_REQUIREMENTS_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_SESSION_MEMORY_REQUIREMENTS_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_BIND_DATA_GRAPH_PIPELINE_SESSION_MEMORY_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_DATA_GRAPH_PIPELINE_SESSION_MEMORY_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DATA_GRAPH_FEATURES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DATA_GRAPH_FEATURES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_SHADER_MODULE_CREATE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_SHADER_MODULE_CREATE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_PROPERTY_QUERY_RESULT_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_PROPERTY_QUERY_RESULT_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_COMPILER_CONTROL_CREATE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_COMPILER_CONTROL_CREATE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_SESSION_BIND_POINT_REQUIREMENTS_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_SESSION_BIND_POINT_REQUIREMENTS_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_SESSION_BIND_POINT_REQUIREMENT_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_SESSION_BIND_POINT_REQUIREMENT_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_IDENTIFIER_CREATE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_IDENTIFIER_CREATE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_DISPATCH_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_DISPATCH_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PROCESSING_ENGINE_CREATE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PROCESSING_ENGINE_CREATE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_QUEUE_FAMILY_DATA_GRAPH_PROCESSING_ENGINE_PROPERTIES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_QUEUE_FAMILY_DATA_GRAPH_PROCESSING_ENGINE_PROPERTIES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_QUEUE_FAMILY_DATA_GRAPH_PROPERTIES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_QUEUE_FAMILY_DATA_GRAPH_PROPERTIES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_QUEUE_FAMILY_DATA_GRAPH_PROCESSING_ENGINE_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_QUEUE_FAMILY_DATA_GRAPH_PROCESSING_ENGINE_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_CONSTANT_TENSOR_SEMI_STRUCTURED_SPARSITY_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_CONSTANT_TENSOR_SEMI_STRUCTURED_SPARSITY_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_RENDER_AREAS_FEATURES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_RENDER_AREAS_FEATURES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_RENDER_AREAS_RENDER_PASS_BEGIN_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_RENDER_AREAS_RENDER_PASS_BEGIN_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_PICTURE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_PICTURE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_PROFILE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_PROFILE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_SESSION_PARAMETERS_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_SESSION_PARAMETERS_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_DPB_SLOT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_DPB_SLOT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_SESSION_PARAMETERS_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_SESSION_PARAMETERS_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_PICTURE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_PICTURE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_DPB_SLOT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_DPB_SLOT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_AV1_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_AV1_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_PROFILE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_PROFILE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_LAYER_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_RATE_CONTROL_LAYER_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_QUALITY_LEVEL_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_QUALITY_LEVEL_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_SESSION_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_SESSION_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_GOP_REMAINING_FRAME_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_GOP_REMAINING_FRAME_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_DECODE_VP9_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_DECODE_VP9_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_VP9_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_VP9_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_VP9_PICTURE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_VP9_PICTURE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_VP9_PROFILE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_VP9_PROFILE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_MAINTENANCE_1_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_MAINTENANCE_1_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_INLINE_QUERY_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_INLINE_QUERY_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PER_STAGE_DESCRIPTOR_SET_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PER_STAGE_DESCRIPTOR_SET_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_2_FEATURES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_2_FEATURES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_2_PROPERTIES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_2_PROPERTIES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLER_BLOCK_MATCH_WINDOW_CREATE_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLER_BLOCK_MATCH_WINDOW_CREATE_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLER_CUBIC_WEIGHTS_CREATE_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLER_CUBIC_WEIGHTS_CREATE_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUBIC_WEIGHTS_FEATURES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUBIC_WEIGHTS_FEATURES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_BLIT_IMAGE_CUBIC_WEIGHTS_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_BLIT_IMAGE_CUBIC_WEIGHTS_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_DEGAMMA_FEATURES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_DEGAMMA_FEATURES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_YCBCR_DEGAMMA_CREATE_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_YCBCR_DEGAMMA_CREATE_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUBIC_CLAMP_FEATURES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUBIC_CLAMP_FEATURES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_DYNAMIC_STATE_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_DYNAMIC_STATE_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFIED_IMAGE_LAYOUTS_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFIED_IMAGE_LAYOUTS_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_ATTACHMENT_FEEDBACK_LOOP_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_ATTACHMENT_FEEDBACK_LOOP_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX: begin
+      Result := 'VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX';
+    end;
+    VK_STRUCTURE_TYPE_SCREEN_BUFFER_FORMAT_PROPERTIES_QNX: begin
+      Result := 'VK_STRUCTURE_TYPE_SCREEN_BUFFER_FORMAT_PROPERTIES_QNX';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_QNX: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_QNX';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCREEN_BUFFER_FEATURES_QNX: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCREEN_BUFFER_FEATURES_QNX';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_DRIVER_PROPERTIES_MSFT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_DRIVER_PROPERTIES_MSFT';
+    end;
+    VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SET_DESCRIPTOR_BUFFER_OFFSETS_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_SET_DESCRIPTOR_BUFFER_OFFSETS_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_BIND_DESCRIPTOR_BUFFER_EMBEDDED_SAMPLERS_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_BIND_DESCRIPTOR_BUFFER_EMBEDDED_SAMPLERS_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_POOL_OVERALLOCATION_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_POOL_OVERALLOCATION_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_MEMORY_HEAP_FEATURES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_MEMORY_HEAP_FEATURES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_MEMORY_HEAP_PROPERTIES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_MEMORY_HEAP_PROPERTIES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_TILE_MEMORY_REQUIREMENTS_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_TILE_MEMORY_REQUIREMENTS_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_TILE_MEMORY_BIND_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_TILE_MEMORY_BIND_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_TILE_MEMORY_SIZE_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_TILE_MEMORY_SIZE_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_COPY_MEMORY_INDIRECT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_MEMORY_INDIRECT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_COPY_MEMORY_TO_IMAGE_INDIRECT_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_COPY_MEMORY_TO_IMAGE_INDIRECT_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DECOMPRESS_MEMORY_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_DECOMPRESS_MEMORY_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_SURFACE_STEREO_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_SURFACE_STEREO_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_DISPLAY_MODE_STEREO_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_DISPLAY_MODE_STEREO_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_INTRA_REFRESH_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_INTRA_REFRESH_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_SESSION_INTRA_REFRESH_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_SESSION_INTRA_REFRESH_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_INTRA_REFRESH_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_INTRA_REFRESH_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_REFERENCE_INTRA_REFRESH_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_REFERENCE_INTRA_REFRESH_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_INTRA_REFRESH_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_INTRA_REFRESH_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUANTIZATION_MAP_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUANTIZATION_MAP_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_FORMAT_QUANTIZATION_MAP_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_FORMAT_QUANTIZATION_MAP_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUANTIZATION_MAP_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUANTIZATION_MAP_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUANTIZATION_MAP_SESSION_PARAMETERS_CREATE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_QUANTIZATION_MAP_SESSION_PARAMETERS_CREATE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_QUANTIZATION_MAP_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_QUANTIZATION_MAP_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_QUANTIZATION_MAP_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_QUANTIZATION_MAP_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_QUANTIZATION_MAP_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_QUANTIZATION_MAP_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_FORMAT_H265_QUANTIZATION_MAP_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_FORMAT_H265_QUANTIZATION_MAP_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_QUANTIZATION_MAP_CAPABILITIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_QUANTIZATION_MAP_CAPABILITIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_FORMAT_AV1_QUANTIZATION_MAP_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_FORMAT_AV1_QUANTIZATION_MAP_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAW_ACCESS_CHAINS_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAW_ACCESS_CHAINS_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_COMPUTE_QUEUE_DEVICE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_COMPUTE_QUEUE_DEVICE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_COMPUTE_QUEUE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_COMPUTE_QUEUE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_EXTERNAL_COMPUTE_QUEUE_DATA_PARAMS_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_EXTERNAL_COMPUTE_QUEUE_DATA_PARAMS_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_COMPUTE_QUEUE_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_COMPUTE_QUEUE_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_RELAXED_EXTENDED_INSTRUCTION_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_RELAXED_EXTENDED_INSTRUCTION_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMMAND_BUFFER_INHERITANCE_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMMAND_BUFFER_INHERITANCE_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_7_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_7_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_7_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_7_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_API_PROPERTIES_LIST_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_API_PROPERTIES_LIST_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_API_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_API_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_API_VULKAN_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LAYERED_API_VULKAN_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT16_VECTOR_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT16_VECTOR_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_REPLICATED_COMPOSITES_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT8_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT8_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_VALIDATION_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_VALIDATION_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_ACCELERATION_STRUCTURE_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_ACCELERATION_STRUCTURE_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_ACCELERATION_STRUCTURE_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_ACCELERATION_STRUCTURE_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_CLUSTERS_BOTTOM_LEVEL_INPUT_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_CLUSTERS_BOTTOM_LEVEL_INPUT_NV';
+    end;
+    VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_TRIANGLE_CLUSTER_INPUT_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_TRIANGLE_CLUSTER_INPUT_NV';
+    end;
+    VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_MOVE_OBJECTS_INPUT_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_MOVE_OBJECTS_INPUT_NV';
+    end;
+    VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_INPUT_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_INPUT_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_COMMANDS_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_CLUSTER_ACCELERATION_STRUCTURE_COMMANDS_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CLUSTER_ACCELERATION_STRUCTURE_CREATE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CLUSTER_ACCELERATION_STRUCTURE_CREATE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PARTITIONED_ACCELERATION_STRUCTURE_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PARTITIONED_ACCELERATION_STRUCTURE_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PARTITIONED_ACCELERATION_STRUCTURE_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PARTITIONED_ACCELERATION_STRUCTURE_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_PARTITIONED_ACCELERATION_STRUCTURE_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_PARTITIONED_ACCELERATION_STRUCTURE_NV';
+    end;
+    VK_STRUCTURE_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_INSTANCES_INPUT_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_INSTANCES_INPUT_NV';
+    end;
+    VK_STRUCTURE_TYPE_BUILD_PARTITIONED_ACCELERATION_STRUCTURE_INFO_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_BUILD_PARTITIONED_ACCELERATION_STRUCTURE_INFO_NV';
+    end;
+    VK_STRUCTURE_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_FLAGS_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_FLAGS_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_GENERATED_COMMANDS_MEMORY_REQUIREMENTS_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_GENERATED_COMMANDS_MEMORY_REQUIREMENTS_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_INDIRECT_EXECUTION_SET_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_INDIRECT_EXECUTION_SET_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_GENERATED_COMMANDS_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_GENERATED_COMMANDS_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_INDIRECT_COMMANDS_LAYOUT_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_INDIRECT_COMMANDS_LAYOUT_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_INDIRECT_COMMANDS_LAYOUT_TOKEN_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_INDIRECT_COMMANDS_LAYOUT_TOKEN_EXT';
+    end;
+    VK_STRUCTURE_TYPE_WRITE_INDIRECT_EXECUTION_SET_PIPELINE_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_WRITE_INDIRECT_EXECUTION_SET_PIPELINE_EXT';
+    end;
+    VK_STRUCTURE_TYPE_WRITE_INDIRECT_EXECUTION_SET_SHADER_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_WRITE_INDIRECT_EXECUTION_SET_SHADER_EXT';
+    end;
+    VK_STRUCTURE_TYPE_INDIRECT_EXECUTION_SET_PIPELINE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_INDIRECT_EXECUTION_SET_PIPELINE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_INDIRECT_EXECUTION_SET_SHADER_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_INDIRECT_EXECUTION_SET_SHADER_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_INDIRECT_EXECUTION_SET_SHADER_LAYOUT_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_INDIRECT_EXECUTION_SET_SHADER_LAYOUT_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_GENERATED_COMMANDS_PIPELINE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_GENERATED_COMMANDS_PIPELINE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_GENERATED_COMMANDS_SHADER_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_GENERATED_COMMANDS_SHADER_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_8_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_8_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_BARRIER_ACCESS_FLAGS_3_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_BARRIER_ACCESS_FLAGS_3_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ALIGNMENT_CONTROL_FEATURES_MESA: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ALIGNMENT_CONTROL_FEATURES_MESA';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ALIGNMENT_CONTROL_PROPERTIES_MESA: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ALIGNMENT_CONTROL_PROPERTIES_MESA';
+    end;
+    VK_STRUCTURE_TYPE_IMAGE_ALIGNMENT_CONTROL_CREATE_INFO_MESA: begin
+      Result := 'VK_STRUCTURE_TYPE_IMAGE_ALIGNMENT_CONTROL_CREATE_INFO_MESA';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FMA_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FMA_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_CONTROL_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_CONTROL_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_DEPTH_CLAMP_CONTROL_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_DEPTH_CLAMP_CONTROL_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_9_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_9_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_9_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_9_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_QUEUE_FAMILY_OWNERSHIP_TRANSFER_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_QUEUE_FAMILY_OWNERSHIP_TRANSFER_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_MAINTENANCE_2_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_MAINTENANCE_2_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_INLINE_SESSION_PARAMETERS_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_INLINE_SESSION_PARAMETERS_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_INLINE_SESSION_PARAMETERS_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_INLINE_SESSION_PARAMETERS_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_INLINE_SESSION_PARAMETERS_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_INLINE_SESSION_PARAMETERS_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SURFACE_CREATE_INFO_OHOS: begin
+      Result := 'VK_STRUCTURE_TYPE_SURFACE_CREATE_INFO_OHOS';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HDR_VIVID_FEATURES_HUAWEI: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HDR_VIVID_FEATURES_HUAWEI';
+    end;
+    VK_STRUCTURE_TYPE_HDR_VIVID_DYNAMIC_METADATA_HUAWEI: begin
+      Result := 'VK_STRUCTURE_TYPE_HDR_VIVID_DYNAMIC_METADATA_HUAWEI';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_2_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_2_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_FLEXIBLE_DIMENSIONS_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_FLEXIBLE_DIMENSIONS_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_2_PROPERTIES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_2_PROPERTIES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_OPACITY_MICROMAP_FEATURES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_OPACITY_MICROMAP_FEATURES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_IMPORT_MEMORY_METAL_HANDLE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_IMPORT_MEMORY_METAL_HANDLE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_METAL_HANDLE_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_METAL_HANDLE_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_MEMORY_GET_METAL_HANDLE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_MEMORY_GET_METAL_HANDLE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_COUNTERS_BY_REGION_FEATURES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_COUNTERS_BY_REGION_FEATURES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_COUNTERS_BY_REGION_PROPERTIES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_COUNTERS_BY_REGION_PROPERTIES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_DESCRIPTION_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_DESCRIPTION_ARM';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_PERFORMANCE_COUNTERS_BY_REGION_BEGIN_INFO_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_PERFORMANCE_COUNTERS_BY_REGION_BEGIN_INFO_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_ROBUSTNESS_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_ROBUSTNESS_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FORMAT_PACK_FEATURES_ARM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FORMAT_PACK_FEATURES_ARM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_LAYERED_FEATURES_VALVE: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_LAYERED_FEATURES_VALVE';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_LAYERED_PROPERTIES_VALVE: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_LAYERED_PROPERTIES_VALVE';
+    end;
+    VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_DENSITY_MAP_LAYERED_CREATE_INFO_VALVE: begin
+      Result := 'VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_DENSITY_MAP_LAYERED_CREATE_INFO_VALVE';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_SET_PRESENT_CONFIG_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_SET_PRESENT_CONFIG_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_METERING_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_METERING_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_OFFSET_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_OFFSET_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_OFFSET_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_OFFSET_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_OFFSET_END_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_OFFSET_END_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_DEVICE_MEMORY_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_DEVICE_MEMORY_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_MODE_FIFO_LATEST_READY_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_MODE_FIFO_LATEST_READY_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_64_BIT_INDEXING_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_64_BIT_INDEXING_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_RESOLVE_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_RESOLVE_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_BEGIN_CUSTOM_RESOLVE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_BEGIN_CUSTOM_RESOLVE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_CUSTOM_RESOLVE_CREATE_INFO_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_CUSTOM_RESOLVE_CREATE_INFO_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DATA_GRAPH_MODEL_FEATURES_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DATA_GRAPH_MODEL_FEATURES_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_BUILTIN_MODEL_CREATE_INFO_QCOM: begin
+      Result := 'VK_STRUCTURE_TYPE_DATA_GRAPH_PIPELINE_BUILTIN_MODEL_CREATE_INFO_QCOM';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_10_FEATURES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_10_FEATURES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_10_PROPERTIES_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_10_PROPERTIES_KHR';
+    end;
+    VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_FLAGS_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_FLAGS_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_RENDERING_END_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_RENDERING_END_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_RESOLVE_IMAGE_MODE_INFO_KHR: begin
+      Result := 'VK_STRUCTURE_TYPE_RESOLVE_IMAGE_MODE_INFO_KHR';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_LONG_VECTOR_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_LONG_VECTOR_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_LONG_VECTOR_PROPERTIES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_LONG_VECTOR_PROPERTIES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CACHE_INCREMENTAL_MODE_FEATURES_SEC: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CACHE_INCREMENTAL_MODE_FEATURES_SEC';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_UNIFORM_BUFFER_UNSIZED_ARRAY_FEATURES_EXT: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_UNIFORM_BUFFER_UNSIZED_ARRAY_FEATURES_EXT';
+    end;
+    VK_STRUCTURE_TYPE_COMPUTE_OCCUPANCY_PRIORITY_PARAMETERS_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_COMPUTE_OCCUPANCY_PRIORITY_PARAMETERS_NV';
+    end;
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_OCCUPANCY_PRIORITY_FEATURES_NV: begin
+      Result := 'VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_OCCUPANCY_PRIORITY_FEATURES_NV';
+    end;
+    VK_STRUCTURE_TYPE_MAX_ENUM: begin
+      Result := 'VK_STRUCTURE_TYPE_MAX_ENUM';
+    end;
+  end;
+end;
+
+function PtrUIntToHex(p: Pointer): string;
+begin
+  Result := Format('0x%.16x', [PtrUInt(p)]);
+end;
+
+function PtrToHex(p: Pointer): string;
+begin
+  Result := Format('0x%.16x', [PtrInt(p)]);
+end;
+
+function PtrToHexClean(p: Pointer): string;
+begin
+  Result := Format('%.16x', [PtrInt(p)]);
+end;
+
+function PtrToHexShort(p: Pointer): string;
+begin
+  Result := Format('%.8x', [PtrInt(p)]);
+end;
+
+function PtrToHexEx(p: Pointer; Digits: integer = 16): string;
+begin
+  Result := Format('0x%.' + IntToStr(Digits) + 'x', [PtrInt(p)]);
+end;
+
+operator := (ptr: Pointer): QWord;
+var
+  abs: QWord absolute ptr;
+begin
+  Result := abs;
+end;
+
+operator := (num: QWord): Pointer;
+var
+  abs: Pointer absolute num;
+begin
+  Result := abs;
+end;
+
+operator <>(num: QWord; ptr: Pointer): boolean;
+var
+  abs: QWord absolute ptr;
+begin
+  Result := num <> abs;
+end;
+
+operator := (ai: VkApplicationInfo): string;
+begin
+  ai.ToString;
+end;
+
+operator := (ici: VkInstanceCreateInfo): string;
+begin
+  Result := ici.ToString;
+end;
+
+operator := (sa: TStringArray): PPChar;
+var
+  i: integer;
+begin
+  GetMem(Result, Length(sa) * SizeOf(PChar));
+  for i := Low(sa) to High(sa) do
+    Result[i] := PChar(sa[i]);
+end;
+
+operator := (sl: TStringList): PPChar;
+var
+  i: integer;
+begin
+  GetMem(Result, sl.Count * SizeOf(PChar));
+  for i := 0 to sl.Count - 1 do
+    Result[i] := PChar(sl[i]);
+end;
+
+operator := (sa: TStringArray): string;
+var
+  i: integer;
+begin
+  Result := '';
+  for i := Low(sa) to High(sa) do
+  begin
+    Result := Result + '"' + sa[i] + '",';
+  end;
+  if Result.Length > 0 then
+    Result := Result.Remove(Result.Length - 1);
+end;
+
+function IfThen(val: boolean; const iftrue: string; const iffalse: string): string; inline; overload;
+begin
+  if val then
+    Result := ifTrue
+  else
+    Result := ifFalse;
+end;
+
+{ TVulkanTutorial }
+
+procedure TVulkanTutorial.SetCaption(AValue: string);
+begin
+  if FCaption = AValue then Exit;
+  FCaption := AValue;
+end;
+
+constructor TVulkanTutorial.Create;
+begin
+  FLogger := TLogger.Create;
+  FLogger.AddAppender(TFileAppender.Create(ChangeFileExt(ParamStr(0), '.log'), llTrace));
+  FLogger.AddAppender(TConsoleAppender.Create(llTrace));
+  FExtensions := TStringList.Create(True);
+  FDeviceFeatures := TStringList.Create(True);
+end;
+
+destructor TVulkanTutorial.Destroy;
+begin
+  Cleanup;
+  FDeviceFeatures.Free;
+  FExtensions.Free;
+  inherited Destroy;
+end;
+
+procedure TVulkanTutorial.run;
+begin
+  try
+    InitWindow;
+    InitVulkan;
+    MainLoop;
+  except
+    on e: Exception do
+    begin
+      FLogger.Error('Run with exception %s ', [e.Message]);
+    end;
+  end;
+end;
+
+function TVulkanTutorial.GetEnableValidationLayers: boolean;
+begin
+  Result := FEnableValidationLayers;
+end;
+
+procedure TVulkanTutorial.SetEnableValidationLayers(AValue: boolean);
+begin
+  FEnableValidationLayers := AValue;
+end;
+
+
+{ TStringArrayTypeHelper }
+
+function TStringArrayTypeHelper.toPPChar: PPChar;
+var
+  i: integer;
+begin
+  GetMem(Result, Length(Self) * SizeOf(PChar));
+  for i := 0 to High(self) do
+    Result[i] := PChar(self[i]);
+end;
+
+function TStringArrayTypeHelper.Text: string;
+var
+  s: string;
+begin
+  Result := '';
+  for s in self do
+    Result += s + LineEnding;
+end;
+
+function TStringArrayTypeHelper.formattedString(): string;
+var
+  i: integer;
+begin
+  Result := '';
+  for i := Low(self) to High(self) do
+  begin
+    if Result <> '' then Result := Result + ', ';
+    Result := Result + '"' + self[i] + '"';
+  end;
+  Result := '[' + Result + ']';
+end;
+
+{ TPPCharHelper }
+
+function TPPCharHelper.toArray(): TStringArray;
+var
+  i: integer;
+  cursor, pp: PPChar;
+begin
+  pp := self;
+  Result := nil;
+  if pp = nil then exit;
+  cursor := pp;
+  i := 0;
+  while cursor^ <> nil do
+  begin
+    SetLength(Result, i + 1);
+    Result[i] := StrPas(cursor^);
+    Inc(cursor);
+    Inc(i);
+  end;
+end;
+
+function TPPCharHelper.toArray(size: uint32): TStringArray;
+var
+  i: integer;
+  PP: PPChar;
+begin
+  SetLength(Result, size);
+  PP := self;
+  for i := 0 to size - 1 do
+  begin
+    if pp^ = nil then
+      Result[i] := ''
+    else
+      Result[i] := StrPas(pp^);
+    Inc(pp);
+  end;
+end;
+
+
+const
+  LevelName: array[TLogLevel] of string =
+    (    // 0
+    ' TRACE ', // 0
+    ' DEBUG ',  // 0
+    '  INFO ',  // 0
+    'WARNING',// 0
+    ' ERROR '// 0
+    );
+
+function LevelToStr(Level: TLogLevel): string;
+begin
+  Result := LevelName[level];
+end;
+
+{ TSimpleLogLayout }
+
+function TSimpleLogLayout.FormatMessage(Level: TLogLevel; const Msg: string; const TimeStamp: TDateTime): string;
+begin
+  Result := Format('[%s] %s', [LevelToStr(Level), Msg]);
+end;
+
+{ TTimestampLogLayout }
+
+constructor TTimestampLogLayout.Create(const DateTimeFormat: string);
+begin
+  FDateTimeFormat := DateTimeFormat;
+end;
+
+function TTimestampLogLayout.FormatMessage(Level: TLogLevel; const Msg: string; const TimeStamp: TDateTime): string;
+begin
+  Result := Format('[%s %s] %s', [LevelToStr(Level), FormatDateTime(FDateTimeFormat, TimeStamp), Msg]);
+end;
+
+{ TAppender }
+
+constructor TAppender.Create;
+begin
+  FLayout := nil;
+end;
+
+procedure TAppender.SetLayout(const Value: ILogLayout);
+begin
+  FLayout := Value;
+end;
+
+{ TConsoleAppender }
+
+constructor TConsoleAppender.Create(Level: TLogLevel);
+begin
+  inherited Create;
+  FLayout := TSimpleLogLayout.Create;
+  FLevel := Level;
+end;
+
+procedure TConsoleAppender.Log(Level: TLogLevel; const Msg: string);
+begin
+  if Level >= FLevel then
+  begin
+    if FLayout = nil then
+      Writeln(StdOut, Format('[%s] %s', [LevelToStr(Level), Msg]))
+    else
+      Writeln(StdOut, FLayout.FormatMessage(Level, Msg, Now));
+  end;
+end;
+
+{ TFileAppender }
+
+constructor TFileAppender.Create(const FileNamePattern: string; Level: TLogLevel; const DateFormat: string);
+begin
+  inherited Create;
+  FLayout := TTimestampLogLayout.Create;
+  FFileNamePattern := FileNamePattern;
+  FDateFormat := DateFormat;
+  FLevel := Level;
+end;
+
+function TFileAppender.GetCurrentFileName: string;
+begin
+  Result := StringReplace(FFileNamePattern, '%d', FormatDateTime(FDateFormat, Now), [rfReplaceAll]);
+end;
+
+procedure TFileAppender.Log(Level: TLogLevel; const Msg: string);
+var
+  F: TextFile;
+  FileName: string;
+begin
+  if Level >= FLevel then
+  begin
+    FileName := GetCurrentFileName;
+    AssignFile(F, FileName);
+    try
+      if FileExists(FileName) then
+        Append(F)
+      else
+        Rewrite(F);
+      if FLayout = nil then
+        Writeln(F, Format('[%s] %s', [LevelToStr(Level), Msg])) // Fallback if no layout is set
+      else
+        Writeln(F, FLayout.FormatMessage(Level, Msg, Now));
+      CloseFile(F);
+    except
+      on E: Exception do
+        Writeln(StdErr, Format('Error writing to log file %s: %s', [FileName, E.Message]));
+    end;
+  end;
+end;
+
+{ TRollingFileAppender }
+
+constructor TRollingFileAppender.Create(const BaseFileName: string; Level: TLogLevel; MaxFileSize: int64; MaxBackupIndex: integer);
+begin
+  inherited Create;
+  FLayout := TTimestampLogLayout.Create; // Default layout with timestamp
+  FBaseFileName := BaseFileName;
+  FExtension := '.log';
+  FMaxFileSize := MaxFileSize;
+  FMaxBackupIndex := MaxBackupIndex;
+  FLevel := Level;
+end;
+
+destructor TRollingFileAppender.Destroy;
+begin
+  inherited Destroy;
+end;
+
+function TRollingFileAppender.GetCurrentFileName: string;
+begin
+  Result := FBaseFileName + FExtension;
+end;
+
+function TRollingFileAppender.GetBackupFileName(Index: integer): string;
+begin
+  Result := Format('%s.%d%s', [FBaseFileName, Index, FExtension]);
+end;
+
+function TRollingFileAppender.GetFileSize(const FileName: string): int64;
+var
+  F: file;
+begin
+  Result := 0;
+  if not FileExists(FileName) then
+    Exit;
+  AssignFile(F, FileName);
+  try
+    Reset(F, 1); // Open in read mode with record size 1 (byte)
+    Result := FileSize(F);
+    CloseFile(F);
+  except
+    on E: Exception do
+    begin
+      Writeln(StdErr, Format('Error getting file size for %s: %s', [FileName, E.Message]));
+      Result := 0;
+    end;
+  end;
+end;
+
+procedure TRollingFileAppender.RollOver;
+var
+  I: integer;
+  CurrentSize: int64;
+  BackupFile: string;
+begin
+  CurrentSize := GetFileSize(GetCurrentFileName);
+  if CurrentSize < FMaxFileSize then
+    Exit; // No rollover needed
+
+  // Roll over existing backups
+  for I := FMaxBackupIndex downto 2 do
+  begin
+    BackupFile := GetBackupFileName(I);
+    if FileExists(GetBackupFileName(I - 1)) then
+    begin
+      // Rename backup I-1 to backup I
+      DeleteFile(BackupFile);
+      RenameFile(GetBackupFileName(I - 1), BackupFile);
+    end;
+  end;
+
+  // Roll over current file to backup.1
+  if FileExists(GetCurrentFileName) then
+  begin
+    DeleteFile(GetBackupFileName(1));
+    RenameFile(GetCurrentFileName, GetBackupFileName(1));
+  end;
+end;
+
+procedure TRollingFileAppender.Log(Level: TLogLevel; const Msg: string);
+var
+  F: TextFile;
+  FileName: string;
+  FormattedMsg: string;
+begin
+  if Level >= FLevel then
+  begin
+    RollOver;
+    FileName := GetCurrentFileName;
+    AssignFile(F, FileName);
+    try
+      if not FileExists(FileName) then
+        Rewrite(F)
+      else
+        Append(F);
+      if FLayout = nil then
+        FormattedMsg := Format('[%s] %s', [LevelToStr(Level), Msg])
+      else
+        FormattedMsg := FLayout.FormatMessage(Level, Msg, Now);
+      Writeln(F, FormattedMsg);
+      Flush(F); // Ensure immediate write
+      CloseFile(F);
+    except
+      on E: Exception do
+        Writeln(StdErr, Format('Error writing to rolling log file %s: %s', [FileName, E.Message]));
+    end;
+  end;
+end;
+
+{ TLogger }
+
+constructor TLogger.Create;
+begin
+  FAppenders := TAppenderList.Create;
+  FLevel := 0;
+end;
+
+destructor TLogger.Destroy;
+begin
+  FAppenders.Free;
+  inherited Destroy;
+end;
+
+procedure TLogger.AddAppender(Appender: TAppender);
+begin
+  FAppenders.Add(Appender);
+end;
+
+procedure TLogger.Log(Level: TLogLevel; const Msg: string; const Args: array of const);
+var
+  Appender: TAppender;
+  LogMsg, FormattedMsg: string;
+begin
+  FormattedMsg := Format(Msg, Args);
+  LogMsg := FormattedMsg;
+  LogMsg := LogMsg.Replace(LineEnding, LineEnding + FIndent, [rfReplaceAll]);
+  for Appender in FAppenders do
+    Appender.Log(Level, FIndent + LogMsg);
+end;
+
+procedure TLogger.Debug(const Msg: string);
+begin
+  Debug(Msg, []);
+end;
+
+procedure TLogger.Debug(const Msg: string; const Args: array of const);
+begin
+  Log(llDebug, Msg, Args);
+end;
+
+procedure TLogger.Info(const Msg: string);
+begin
+  Info(Msg, []);
+end;
+
+procedure TLogger.Info(const Msg: string; const Args: array of const);
+begin
+  Log(llInfo, Msg, Args);
+end;
+
+procedure TLogger.Warning(const Msg: string);
+begin
+  Warning(Msg, []);
+end;
+
+procedure TLogger.Warning(const Msg: string; const Args: array of const);
+begin
+  Log(llWarning, Msg, Args);
+end;
+
+procedure TLogger.Error(const Msg: string);
+begin
+  Error(Msg, []);
+end;
+
+procedure TLogger.Error(const Msg: string; const Args: array of const);
+begin
+  Log(llError, Msg, Args);
+end;
+
+procedure TLogger.Enter(const Msg: string);
+begin
+  Enter(msg, []);
+end;
+
+procedure TLogger.Enter(const Msg: string; const Args: array of const);
+begin
+  FLevel += 1;
+  FIndent := StrUtils.PadRight(' ', FLevel * 4);
+  Log(llTrace, '>>' + msg, Args);
+end;
+
+procedure TLogger.Leave(const Msg: string);
+begin
+  Leave(msg, []);
+end;
+
+procedure TLogger.Leave(const Msg: string; const Args: array of const);
+begin
+  Log(llTrace, '<<' + msg, Args);
+  FLevel -= 1;
+  FIndent := StrUtils.PadRight(' ', FLevel * 4);
+end;
+
+procedure TVkApplicationInfoHelper.zero;
+begin
+  FillByte(Self, SizeOf(Self), 0);
+end;
+
+function TVkApplicationInfoHelper.ToString: string;
+begin
+  Result := ToFormattedString('  ');
+end;
+
+function TVkApplicationInfoHelper.ToFormattedString(const Indent: string = '  '): string;
+begin
+  Result := '{' + LineEnding +//0
+    Indent + 'sType: ' + string(sType) + LineEnding +//0
+    Indent + 'pNext: ' + string(pNext) + LineEnding +//0
+    Indent + 'pApplicationName : ' + string(pApplicationName) + LineEnding +//0
+    Indent + 'applicationVersion : ' + Format('%d.%d.%d', [VK_VERSION_MAJOR(applicationVersion), VK_VERSION_MINOR(applicationVersion), VK_VERSION_PATCH(applicationVersion)]) + LineEnding +//0
+    Indent + 'pEngineName: ' + string(pEngineName) + LineEnding +//0
+    Indent + 'engineVersion: ' + Format('%d.%d.%d', [VK_VERSION_MAJOR(engineVersion), VK_VERSION_MINOR(engineVersion), VK_VERSION_PATCH(engineVersion)]) + LineEnding + //0
+    Indent + 'apiVersion: ' + Format('%d.%d.%d', [VK_VERSION_MAJOR(engineVersion), VK_VERSION_MINOR(engineVersion), VK_VERSION_PATCH(engineVersion)]) + LineEnding +//0
+    '}';//0
+end;
+
+procedure TVkInstanceCreateInfoHelper.zero;
+begin
+  FillByte(self, SizeOf(self), 0);
+  sType := VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+end;
+
+function TVkInstanceCreateInfoHelper.ToString: string;
+begin
+  Result := ToFormattedString('  ');
+end;
+
+function TVkInstanceCreateInfoHelper.ToFormattedString(const Indent: string = '  '): string;
+var
+  cursor: PPChar;
+  tempArray: TStringArray;
+  extList, layerList: string;
+  i: integer;
+  aStructType: ^VkStructureType = nil;
+  pDebugInfo: ^VkDebugUtilsMessengerCreateInfoEXT;
+  pNextString: string = '';
+begin
+  extList := '[';
+  if enabledExtensionCount > 0 then
+  begin
+    tempArray := ppEnabledExtensionNames.toArray(enabledExtensionCount);
+    extList += tempArray.formattedString();
+    setLength(tempArray, 0);
+  end;
+  extList += ']';
+  layerList := '[';
+  if enabledLayerCount > 0 then
+  begin
+    tempArray := ppEnabledExtensionNames.toArray(enabledLayerCount);
+    extList += tempArray.formattedString();
+    setLength(tempArray, 0);
+  end;
+  layerList += ']';
+
+  pNextString := string(pNext);
+
+  if (pNext <> nil) then
+  begin
+    aStructType := pNext;
+    if aStructType^ = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT then
+    begin
+      pDebugInfo := PVkDebugUtilsMessengerCreateInfoEXT(pNext);
+      pNextString := pDebugInfo^.ToFormattedString(Indent + '  ');
+    end;
+  end;
+
+  Result :=
+    '{' + LineEnding +     //0
+    Indent + 'sType: ' + string(sType) + LineEnding +//0
+    Indent + 'pNext: ' + pNextString + LineEnding +//0
+    Indent + 'flags: $' + IntToHex(flags, 8) + LineEnding +//0
+    Indent + 'pApplicationInfo: ' + pApplicationInfo^.ToFormattedString(Indent + '  ') + LineEnding +//0
+    Indent + 'enabledLayerCount: ' + IntToStr(enabledLayerCount) + LineEnding +//0
+    Indent + 'ppEnabledLayerNames: ' + layerList + LineEnding +//0
+    Indent + 'enabledExtensionCount: ' + IntToStr(enabledExtensionCount) + LineEnding +//0
+    Indent + 'ppEnabledExtensionNames: ' + IfThen(enabledExtensionCount > 0, '[' + extList + ']', '(nessuna)') + LineEnding +//0
+    '}';//0
+end;
+
+procedure TVkDebugUtilsMessengerCreateInfoEXTHelper.zero;
+begin
+  FillByte(self, SizeOf(Self), 0);
+  sType := VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+end;
+
+function TVkDebugUtilsMessengerCreateInfoEXTHelper.ToString: string;
+begin
+  Result := ToFormattedString('');
+end;
+
+function TVkDebugUtilsMessengerCreateInfoEXTHelper.ToFormattedString(const Indent: string = '  '): string;
+var
+  sSeverity, sTypeFlags: string;
+begin
+  // Severity flags
+  sSeverity := ''; //0
+  if messageSeverity and VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT <> 0 then sSeverity := sSeverity + 'VERBOSE, ';//0
+  if messageSeverity and VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT <> 0 then sSeverity := sSeverity + 'INFO, ';//0
+  if messageSeverity and VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT <> 0 then sSeverity := sSeverity + 'WARNING, ';//0
+  if messageSeverity and VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT <> 0 then sSeverity := sSeverity + 'ERROR, ';//0
+  if sSeverity = '' then sSeverity := '(nessuna)'//0
+  else
+    Delete(sSeverity, Length(sSeverity) - 1, 2); // rimuove ultima virgola + spazio//0
+
+  // Message type flags
+  sTypeFlags := '';//0
+  if messageType and VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT <> 0 then sTypeFlags := sTypeFlags + 'GENERAL, ';//0
+  if messageType and VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT <> 0 then sTypeFlags := sTypeFlags + 'VALIDATION, ';//0
+  if messageType and VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT <> 0 then sTypeFlags := sTypeFlags + 'PERFORMANCE, ';//0
+  if sTypeFlags = '' then sTypeFlags := '(nessuna)'//0
+  else
+    Delete(sTypeFlags, Length(sTypeFlags) - 1, 2);//0
+
+  Result :=//0
+    '{' + LineEnding +//0
+    Indent + 'sType: ' + string(sType) + LineEnding +//0
+    Indent + 'pNext: ' + string(pNext) + LineEnding +//0
+    Indent + 'flags: $' + IntToHex(flags, 8) + LineEnding +//0
+    Indent + 'messageSeverity: ' + sSeverity + LineEnding +//0
+    Indent + 'messageType: ' + sTypeFlags + LineEnding +//0
+    Indent + 'pfnUserCallback: ' + string(pfnUserCallback) + LineEnding +//0
+    Indent + 'pUserData: ' + string(pUserData) + LineEnding +//0
+    '}';//0
+end;
+
+procedure TVkDeviceQueueCreateInfoHelper.Zero;
+begin
+  FillChar(Self, SizeOf(Self), 0);
+  sType := VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+end;
+
+
+function TVkDeviceQueueCreateInfoHelper.GetPrioritiesAsString: string;
+var
+  i: integer;
+  vals: string;
+begin
+  if (queueCount = 0) or not Assigned(pQueuePriorities) then
+    Exit('no priorities');
+
+  vals := '';
+  for i := 0 to queueCount - 1 do
+  begin
+    if i > 0 then vals := vals + ', ';
+    vals := vals + FloatToStr(pQueuePriorities[i]);
+  end;
+
+  Result := Format('%d prio(s): %s', [queueCount, vals]);
+end;
+
+
+function TVkDeviceQueueCreateInfoHelper.ToString: string;
+begin
+  Result := ToFormattedString(' ');
+end;
+
+
+function TVkDeviceQueueCreateInfoHelper.ToFormattedString(const Indent: string): string;
+var
+  p: string;
+begin
+  p := Indent;
+
+  Result :=
+    'VkDeviceQueueCreateInfo {' + LineEnding + // 0
+    p + '  sType            = ' + string(sType) + LineEnding +// 0
+    p + '  pNext            = ' + PtrToHex(pNext) + LineEnding +// 0
+    p + '  flags            = ' + IntToHex(flags, 8) + LineEnding +// 0
+    p + '  queueFamilyIndex = ' + IntToStr(queueFamilyIndex) + LineEnding +// 0
+    p + '  queueCount       = ' + IntToStr(queueCount) + LineEnding +// 0
+    p + '  pQueuePriorities = ' + GetPrioritiesAsString + LineEnding +// 0
+    Indent + '}';// 0
+end;
+
+procedure TVkPhysicalDeviceFeaturesHelper.Zero;
+begin
+  FillChar(Self, SizeOf(Self), 0);
+end;
+
+function TVkPhysicalDeviceFeaturesHelper.BoolToStr(b: VkBool32): string;
+begin
+  if b <> VK_FALSE then
+    Result := 'YES'
+  else
+    Result := 'no';
+end;
+
+
+function TVkPhysicalDeviceFeaturesHelper.GetEnabledFeaturesCount: integer;
+var
+  p: pbyte;
+  i: integer;
+begin
+  Result := 0;
+  p := @Self;
+  for i := 0 to SizeOf(Self) div SizeOf(VkBool32) - 1 do
+    if PVkBool32(p)^ <> VK_FALSE then
+      Inc(Result);
+  Inc(p, SizeOf(VkBool32));
+end;
+
+
+function TVkPhysicalDeviceFeaturesHelper.ToString: string;
+begin
+  Result := ToFormattedString(' ');
+end;
+
+
+function TVkPhysicalDeviceFeaturesHelper.ToFormattedString(const Indent: string = '  '): string;
+const
+  LINE = LineEnding;
+var
+  p: string;
+begin
+  p := Indent;
+  Result :=
+    'VkPhysicalDeviceFeatures {' + LINE + // 0
+    p + '  robustBufferAccess .................. : ' + BoolToStr(robustBufferAccess) + LINE + // 0
+    p + '  fullDrawIndexUint32 ................ : ' + BoolToStr(fullDrawIndexUint32) + LINE + // 0
+    p + '  imageCubeArray ..................... : ' + BoolToStr(imageCubeArray) + LINE + // 0
+    p + '  independentBlend ................... : ' + BoolToStr(independentBlend) + LINE + // 0
+    p + '  geometryShader ..................... : ' + BoolToStr(geometryShader) + LINE + // 0
+    p + '  tessellationShader ................. : ' + BoolToStr(tessellationShader) + LINE + // 0
+    p + '  sampleRateShading .................. : ' + BoolToStr(sampleRateShading) + LINE + // 0
+    p + '  dualSrcBlend ....................... : ' + BoolToStr(dualSrcBlend) + LINE + // 0
+    p + '  logicOp ............................ : ' + BoolToStr(logicOp) + LINE + // 0
+    p + '  multiDrawIndirect .................. : ' + BoolToStr(multiDrawIndirect) + LINE + // 0
+    p + '  drawIndirectFirstInstance .......... : ' + BoolToStr(drawIndirectFirstInstance) + LINE + // 0
+    p + '  depthClamp ......................... : ' + BoolToStr(depthClamp) + LINE + // 0
+    p + '  depthBiasClamp ..................... : ' + BoolToStr(depthBiasClamp) + LINE + // 0
+    p + '  fillModeNonSolid ................... : ' + BoolToStr(fillModeNonSolid) + LINE + // 0
+    p + '  depthBounds ........................ : ' + BoolToStr(depthBounds) + LINE + // 0
+    p + '  wideLines .......................... : ' + BoolToStr(wideLines) + LINE + // 0
+    p + '  largePoints ........................ : ' + BoolToStr(largePoints) + LINE + // 0
+    p + '  alphaToOne ......................... : ' + BoolToStr(alphaToOne) + LINE + // 0
+    p + '  multiViewport ...................... : ' + BoolToStr(multiViewport) + LINE + // 0
+    p + '  samplerAnisotropy .................. : ' + BoolToStr(samplerAnisotropy) + LINE + // 0
+    p + '  textureCompressionETC2 ............. : ' + BoolToStr(textureCompressionETC2) + LINE + // 0
+    p + '  textureCompressionASTC_LDR ......... : ' + BoolToStr(textureCompressionASTC_LDR) + LINE + // 0
+    p + '  textureCompressionBC ............... : ' + BoolToStr(textureCompressionBC) + LINE + // 0
+    p + '  occlusionQueryPrecise .............. : ' + BoolToStr(occlusionQueryPrecise) + LINE + // 0
+    p + '  pipelineStatisticsQuery ............ : ' + BoolToStr(pipelineStatisticsQuery) + LINE + // 0
+    p + '  vertexPipelineStoresAndAtomics ..... : ' + BoolToStr(vertexPipelineStoresAndAtomics) + LINE + // 0
+    p + '  fragmentStoresAndAtomics ........... : ' + BoolToStr(fragmentStoresAndAtomics) + LINE + // 0
+    p + '  shaderTessellationAndGeometryPointSize : ' + BoolToStr(shaderTessellationAndGeometryPointSize) + LINE + // 0
+    p + '  shaderImageGatherExtended .......... : ' + BoolToStr(shaderImageGatherExtended) + LINE + // 0
+    p + '  shaderStorageImageExtendedFormats .. : ' + BoolToStr(shaderStorageImageExtendedFormats) + LINE + // 0
+    p + '  shaderStorageImageMultisample ...... : ' + BoolToStr(shaderStorageImageMultisample) + LINE + // 0
+    p + '  shaderStorageImageReadWithoutFormat . : ' + BoolToStr(shaderStorageImageReadWithoutFormat) + LINE + // 0
+    p + '  shaderStorageImageWriteWithoutFormat : ' + BoolToStr(shaderStorageImageWriteWithoutFormat) + LINE + // 0
+    p + '  shaderUniformBufferArrayDynamicIndexing : ' + BoolToStr(shaderUniformBufferArrayDynamicIndexing) + LINE + // 0
+    p + '  shaderSampledImageArrayDynamicIndexing : ' + BoolToStr(shaderSampledImageArrayDynamicIndexing) + LINE + // 0
+    p + '  shaderStorageBufferArrayDynamicIndexing : ' + BoolToStr(shaderStorageBufferArrayDynamicIndexing) + LINE + // 0
+    p + '  shaderStorageImageArrayDynamicIndexing : ' + BoolToStr(shaderStorageImageArrayDynamicIndexing) + LINE + // 0
+    p + '  shaderClipDistance .................. : ' + BoolToStr(shaderClipDistance) + LINE + // 0
+    p + '  shaderCullDistance .................. : ' + BoolToStr(shaderCullDistance) + LINE + // 0
+    p + '  shaderFloat64 ....................... : ' + BoolToStr(shaderFloat64) + LINE + // 0
+    p + '  shaderInt64 ......................... : ' + BoolToStr(shaderInt64) + LINE + // 0
+    p + '  shaderInt16 ......................... : ' + BoolToStr(shaderInt16) + LINE + // 0
+    p + '  shaderResourceResidency ............ : ' + BoolToStr(shaderResourceResidency) + LINE + // 0
+    p + '  shaderResourceMinLod ................ : ' + BoolToStr(shaderResourceMinLod) + LINE + // 0
+    p + '  sparseBinding ....................... : ' + BoolToStr(sparseBinding) + LINE + // 0
+    p + '  sparseResidencyBuffer .............. : ' + BoolToStr(sparseResidencyBuffer) + LINE + // 0
+    p + '  sparseResidencyImage2D ............. : ' + BoolToStr(sparseResidencyImage2D) + LINE + // 0
+    p + '  sparseResidencyImage3D ............. : ' + BoolToStr(sparseResidencyImage3D) + LINE + // 0
+    p + '  sparseResidency2Samples ............ : ' + BoolToStr(sparseResidency2Samples) + LINE + // 0
+    p + '  sparseResidency4Samples ............ : ' + BoolToStr(sparseResidency4Samples) + LINE + // 0
+    p + '  sparseResidency8Samples ............ : ' + BoolToStr(sparseResidency8Samples) + LINE + // 0
+    p + '  sparseResidency16Samples ........... : ' + BoolToStr(sparseResidency16Samples) + LINE + // 0
+    p + '  sparseResidencyAliased ............. : ' + BoolToStr(sparseResidencyAliased) + LINE + // 0
+    p + '  variableMultisampleRate ............ : ' + BoolToStr(variableMultisampleRate) + LINE + // 0
+    p + '  inheritedQueries ................... : ' + BoolToStr(inheritedQueries) + LINE + // 0
+    Indent + '}';
+end;
+
+{ TVkDeviceCreateInfoHelper }
+
+procedure TVkDeviceCreateInfoHelper.Zero;
+begin
+  FillByte(Self, SizeOf(Self), 0);
+  sType := VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+end;
+
+
+function TVkDeviceCreateInfoHelper.PtrStatus(const p: pointer): string; inline;
+begin
+  if p = nil then
+    Result := 'nil'
+  else
+    Result := Format('%p', [p]);
+end;
+
+
+function TVkDeviceCreateInfoHelper.ToString: string;
+begin
+  Result := ToFormattedString(' ');
+end;
+
+
+function TVkDeviceCreateInfoHelper.ToFormattedString(const Indent: string = '  '): string;
+var
+  p: string;
+  EnabledExtensionNames, EnabledLayerNames: string;
+  tempArray: TStringArray;
+begin
+  p := Indent;
+  EnabledExtensionNames := '(nessuna)';
+  EnabledLayerNames := '(nessuna)';
+
+  if enabledExtensionCount > 0 then
+  begin
+    tempArray := self.ppEnabledExtensionNames.toArray(enabledExtensionCount);
+    EnabledExtensionNames := tempArray.formattedString();
+    SetLength(tempArray, 0);
+  end;
+  if enabledLayerCount > 0 then
+  begin
+    tempArray := self.ppEnabledLayerNames.toArray(enabledLayerCount);
+    EnabledLayerNames := tempArray.formattedString();
+    SetLength(tempArray, 0);
+  end;
+
+  Result :=
+    'VkDeviceCreateInfo {' + LineEnding + //  0
+    p + '  sType                    = ' + string(sType) + LineEnding +//  0
+    p + '  pNext                    = ' + PtrStatus(pNext) + LineEnding +//  0
+    p + '  flags                    = ' + IntToHex(flags, 8) + LineEnding +//  0
+    p + '  queueCreateInfoCount     = ' + IntToStr(queueCreateInfoCount) + LineEnding +//  0
+    p + '  pQueueCreateInfos        = ' + PtrStatus(pQueueCreateInfos) + LineEnding +//  0
+    p + '  enabledLayerCount         = ' + IntToStr(enabledLayerCount) + LineEnding +//  0
+    p + '  ppEnabledLayerNames       = ' + EnabledLayerNames + LineEnding +//  0
+    p + '  enabledExtensionCount     = ' + IntToStr(enabledExtensionCount) + LineEnding +//  0
+    p + '  ppEnabledExtensionNames   = ' + EnabledExtensionNames + LineEnding +//  0
+    p + '  pEnabledFeatures          = ' + PtrStatus(pEnabledFeatures) + LineEnding +//  0
+    Indent + '}';//  0
+end;
+
+
+{ TVkSwapchainCreateInfoKHRHelper }
+
+procedure TVkSwapchainCreateInfoKHRHelper.Zero;
+begin
+  FillChar(Self, SizeOf(Self), 0);
+  sType := VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+end;
+
+function TVkSwapchainCreateInfoKHRHelper.PtrStatus(const p: pointer): string;
+begin
+  if p = nil then
+    Result := 'nil'
+  else
+    Result := Format('%p', [p]);
+end;
+
+function TVkSwapchainCreateInfoKHRHelper.BoolStr(b: VkBool32): string;
+begin
+  Result := IfThen(b <> VK_FALSE, 'VK_TRUE', 'VK_FALSE');
+end;
+
+function TVkSwapchainCreateInfoKHRHelper.FormatStr(f: VkFormat): string;
+begin
+  case f of
+    VK_FORMAT_B8G8R8A8_SRGB: Result := 'VK_FORMAT_B8G8R8A8_SRGB';
+    VK_FORMAT_R8G8B8A8_SRGB: Result := 'VK_FORMAT_R8G8B8A8_SRGB';
+    VK_FORMAT_B8G8R8A8_UNORM: Result := 'VK_FORMAT_B8G8R8A8_UNORM';
+    VK_FORMAT_R8G8B8A8_UNORM: Result := 'VK_FORMAT_R8G8B8A8_UNORM';
+    VK_FORMAT_UNDEFINED: Result := 'VK_FORMAT_UNDEFINED';
+    else
+      Result := Format('VK_FORMAT(%d)', [Ord(f)]);
+  end;
+end;
+
+function TVkSwapchainCreateInfoKHRHelper.ColorSpaceStr(cs: VkColorSpaceKHR): string;
+begin
+  case cs of
+    VK_COLOR_SPACE_SRGB_NONLINEAR_KHR: Result := 'VK_COLOR_SPACE_SRGB_NONLINEAR_KHR';
+    VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT: Result := 'VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT';
+    VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT: Result := 'VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT';
+    else
+      Result := Format('VK_COLOR_SPACE(%d)', [Ord(cs)]);
+  end;
+end;
+
+function TVkSwapchainCreateInfoKHRHelper.PresentModeStr(pm: VkPresentModeKHR): string;
+begin
+  case pm of
+    VK_PRESENT_MODE_IMMEDIATE_KHR: Result := 'IMMEDIATE';
+    VK_PRESENT_MODE_MAILBOX_KHR: Result := 'MAILBOX';
+    VK_PRESENT_MODE_FIFO_KHR: Result := 'FIFO';
+    VK_PRESENT_MODE_FIFO_RELAXED_KHR: Result := 'FIFO_RELAXED';
+    else
+      Result := Format('PRESENT_MODE(%d)', [Ord(pm)]);
+  end;
+end;
+
+function TVkSwapchainCreateInfoKHRHelper.CompositeAlphaStr(ca: VkCompositeAlphaFlagBitsKHR): string;
+begin
+  case ca of
+    VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR: Result := 'OPAQUE';
+    VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR: Result := 'PRE_MULTIPLIED';
+    VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR: Result := 'POST_MULTIPLIED';
+    VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR: Result := 'INHERIT';
+    else
+      Result := Format('COMPOSITE_ALPHA(%d)', [Ord(ca)]);
+  end;
+end;
+
+function TVkSwapchainCreateInfoKHRHelper.ImageUsageStr(usage: VkImageUsageFlags): string;
+var
+  parts: TStringList;
+begin
+  parts := TStringList.Create;
+  try
+    if usage and VK_IMAGE_USAGE_TRANSFER_SRC_BIT <> 0 then parts.Add('TRANSFER_SRC');
+    if usage and VK_IMAGE_USAGE_TRANSFER_DST_BIT <> 0 then parts.Add('TRANSFER_DST');
+    if usage and VK_IMAGE_USAGE_SAMPLED_BIT <> 0 then parts.Add('SAMPLED');
+    if usage and VK_IMAGE_USAGE_STORAGE_BIT <> 0 then parts.Add('STORAGE');
+    if usage and VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT <> 0 then parts.Add('COLOR_ATTACHMENT');
+    if usage and VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT <> 0 then parts.Add('DEPTH_STENCIL');
+    if usage and VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT <> 0 then parts.Add('TRANSIENT');
+    if usage and VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT <> 0 then parts.Add('INPUT_ATTACHMENT');
+    if parts.Count = 0 then
+      Result := '0'
+    else
+      Result := parts.CommaText;
+  finally
+    parts.Free;
+  end;
+end;
+
+function TVkSwapchainCreateInfoKHRHelper.SharingModeStr(sm: VkSharingMode): string;
+begin
+  case sm of
+    VK_SHARING_MODE_EXCLUSIVE: Result := 'EXCLUSIVE';
+    VK_SHARING_MODE_CONCURRENT: Result := 'CONCURRENT';
+    else
+      Result := Format('SHARING_MODE(%d)', [Ord(sm)]);
+  end;
+end;
+
+function TVkSwapchainCreateInfoKHRHelper.TransformStr(t: VkSurfaceTransformFlagBitsKHR): string;
+begin
+  case t of
+    VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR: Result := 'IDENTITY';
+    VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR: Result := 'ROTATE_90';
+    VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR: Result := 'ROTATE_180';
+    VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR: Result := 'ROTATE_270';
+    VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_BIT_KHR: Result := 'HORIZONTAL_MIRROR';
+    VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90_BIT_KHR: Result := 'H_MIRROR_ROTATE_90';
+    VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR: Result := 'H_MIRROR_ROTATE_180';
+    VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR: Result := 'H_MIRROR_ROTATE_270';
+    VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR: Result := 'INHERIT';
+    else
+      Result := Format('TRANSFORM(%d)', [Ord(t)]);
+  end;
+end;
+
+function TVkSwapchainCreateInfoKHRHelper.ToString: string;
+begin
+  Result := ToFormattedString(' ');
+end;
+
+function TVkSwapchainCreateInfoKHRHelper.ToFormattedString(const Indent: string = '  '): string;
+var
+  p: string;
+begin
+  p := Indent;
+
+  Result :=
+    'VkSwapchainCreateInfoKHR {' + LineEnding +  // 0
+    p + '  sType                  = ' + string(sType) + LineEnding +// 0
+    p + '  pNext                  = ' + PtrStatus(pNext) + LineEnding +// 0
+    p + '  flags                  = ' + IntToHex(flags, 8) + LineEnding +// 0
+    p + '  surface                = ' + PtrStatus(surface) + LineEnding +// 0
+    p + '  minImageCount          = ' + IntToStr(minImageCount) + LineEnding +// 0
+    p + '  imageFormat            = ' + FormatStr(imageFormat) + LineEnding +// 0
+    p + '  imageColorSpace        = ' + ColorSpaceStr(imageColorSpace) + LineEnding +// 0
+    p + '  imageExtent            = ' + Format('%dx%d', [imageExtent.Width, imageExtent.Height]) + LineEnding +// 0
+    p + '  imageArrayLayers       = ' + IntToStr(imageArrayLayers) + LineEnding +// 0
+    p + '  imageUsage             = ' + ImageUsageStr(imageUsage) + LineEnding +// 0
+    p + '  imageSharingMode       = ' + SharingModeStr(imageSharingMode) + LineEnding +// 0
+    p + '  queueFamilyIndexCount  = ' + IntToStr(queueFamilyIndexCount) + LineEnding +// 0
+    p + '  pQueueFamilyIndices    = ' + PtrStatus(pQueueFamilyIndices) + LineEnding +// 0
+    p + '  preTransform           = ' + TransformStr(preTransform) + LineEnding +// 0
+    p + '  compositeAlpha         = ' + CompositeAlphaStr(compositeAlpha) + LineEnding +// 0
+    p + '  presentMode            = ' + PresentModeStr(presentMode) + LineEnding +// 0
+    p + '  clipped                = ' + BoolStr(clipped) + LineEnding +// 0
+    p + '  oldSwapchain           = ' + PtrStatus(oldSwapchain) + LineEnding +// 0
+    Indent + '}';// 0
+end;
+
+
+end.

@@ -35,11 +35,99 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="vulkan.tutorial.application.pas"/>
+        <Filename Value="..\..\..\src\pax.vulkan.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="..\..\..\src\pax.vulkan.pas"/>
+        <Filename Value="tutorial\vulkan.tutorial.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application00.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application01.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application02.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application03.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application04.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application05.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application06.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application07.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application08.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application09.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application10.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application11.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application12.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application13.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application14.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application15.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application16.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application17.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application18.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\vulkan.tutorial.application19.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tutorial\logger.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\..\..\src\pax.vulkan.helpers.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
@@ -52,9 +140,14 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\src;..\..\..\src"/>
+      <OtherUnitFiles Value="..\src;..\..\..\src;tutorial;.."/>
       <UnitOutputDirectory Value="..\..\..\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <CodeGeneration>
+      <Optimizations>
+        <OptimizationLevel Value="0"/>
+      </Optimizations>
+    </CodeGeneration>
     <Linking>
       <Debugging>
         <DebugInfoType Value="dsDwarf3"/>
@@ -74,6 +167,12 @@
       </Item>
       <Item>
         <Name Value="EVulkanNotBound"/>
+      </Item>
+      <Item>
+        <Name Value="RunError(103)"/>
+      </Item>
+      <Item>
+        <Name Value="EInOutError"/>
       </Item>
     </Exceptions>
   </Debugging>
