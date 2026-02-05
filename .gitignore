@@ -4,5 +4,5 @@
 *.o
 *.obj
 *.ppu
-*/backup/*
+**/backup/*
 *.txt
